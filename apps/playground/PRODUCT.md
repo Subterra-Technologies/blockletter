@@ -45,8 +45,8 @@ Convex. The editor is a controlled component; the host owns storage, workflow an
 
 - The shell around the editor is plain CSS (`src/playground.css`); no Tailwind in the playground.
   The editor brings its own compiled, scoped stylesheet and is never restyled from the shell.
-- Blockletter is pre-release; its source is private and its packages are not publicly installable
-  yet. The site must not imply otherwise.
+- Blockletter is pre-release: the repository is public, but its packages are not on npm yet.
+  The site must not imply they can be installed from a registry.
 - Uploads in the demo stay in the browser (data URLs); the renderer warns that inboxes cannot load
   them.
 

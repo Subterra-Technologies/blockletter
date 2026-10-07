@@ -95,7 +95,7 @@ export function App({ link }: { link: DeepLink }) {
               by Subterra Technologies
             </a>
           </p>
-          <p className="pg-top__note">Pre-release · source not yet public</p>
+          <p className="pg-top__note">Pre-release · not on npm yet</p>
         </div>
       </header>
       <SectionNav sections={SECTIONS} />
