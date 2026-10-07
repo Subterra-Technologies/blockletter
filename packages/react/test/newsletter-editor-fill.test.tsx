@@ -13,8 +13,8 @@ import {
 /**
  * `fill`: the editor fits its container's height. Wide, its three panes sit side by side and
  * scroll on their own (which only a browser can show); narrow, one pane shows at a time, switched
- * from the top bar. jsdom has no layout, so the editor's width is given by stubbing the measure it
- * reads; unmeasured, it is the wide layout.
+ * from the top bar: Blocks, Canvas, Edit and Preview. jsdom has no layout, so the editor's width
+ * is given by stubbing the measure it reads; unmeasured, it is the wide layout.
  */
 
 /** Every element measures `width` pixels across, as the editor's body does in a browser. */
@@ -33,6 +33,12 @@ function measureAt(width: number): void {
 }
 
 const switcher = () => screen.getByRole('tablist', { name: 'Editor panes' });
+const tabNames = () =>
+  within(switcher())
+    .getAllByRole('tab')
+    .map((tab) => tab.textContent);
+/** Every element in the editor that scrolls: in a fill layout, its panes. */
+const scrollers = (root: Element) => [...root.querySelectorAll('[class~="bl:overflow-y-auto"]')];
 const paneTab = (name: string) => within(switcher()).getByRole('tab', { name });
 /** The pane a tab controls, shown or not (a hidden pane has no accessible name to find it by). */
 function panel(name: string): HTMLElement {
@@ -84,18 +90,14 @@ describe('NewsletterEditor fill', () => {
     measureAt(360);
     const { user } = renderEditor(issue([HEADER, TEXT, FOOTER]), { fill: true });
 
-    expect(
-      within(switcher())
-        .getAllByRole('tab')
-        .map((tab) => tab.textContent),
-    ).toEqual(['Blocks', 'Canvas', 'Edit']);
+    expect(tabNames()).toEqual(['Blocks', 'Canvas', 'Edit', 'Preview']);
     expect(paneTab('Canvas')).toHaveAttribute('aria-selected', 'true');
     expect(panel('Canvas')).toBeVisible();
     expect(panel('Blocks')).not.toBeVisible();
     expect(panel('Edit')).not.toBeVisible();
     expect(screen.getByRole('tabpanel')).toHaveAccessibleName('Canvas');
-    // Canvas or Preview is a question about the Canvas pane, so it is asked there.
-    expect(within(panel('Canvas')).getByRole('button', { name: 'Preview' })).toBeVisible();
+    // Preview is one of the tabs, so there is no second Canvas / Preview switch.
+    expect(screen.queryByRole('group', { name: 'View' })).not.toBeInTheDocument();
 
     await user.click(paneTab('Blocks'));
     expect(paneTab('Blocks')).toHaveAttribute('aria-selected', 'true');
@@ -110,17 +112,22 @@ describe('NewsletterEditor fill', () => {
     await user.keyboard('{ArrowRight}');
     expect(paneTab('Canvas')).toHaveFocus();
     expect(panel('Canvas')).toBeVisible();
-    await user.keyboard('{End}');
+    await user.keyboard('{ArrowRight}');
     expect(paneTab('Edit')).toHaveFocus();
     expect(panel('Edit')).toBeVisible();
+    await user.keyboard('{End}');
+    expect(paneTab('Preview')).toHaveFocus();
+    expect(screen.getByRole('tabpanel')).toHaveAccessibleName('Preview');
     await user.keyboard('{ArrowRight}');
     expect(paneTab('Blocks')).toHaveFocus();
     await user.keyboard('{ArrowLeft}');
-    expect(paneTab('Edit')).toHaveFocus();
+    expect(paneTab('Preview')).toHaveFocus();
     await user.keyboard('{Home}');
     expect(paneTab('Blocks')).toHaveFocus();
     // Only the shown pane's tab is a Tab stop.
-    expect(paneTab('Canvas')).toHaveAttribute('tabindex', '-1');
+    for (const name of ['Canvas', 'Edit', 'Preview']) {
+      expect(paneTab(name)).toHaveAttribute('tabindex', '-1');
+    }
   });
 
   it('goes back to Canvas after a block is added from Blocks, the new block chosen', async () => {
@@ -201,13 +208,88 @@ describe('NewsletterEditor fill', () => {
     expect(screen.queryByRole('button', { name: 'Edit Text' })).not.toBeInTheDocument();
   });
 
-  it('switches Canvas and Preview inside the Canvas pane', async () => {
+  it('previews from a tab of its own, in the canvas’s place, at the phone width', async () => {
     measureAt(360);
     const { user } = renderEditor(issue([HEADER, TEXT, FOOTER]), { fill: true });
-    await user.click(within(panel('Canvas')).getByRole('button', { name: 'Preview' }));
-    expect(within(panel('Canvas')).getByTitle('Email preview')).toBeInTheDocument();
-    await user.click(within(panel('Canvas')).getByRole('button', { name: 'Canvas' }));
+    await user.click(paneTab('Preview'));
+
+    expect(paneTab('Preview')).toHaveAttribute('aria-selected', 'true');
+    expect(paneTab('Canvas')).toHaveAttribute('aria-selected', 'false');
+    // One panel for the two: labelled by whichever of them is selected.
+    const shown = screen.getByRole('tabpanel');
+    expect(shown).toHaveAccessibleName('Preview');
+    expect(shown).toBe(panel('Canvas'));
+    expect(within(shown).getByTitle('Email preview')).toBeInTheDocument();
+    expect(within(shown).getByRole('button', { name: /^Phone/ })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+
+    await user.click(paneTab('Canvas'));
+    expect(screen.getByRole('tabpanel')).toHaveAccessibleName('Canvas');
+    expect(screen.queryByTitle('Email preview')).not.toBeInTheDocument();
     expect(screen.getByRole('tablist', { name: 'Canvas' })).toBeVisible();
+  });
+
+  it('starts a preview chosen from another pane at the phone width too', async () => {
+    measureAt(360);
+    const { user } = renderEditor(issue([HEADER, TEXT, FOOTER]), { fill: true });
+    await user.click(paneTab('Blocks'));
+    // The canvas pane is hidden now, so it has no width of its own to go by: a browser gives a
+    // hidden element none.
+    const canvasPane = panel('Canvas');
+    const measured = Element.prototype.getBoundingClientRect as unknown as {
+      getMockImplementation: () => ((this: Element) => DOMRect) | undefined;
+    };
+    const around = measured.getMockImplementation();
+    vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function (
+      this: Element,
+    ) {
+      const box = around?.call(this) ?? ({} as DOMRect);
+      return this === canvasPane ? ({ ...box, width: 0, right: 0 } as DOMRect) : box;
+    });
+    await user.click(paneTab('Preview'));
+    expect(screen.getByRole('button', { name: /^Phone/ })).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  it('comes back from Edit to the canvas, not the preview, with the block focused', async () => {
+    measureAt(360);
+    const { user } = renderEditor(issue([HEADER, TEXT, FOOTER]), { fill: true });
+    await user.click(blockTab('Text'));
+    await user.click(paneTab('Preview'));
+    await user.click(paneTab('Edit'));
+    await user.click(screen.getByRole('button', { name: 'Back to canvas' }));
+
+    expect(paneTab('Canvas')).toHaveAttribute('aria-selected', 'true');
+    expect(blockTab('Text')).toHaveFocus();
+  });
+
+  it('positions every pane that scrolls, so the hidden text in it scrolls and clips with it', async () => {
+    // Visually hidden text is absolutely placed: a pane that is not positioned lets it escape
+    // the pane's clipping and stretch the host page.
+    const panesOf = (root: Element) => {
+      const panes = scrollers(root);
+      for (const pane of panes) expect(pane).toHaveClass('bl:relative');
+      return panes.length;
+    };
+
+    measureAt(1280);
+    const wide = renderEditor(issue([HEADER, TEXT, FOOTER]), { fill: true });
+    const wideRoot = wide.container.firstElementChild!;
+    expect(wideRoot).toHaveClass('bl:relative');
+    expect(panesOf(wideRoot)).toBe(3);
+    await wide.user.click(screen.getByRole('button', { name: 'Preview' }));
+    expect(panesOf(wideRoot)).toBe(3);
+    wide.unmount();
+    vi.restoreAllMocks();
+
+    measureAt(360);
+    const narrow = renderEditor(issue([HEADER, TEXT, FOOTER]), { fill: true });
+    const narrowRoot = narrow.container.firstElementChild!;
+    expect(narrowRoot).toHaveClass('bl:relative');
+    expect(panesOf(narrowRoot)).toBe(3);
+    await narrow.user.click(paneTab('Preview'));
+    expect(panesOf(narrowRoot)).toBe(3);
   });
 
   it('keeps the editor’s More menu beside the pane switch', async () => {
@@ -224,11 +306,7 @@ describe('NewsletterEditor fill', () => {
   it('offers no Blocks pane while read-only', () => {
     measureAt(360);
     renderEditor(issue([HEADER, TEXT, FOOTER]), { fill: true, readOnly: true });
-    expect(
-      within(switcher())
-        .getAllByRole('tab')
-        .map((tab) => tab.textContent),
-    ).toEqual(['Canvas', 'Edit']);
+    expect(tabNames()).toEqual(['Canvas', 'Edit', 'Preview']);
   });
 
   it('opens on Edit when the host asks for an issue-wide tab', () => {
@@ -238,7 +316,7 @@ describe('NewsletterEditor fill', () => {
     expect(within(panel('Edit')).getByRole('heading', { name: 'Settings' })).toBeVisible();
   });
 
-  it('follows a resize between the layouts', () => {
+  it('follows a resize between the layouts, keeping a preview a preview', async () => {
     // Every observer the editor makes hears of the new size, the way a browser would tell them.
     const observers: ResizeObserverCallback[] = [];
     vi.stubGlobal(
@@ -252,7 +330,7 @@ describe('NewsletterEditor fill', () => {
         disconnect = vi.fn();
       },
     );
-    renderEditor(issue([HEADER, TEXT, FOOTER]), { fill: true });
+    const { user } = renderEditor(issue([HEADER, TEXT, FOOTER]), { fill: true });
     expect(screen.queryByRole('tablist', { name: 'Editor panes' })).not.toBeInTheDocument();
 
     const resizeTo = (width: number) =>
@@ -264,5 +342,14 @@ describe('NewsletterEditor fill', () => {
     expect(switcher()).toBeInTheDocument();
     resizeTo(1200);
     expect(screen.queryByRole('tablist', { name: 'Editor panes' })).not.toBeInTheDocument();
+
+    // Whoever was previewing goes on previewing, whichever layout the width calls for.
+    await user.click(screen.getByRole('button', { name: 'Preview' }));
+    resizeTo(600);
+    expect(paneTab('Preview')).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByTitle('Email preview')).toBeVisible();
+    resizeTo(1200);
+    expect(screen.getByRole('button', { name: 'Preview' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByTitle('Email preview')).toBeVisible();
   });
 });

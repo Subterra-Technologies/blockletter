@@ -92,7 +92,8 @@ export interface NewsletterEditorProps<B extends BlockBase = BuiltInBlock> {
    * Fits the editor to its container's height rather than growing with the issue: the top bar
    * stays put, each pane scrolls on its own, and the page does not. Give the container a height
    * (`calc(100dvh - 4rem)`, say, or a flex item's share). Below 64rem of its own width it shows one
-   * pane at a time, switched from the top bar: Blocks, Canvas, and Edit for the chosen block.
+   * pane at a time, switched from the top bar: Blocks, Canvas, Edit (the chosen block's form) and
+   * Preview.
    */
   fill?: boolean;
 }
@@ -153,7 +154,7 @@ export function NewsletterEditor<B extends BlockBase = BuiltInBlock>({
       theme={theme}
       className={cn(
         'bl:@container/editor bl:flex bl:min-w-0 bl:flex-col bl:rounded-xl bl:border bl:bg-background bl:text-foreground',
-        fill && 'bl:h-full bl:min-h-0 bl:overflow-hidden',
+        fill && 'bl:relative bl:h-full bl:min-h-0 bl:overflow-hidden',
         className,
       )}
     >
@@ -192,12 +193,18 @@ const DESKTOP_PREVIEW_ROOM = 632;
 /** Narrower than this many rem (the `@5xl` container width), fill shows one pane at a time. */
 const WIDE_LAYOUT_REM = 64;
 
-/** The panes a narrow fill layout shows one at a time. */
+/**
+ * The panes a narrow fill layout shows one at a time. The canvas pane shows the canvas or the
+ * preview, as the editor's `mode` says.
+ */
 type Pane = 'blocks' | 'canvas' | 'edit';
-const PANE_LABELS: Readonly<Record<Pane, string>> = {
+/** The narrow fill layout's tabs: one per pane, and Preview, the canvas pane in preview mode. */
+type PaneTab = Pane | 'preview';
+const PANE_LABELS: Readonly<Record<PaneTab, string>> = {
   blocks: 'Blocks',
   canvas: 'Canvas',
   edit: 'Edit',
+  preview: 'Preview',
 };
 
 /**
@@ -281,16 +288,27 @@ function Workspace<B extends BlockBase>({
   );
   // There is nothing to add while the issue is read-only, so no Blocks pane.
   const pane: Pane = readOnly && chosenPane === 'blocks' ? 'canvas' : chosenPane;
-  const panes: readonly Pane[] = readOnly ? ['canvas', 'edit'] : ['blocks', 'canvas', 'edit'];
-  const paneTabId = (which: Pane) => `${ids}-pane-${which}`;
-  const panePanelId = (which: Pane) => (which === 'edit' ? inspectorId : `${ids}-panel-${which}`);
-  /** The attributes that make a pane a tab panel, in the single layout only. */
+  const paneTabs: readonly PaneTab[] = readOnly
+    ? ['canvas', 'edit', 'preview']
+    : ['blocks', 'canvas', 'edit', 'preview'];
+  // Preview is the canvas pane showing the preview: `mode` stays the one record of which, so the
+  // preview survives a resize to the side-by-side layout and back.
+  const activeTab: PaneTab = pane === 'canvas' && mode === 'preview' ? 'preview' : pane;
+  const paneTabId = (which: PaneTab) => `${ids}-pane-${which}`;
+  const panePanelId = (which: PaneTab) =>
+    which === 'edit' ? inspectorId : `${ids}-panel-${which === 'preview' ? 'canvas' : which}`;
+  /**
+   * The attributes that make a pane a tab panel, in the single layout only. The canvas pane is
+   * Canvas's panel and Preview's: it is labelled by whichever of the two is selected.
+   */
   const panel = (which: Pane) =>
     single
       ? {
           role: 'tabpanel',
           id: panePanelId(which),
-          'aria-labelledby': paneTabId(which),
+          'aria-labelledby': paneTabId(
+            which === 'canvas' && mode === 'preview' ? 'preview' : which,
+          ),
           hidden: pane !== which,
         }
       : {};
@@ -356,11 +374,16 @@ function Workspace<B extends BlockBase>({
     pendingFocus.current = 'inspector';
   }
 
-  /** Back from the Edit pane (its button, or Escape), to the block that was being edited. */
+  /**
+   * Back from the Edit pane (its button, or Escape) to the block that was being edited: to the
+   * canvas, as the button says, even when the pane was showing the preview before.
+   */
+  const { setMode } = editor;
   const backToCanvas = useCallback(() => {
     setPane('canvas');
+    setMode('canvas');
     pendingFocus.current = 'block';
-  }, []);
+  }, [setMode]);
 
   // Escape leaves the Edit pane. Listened for on the pane's own element, so an Escape that closes
   // a menu or a dialog (which portal elsewhere, and mark the key handled) is not taken for it.
@@ -382,10 +405,25 @@ function Workspace<B extends BlockBase>({
    */
   function changeMode(next: EditorMode): void {
     if (next === 'preview') {
-      const room = canvasColumn.current?.getBoundingClientRect().width ?? 0;
+      // A canvas pane not on show (the preview chosen from another pane) has no width; it will
+      // take the whole width of the body when it shows.
+      const room =
+        canvasColumn.current?.getBoundingClientRect().width ||
+        body.current?.getBoundingClientRect().width ||
+        0;
       setPreviewWidth(room > 0 && room < DESKTOP_PREVIEW_ROOM ? 'phone' : 'desktop');
     }
-    editor.setMode(next);
+    setMode(next);
+  }
+
+  /** A tab of the narrow fill layout: Canvas and Preview are the canvas pane in either mode. */
+  function showTab(next: PaneTab): void {
+    if (next === 'canvas' || next === 'preview') {
+      setPane('canvas');
+      changeMode(next);
+    } else {
+      setPane(next);
+    }
   }
 
   /** Insert above / below: the palette now places its choice at the line, so focus goes there. */
@@ -523,20 +561,20 @@ function Workspace<B extends BlockBase>({
   return (
     <>
       <div className="bl:flex bl:shrink-0 bl:flex-wrap bl:items-center bl:gap-x-3 bl:gap-y-2 bl:border-b bl:px-3 bl:py-2">
-        {/* One pane at a time, the top bar switches panes (Canvas / Preview moves into the Canvas
-            pane it is about), and the editor's own menu stays beside the switch, so on a phone
-            the host's actions wrap to a row of their own rather than leaving it behind. */}
+        {/* One pane at a time, the top bar switches panes, Preview among them, and the editor's
+            own menu comes straight after the switch: the host's actions wrap after it, rather
+            than leaving it behind. */}
         {single ? (
-          <div className="bl:flex bl:items-center bl:gap-2">
+          <>
             <PaneSwitch
-              panes={panes}
-              active={pane}
-              onChange={setPane}
+              tabs={paneTabs}
+              active={activeTab}
+              onChange={showTab}
               tabId={paneTabId}
               panelId={panePanelId}
             />
             {moreMenu}
-          </div>
+          </>
         ) : (
           modeSwitch
         )}
@@ -568,6 +606,8 @@ function Workspace<B extends BlockBase>({
                 : 'bl:@5xl/editor:grid-cols-[13rem_minmax(0,1fr)_21rem]',
             ),
           // Side by side in the editor's own height: one row that fills it, and panes that scroll.
+          // Every pane that scrolls is positioned, so the visually hidden text inside it (which is
+          // absolutely positioned) scrolls and clips with it instead of stretching the host page.
           layout === 'columns' &&
             cn(
               'bl:grid bl:min-h-0 bl:min-w-0 bl:flex-1 bl:grid-rows-[minmax(0,1fr)]',
@@ -585,7 +625,7 @@ function Workspace<B extends BlockBase>({
               'bl:min-w-0 bl:px-2 bl:py-4',
               layout === 'flow' &&
                 'bl:border-b bl:@5xl/editor:sticky bl:@5xl/editor:top-[var(--bl-sticky-top,0px)] bl:@5xl/editor:max-h-[calc(100dvh-var(--bl-sticky-top,0px))] bl:@5xl/editor:self-start bl:@5xl/editor:overflow-y-auto bl:@5xl/editor:border-b-0',
-              layout !== 'flow' && 'bl:min-h-0 bl:overflow-y-auto',
+              layout !== 'flow' && 'bl:relative bl:min-h-0 bl:overflow-y-auto',
               single && 'bl:flex-1',
             )}
           >
@@ -617,16 +657,11 @@ function Workspace<B extends BlockBase>({
             single && 'bl:min-h-0 bl:flex-1',
           )}
         >
-          {single ? (
-            <div className="bl:flex bl:shrink-0 bl:items-center bl:border-b bl:px-3 bl:py-2">
-              {modeSwitch}
-            </div>
-          ) : null}
           {mode === 'canvas' ? (
             layout === 'flow' ? (
               canvas
             ) : (
-              <div className="bl:flex bl:min-h-0 bl:flex-1 bl:flex-col bl:overflow-y-auto">
+              <div className="bl:relative bl:flex bl:min-h-0 bl:flex-1 bl:flex-col bl:overflow-y-auto">
                 {canvas}
               </div>
             )
@@ -635,7 +670,7 @@ function Workspace<B extends BlockBase>({
               aria-labelledby={previewHeadingId}
               className={cn(
                 'bl:flex bl:min-w-0 bl:flex-1 bl:flex-col',
-                layout !== 'flow' && 'bl:min-h-0 bl:overflow-y-auto',
+                layout !== 'flow' && 'bl:relative bl:min-h-0 bl:overflow-y-auto',
               )}
             >
               <h2 id={previewHeadingId} className="bl:sr-only">
@@ -657,7 +692,8 @@ function Workspace<B extends BlockBase>({
             'bl:min-w-0',
             layout === 'flow' &&
               'bl:border-t bl:p-3 bl:@md/editor:p-4 bl:@5xl/editor:sticky bl:@5xl/editor:top-[var(--bl-sticky-top,0px)] bl:@5xl/editor:max-h-[calc(100dvh-var(--bl-sticky-top,0px))] bl:@5xl/editor:self-start bl:@5xl/editor:overflow-y-auto bl:@5xl/editor:border-t-0',
-            layout === 'columns' && 'bl:min-h-0 bl:overflow-y-auto bl:p-3 bl:@md/editor:p-4',
+            layout === 'columns' &&
+              'bl:relative bl:min-h-0 bl:overflow-y-auto bl:p-3 bl:@md/editor:p-4',
             single && 'bl:flex bl:min-h-0 bl:flex-1 bl:flex-col',
           )}
         >
@@ -675,7 +711,7 @@ function Workspace<B extends BlockBase>({
                   Back to canvas
                 </Button>
               </div>
-              <div className="bl:min-h-0 bl:flex-1 bl:overflow-y-auto bl:p-3 bl:@md/editor:p-4">
+              <div className="bl:relative bl:min-h-0 bl:flex-1 bl:overflow-y-auto bl:p-3 bl:@md/editor:p-4">
                 {inspectorTabs}
               </div>
             </>
@@ -723,25 +759,26 @@ function useNarrow(element: RefObject<HTMLElement | null>, enabled: boolean): bo
 
 /**
  * The panes of a narrow fill layout, as tabs: one shows at a time. Arrow keys move along them
- * (and show each), Home and End go to the ends, and only the shown one is a Tab stop.
+ * (and show each), Home and End go to the ends, and only the shown one is a Tab stop. Four of
+ * them and the More button fit one row of a 336px editor.
  */
 function PaneSwitch({
-  panes,
+  tabs,
   active,
   onChange,
   tabId,
   panelId,
 }: {
-  panes: readonly Pane[];
-  active: Pane;
-  onChange: (pane: Pane) => void;
-  tabId: (pane: Pane) => string;
-  panelId: (pane: Pane) => string;
+  tabs: readonly PaneTab[];
+  active: PaneTab;
+  onChange: (tab: PaneTab) => void;
+  tabId: (tab: PaneTab) => string;
+  panelId: (tab: PaneTab) => string;
 }) {
-  const buttons = useRef(new Map<Pane, HTMLButtonElement>());
+  const buttons = useRef(new Map<PaneTab, HTMLButtonElement>());
 
   function onKeyDown(event: KeyboardEvent<HTMLButtonElement>, index: number): void {
-    const last = panes.length - 1;
+    const last = tabs.length - 1;
     const to =
       event.key === 'ArrowRight'
         ? index === last
@@ -756,7 +793,7 @@ function PaneSwitch({
             : event.key === 'End'
               ? last
               : -1;
-    const next = panes[to];
+    const next = tabs[to];
     if (!next) return;
     event.preventDefault();
     onChange(next);
@@ -769,28 +806,28 @@ function PaneSwitch({
       aria-label="Editor panes"
       className="bl:inline-flex bl:h-8 bl:items-center bl:rounded-lg bl:bg-muted bl:p-[3px]"
     >
-      {panes.map((pane, index) => (
+      {tabs.map((tab, index) => (
         <button
-          key={pane}
+          key={tab}
           ref={(node) => {
-            if (node) buttons.current.set(pane, node);
-            else buttons.current.delete(pane);
+            if (node) buttons.current.set(tab, node);
+            else buttons.current.delete(tab);
           }}
           type="button"
           role="tab"
-          id={tabId(pane)}
-          aria-controls={panelId(pane)}
-          aria-selected={active === pane}
-          tabIndex={active === pane ? 0 : -1}
-          onClick={() => onChange(pane)}
+          id={tabId(tab)}
+          aria-controls={panelId(tab)}
+          aria-selected={active === tab}
+          tabIndex={active === tab ? 0 : -1}
+          onClick={() => onChange(tab)}
           onKeyDown={(event) => onKeyDown(event, index)}
           className={cn(
-            'bl:inline-flex bl:h-full bl:items-center bl:rounded-md bl:px-3 bl:text-[0.8125rem] bl:font-medium bl:whitespace-nowrap bl:text-foreground/65 bl:outline-none bl:transition-colors',
+            'bl:inline-flex bl:h-full bl:items-center bl:rounded-md bl:px-2 bl:text-[0.8125rem] bl:font-medium bl:whitespace-nowrap bl:text-foreground/65 bl:outline-none bl:transition-colors',
             'bl:hover:text-foreground bl:focus-visible:ring-[3px] bl:focus-visible:ring-ring/50',
             'bl:aria-selected:bg-background bl:aria-selected:text-foreground bl:aria-selected:shadow-sm',
           )}
         >
-          {PANE_LABELS[pane]}
+          {PANE_LABELS[tab]}
         </button>
       ))}
     </div>
