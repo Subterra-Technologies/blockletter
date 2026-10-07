@@ -1,3 +1,4 @@
+import type { RenderContext } from '../definition';
 import { LIMITS, formatCount } from '../limits';
 import type { ImageRef } from '../types';
 
@@ -7,9 +8,9 @@ import type { ImageRef } from '../types';
 export const TABLE =
   '<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">';
 
-/** A zero-height gap cell between columns. */
-export const gapCell = (width: number): string =>
-  `<td width="${width}" style="width:${width}px;font-size:0;line-height:0;">&nbsp;</td>`;
+/** A spacer cell between side-by-side cells, hidden once they stack on a phone. */
+export const gapCell = (ctx: RenderContext, width: number): string =>
+  `<td class="${ctx.classes.gap}" width="${width}" style="width:${width}px;font-size:0;line-height:0;">&nbsp;</td>`;
 
 export const ALT_TEXT_ISSUE = 'Add alt text so screen readers can describe the image.';
 

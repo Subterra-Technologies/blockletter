@@ -72,8 +72,8 @@ export const sponsorsBlock = defineBlock<SponsorsBlock>({
           ? `<a href="${ctx.escape(href)}" style="color:${ctx.palette.heading};text-decoration:none;">${ctx.escape(item.name)}</a>`
           : ctx.escape(item.name);
         return (
-          `<tr><td width="96" valign="top" style="width:96px;padding:10px 20px 10px 0;">${logo}</td>` +
-          `<td valign="middle" style="padding:10px 0;">` +
+          `<tr><td class="${ctx.classes.stackNarrow}" width="96" valign="top" style="width:96px;padding:10px 20px 10px 0;">${logo}</td>` +
+          `<td class="${ctx.classes.stackNarrow}" valign="middle" style="padding:10px 0;">` +
           `<p style="margin:0 0 4px 0;font-family:${ctx.fonts.heading};font-size:${ctx.px(18)}px;color:${ctx.palette.heading};">${name}</p>` +
           `<p style="${ctx.bodyStyle()}margin:0;">${ctx.escape(item.message)}</p>` +
           `</td></tr>`

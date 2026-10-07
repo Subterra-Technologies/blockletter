@@ -59,12 +59,12 @@ export const photoGridBlock = defineBlock<PhotoGridBlock>({
             `${alt ? `[${ctx.labels.image}: ${alt}]` : `[${ctx.labels.image}]`}${caption ? ` ${caption}` : ''}`,
           );
           return (
-            `<td width="${Math.floor(100 / perRow)}%" valign="top" style="padding:0 0 12px 0;">` +
-            ctx.imageOrPlaceholder(photo.image, photo.alt, cellPx, 110) +
+            `<td class="${ctx.classes.stack}" width="${Math.floor(100 / perRow)}%" valign="top" style="padding:0 0 12px 0;">` +
+            ctx.imageOrPlaceholder(photo.image, photo.alt, cellPx, 110, { fill: true }) +
             (caption
               ? `<p style="${ctx.smallStyle()}margin-top:6px;">${ctx.escape(caption)}</p>`
               : '') +
-            `</td>${position < slice.length - 1 ? gapCell(12) : ''}`
+            `</td>${position < slice.length - 1 ? gapCell(ctx, 12) : ''}`
           );
         })
         .join('');

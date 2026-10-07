@@ -117,8 +117,8 @@ describe('annotation for previews', () => {
 
   it('marks each block row with its id when asked', () => {
     const { html } = send(blocks(), { annotate: true });
-    expect(html).toContain('<tr><td data-block-id="internal-text-7f3a" style="');
-    expect(html).toContain('<tr><td data-block-id="internal-quote-9c1d" style="');
+    expect(html).toContain('<tr><td class="bl-pad" data-block-id="internal-text-7f3a" style="');
+    expect(html).toContain('<tr><td class="bl-pad" data-block-id="internal-quote-9c1d" style="');
     expect(html).toContain('data-block-id="required-footer"');
   });
 
@@ -129,7 +129,9 @@ describe('annotation for previews', () => {
         annotate: true,
       },
     );
-    expect(html).toContain(`<tr><td data-block-id="hero" background="${PHOTO.url}" style="`);
+    expect(html).toContain(
+      `<tr><td class="bl-pad" data-block-id="hero" background="${PHOTO.url}" style="`,
+    );
     expect(html).toContain(`background-image:url(&#39;${PHOTO.url}&#39;);background-size:cover;`);
   });
 });

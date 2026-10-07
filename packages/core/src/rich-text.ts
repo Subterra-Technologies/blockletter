@@ -159,7 +159,10 @@ export function sanitizeHtml(html: string): string {
   return sanitizeAnchors(rebuilt);
 }
 
-/** The margins and colours each element gets in an email, where stylesheets do not survive. */
+/**
+ * The margins and colours each element gets in an email, where stylesheets do not survive, and
+ * the limits that keep pasted content inside its column.
+ */
 const elementStyles = (palette: Palette): Record<string, string> => ({
   p: 'margin:0 0 12px;line-height:1.55',
   h1: 'margin:0 0 12px;font-size:24px;line-height:1.3',
@@ -169,6 +172,9 @@ const elementStyles = (palette: Palette): Record<string, string> => ({
   li: 'margin:0 0 4px;line-height:1.55',
   a: `color:${palette.link};text-decoration:underline`,
   blockquote: `margin:0 0 12px;padding-left:14px;border-left:4px solid ${palette.border};color:${palette.muted}`,
+  // A pasted picture or preformatted line must not push the email wider than its column.
+  img: 'max-width:100%;height:auto',
+  pre: 'white-space:pre-wrap',
 });
 
 const classStyle = (className: string): string | undefined => {

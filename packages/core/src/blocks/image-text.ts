@@ -33,7 +33,7 @@ export const imageTextBlock = defineBlock<ImageTextBlock>({
   ],
   summary: (block) => block.heading.trim() || firstWords(block.body) || block.alt,
   render(block, ctx) {
-    const image = ctx.imageOrPlaceholder(block.image, block.alt, IMAGE_WIDTH, 160);
+    const image = ctx.imageOrPlaceholder(block.image, block.alt, IMAGE_WIDTH, 160, { fill: true });
     const link = ctx.optionalLink(block.linkLabel, block.linkUrl);
     const heading = block.heading.trim();
     if (heading) ctx.text(heading.toUpperCase());
@@ -41,17 +41,21 @@ export const imageTextBlock = defineBlock<ImageTextBlock>({
     ctx.text(...splitParagraphs(block.body));
     if (link.text) ctx.text(link.text);
     ctx.text('');
-    const imageCell = `<td width="${IMAGE_WIDTH}" valign="top" style="width:${IMAGE_WIDTH}px;">${image}</td>`;
-    const textCell =
-      `<td valign="top">` +
+    // On a phone the two cells stack in source order, with room under the first.
+    const first = `${ctx.classes.stack} ${ctx.classes.space}`;
+    const second = ctx.classes.stack;
+    const imageCell = (stack: string): string =>
+      `<td class="${stack}" width="${IMAGE_WIDTH}" valign="top" style="width:${IMAGE_WIDTH}px;">${image}</td>`;
+    const textCell = (stack: string): string =>
+      `<td class="${stack}" valign="top">` +
       (heading ? ctx.heading(block.heading, { size: 20 }) : '') +
       ctx.paragraphs(block.body) +
       link.html +
       `</td>`;
     const cells =
       block.imageSide === 'right'
-        ? `${textCell}${gapCell(20)}${imageCell}`
-        : `${imageCell}${gapCell(20)}${textCell}`;
+        ? `${textCell(first)}${gapCell(ctx, 20)}${imageCell(second)}`
+        : `${imageCell(first)}${gapCell(ctx, 20)}${textCell(second)}`;
     return ctx.section(block, `${TABLE}<tr>${cells}</tr></table>`);
   },
 });

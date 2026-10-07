@@ -45,7 +45,7 @@ export const articleBlock = defineBlock<ArticleBlock>({
     ctx.text('');
     // Without a photo the kicker itself fills the image's place, as a label tile on the band.
     const image = imageUrl
-      ? `<img src="${ctx.escape(imageUrl)}" width="160" alt="${ctx.escape(title)}" style="display:block;width:160px;border-radius:8px;">`
+      ? `<img src="${ctx.escape(imageUrl)}" width="160" alt="${ctx.escape(title)}" style="display:block;width:100%;max-width:160px;height:auto;border-radius:8px;">`
       : kicker
         ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="160" style="width:160px;"><tr><td align="center" valign="middle" width="160" height="120" style="width:160px;height:120px;background:${ctx.palette.band};border-radius:8px;font-family:${ctx.fonts.heading};font-size:${ctx.px(14)}px;letter-spacing:1px;color:${ctx.palette.bandText};">${ctx.escape(kicker.toUpperCase())}</td></tr></table>`
         : '';
@@ -56,9 +56,9 @@ export const articleBlock = defineBlock<ArticleBlock>({
         : '') +
         `${TABLE}<tr>` +
         (image
-          ? `<td width="160" valign="top" style="width:160px;padding-right:20px;">${image}</td>`
+          ? `<td class="${ctx.classes.stack} ${ctx.classes.space}" width="160" valign="top" style="width:160px;padding-right:20px;">${image}</td>`
           : '') +
-        `<td valign="top">${title ? ctx.heading(title, { size: 20 }) : ''}${ctx.paragraphs(block.body)}${link.html}</td>` +
+        `<td${image ? ` class="${ctx.classes.stack}"` : ''} valign="top">${title ? ctx.heading(title, { size: 20 }) : ''}${ctx.paragraphs(block.body)}${link.html}</td>` +
         `</tr></table>`,
     );
   },

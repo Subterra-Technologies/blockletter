@@ -126,6 +126,14 @@ text, a relative link with no `baseUrl`, an image that only exists in the browse
 image `data:` URL, which previews accept but inboxes cannot load), an unknown block type, HTML over
 Gmail's ~102 KB clipping threshold.
 
+**Phone layout.** The email is a fluid hybrid: a `max-width: 600px` card inside an Outlook-only
+600px ghost table, so Outlook on Windows lays out exactly as a fixed table while every other
+client shrinks to the screen. One small `<style>` block (class selectors behind media queries,
+nothing Gmail rejects) turns side-by-side cells into full-width rows below 620px and trims side
+padding; desktop rendering is unchanged. `RESPONSIVE_CLASSES` names the classes and
+`RenderContext.classes` hands them to host blocks; `imageOrPlaceholder(…, { fill })` lets an image
+grow to a stacked cell.
+
 `RenderContext` is what a block's `render` receives: the resolved `palette`, font stacks,
 `brand`, `labels`, plus helpers — `section(block, inner, options)`, `heading`, `paragraphs`,
 `button`, `image(ref)`, `imageOrPlaceholder`, `optionalLink`, `url(href)`, `escape`, `px(size)`,

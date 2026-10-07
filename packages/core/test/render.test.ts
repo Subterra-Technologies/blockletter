@@ -180,7 +180,9 @@ describe('block appearance', () => {
     // Email-safe: tables, no external stylesheets, absolute links.
     expect(html).toContain('role="presentation"');
     expect(html).not.toContain('<link');
-    expect(html).not.toContain('<style');
+    // One small style block, in the head, for the phone layout; everything else is inline.
+    expect(occurrences(html, /<style>/g)).toBe(1);
+    expect(html.indexOf('<style>')).toBeLessThan(html.indexOf('</head>'));
     expect(html).toContain('href="https://example.test/events"');
     expect(html).toContain('href="https://example.test/news"');
     expect(html).not.toMatch(/href="\//);
@@ -434,7 +436,10 @@ describe('the document around the blocks', () => {
     expect(html).toContain('<meta name="x-apple-disable-message-reformatting">');
     expect(html).toContain('<meta name="color-scheme" content="light">');
     expect(html).toContain('<meta http-equiv="X-UA-Compatible" content="IE=edge">');
-    expect(html).toContain('width="600" style="width:600px;max-width:100%;');
+    // Fluid up to 600px, with a fixed 600px ghost table for Outlook.
+    expect(html).toContain(
+      '<!--[if mso]><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" align="center"><tr><td><![endif]-->\n<div style="max-width:600px;margin:0 auto;">\n<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="width:100%;',
+    );
   });
 
   it('sets the language when asked', () => {

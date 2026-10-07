@@ -44,6 +44,21 @@ export interface RenderContext {
   readonly labels: RenderLabels;
   /** Pixel widths: the card, its padded content column, and this block's own inner width. */
   readonly width: { readonly full: number; readonly content: number; readonly inner: number };
+  /**
+   * Class names for the phone layout: `stack` cells become full-width rows from 620px down
+   * (`gap` spacer cells hide, `space` adds room under a cell, `fill` grows an image to its
+   * stacked cell); `stackNarrow` and `spaceNarrow` do the same from 360px down. `section` adds
+   * `pad` itself.
+   */
+  readonly classes: Readonly<{
+    pad: string;
+    stack: string;
+    gap: string;
+    space: string;
+    fill: string;
+    stackNarrow: string;
+    spaceNarrow: string;
+  }>;
   /** The options `renderEmail` was called with, for blocks that need more (footer links, say). */
   readonly options: Readonly<RenderOptions>;
   /** One row of the 600px card: the block's padding, background, alignment and divider. */
@@ -60,12 +75,16 @@ export interface RenderContext {
   button(label: string, url: string, variant?: 'solid' | 'outline'): string;
   /** An image's address: http(s), or a blob:/data: preview (with a warning); else undefined. */
   image(ref: ImageRef | undefined): string | undefined;
-  /** The image at `width` px, or a dashed placeholder carrying the alt text when there is none. */
+  /**
+   * The image at up to `width` px (scaling down with its cell), or a dashed placeholder carrying
+   * the alt text when there is none. `fill` lets it grow to its cell once the cell stacks.
+   */
   imageOrPlaceholder(
     ref: ImageRef | undefined,
     alt: string,
     width: number,
     height?: number,
+    options?: { fill?: boolean },
   ): string;
   /** A bold link line and its plain-text twin; both empty unless label and url are set. */
   optionalLink(label: string | undefined, url: string | undefined): { html: string; text: string };

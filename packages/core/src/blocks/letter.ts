@@ -37,12 +37,12 @@ export const letterBlock = defineBlock<LetterBlock>({
       '',
     );
     const photo = photoUrl
-      ? `<td width="88" valign="top" style="width:88px;padding-right:20px;"><img src="${ctx.escape(photoUrl)}" width="88" height="88" alt="${ctx.escape(signature)}" style="display:block;width:88px;height:88px;border-radius:44px;object-fit:cover;"></td>`
+      ? `<td class="${ctx.classes.stackNarrow} ${ctx.classes.spaceNarrow}" width="88" valign="top" style="width:88px;padding-right:20px;"><img src="${ctx.escape(photoUrl)}" width="88" height="88" alt="${ctx.escape(signature)}" style="display:block;width:88px;height:88px;border-radius:44px;object-fit:cover;"></td>`
       : '';
     return ctx.section(
       block,
       (heading ? ctx.heading(block.heading) : '') +
-        `${TABLE}<tr>${photo}<td valign="top">` +
+        `${TABLE}<tr>${photo}<td${photo ? ` class="${ctx.classes.stackNarrow}"` : ''} valign="top">` +
         ctx.paragraphs(block.body) +
         (signature
           ? `<p style="${ctx.bodyStyle()}font-style:italic;">${ctx.escape(signature)}</p>`

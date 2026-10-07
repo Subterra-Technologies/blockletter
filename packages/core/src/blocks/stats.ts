@@ -45,11 +45,18 @@ export const statsBlock = defineBlock<StatsBlock>({
     const items = block.items.slice(0, MAX_STATS);
     if (items.length === 0) return '';
     const width = Math.floor(100 / items.length);
+    // Two numbers still fit side by side on a phone; three or four become rows, spaced apart.
+    const stacks = items.length > 2;
     const cells = items
-      .map((item) => {
+      .map((item, index) => {
+        const stack = !stacks
+          ? ''
+          : index < items.length - 1
+            ? ` class="${ctx.classes.stack} ${ctx.classes.space}"`
+            : ` class="${ctx.classes.stack}"`;
         ctx.text(`${item.value} — ${item.label}`);
         return (
-          `<td width="${width}%" align="center" valign="top" style="padding:6px 8px;">` +
+          `<td${stack} width="${width}%" align="center" valign="top" style="padding:6px 8px;">` +
           `<p style="margin:0;font-family:${ctx.fonts.heading};font-size:${ctx.px(38)}px;line-height:1.1;color:${ctx.palette.accentInk};">${ctx.escape(item.value)}</p>` +
           `<p style="margin:6px 0 0 0;font-family:${ctx.fonts.body};font-size:${ctx.px(12)}px;letter-spacing:1.5px;text-transform:uppercase;color:${ctx.palette.muted};">${ctx.escape(item.label)}</p>` +
           `</td>`

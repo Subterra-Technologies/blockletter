@@ -84,6 +84,7 @@ export {
   type RenderOptions,
 } from './render';
 export { absoluteUrl, escapeHtml, splitParagraphs } from './html';
+export { RESPONSIVE_CLASSES } from './responsive';
 
 // Brand kit and palette
 export {

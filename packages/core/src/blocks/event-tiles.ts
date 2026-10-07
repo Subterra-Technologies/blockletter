@@ -41,6 +41,8 @@ export const eventTilesBlock = defineBlock<EventTilesBlock>({
     const heading = block.heading.trim();
     if (heading) ctx.text(heading.toUpperCase());
     const width = Math.floor(100 / items.length);
+    // Two tiles still fit side by side on a phone; three or four become rows.
+    const stack = items.length > 2 ? ` class="${ctx.classes.stack}"` : '';
     const cells = items
       .map((item) => {
         // The date is already the organisation's own calendar date: no time-zone arithmetic.
@@ -57,7 +59,7 @@ export const eventTilesBlock = defineBlock<EventTilesBlock>({
           ? `<a href="${ctx.escape(href)}" style="color:${ctx.palette.bandText};text-decoration:none;">${ctx.escape(item.title)}</a>`
           : ctx.escape(item.title);
         return (
-          `<td width="${width}%" valign="top" align="center" style="padding:8px 6px;">` +
+          `<td${stack} width="${width}%" valign="top" align="center" style="padding:8px 6px;">` +
           (day
             ? `<p style="margin:0;font-family:${ctx.fonts.heading};font-size:${ctx.px(56)}px;line-height:1;color:${ctx.palette.tileDay};">${day}</p>`
             : '') +

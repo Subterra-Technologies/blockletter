@@ -15,6 +15,7 @@ import { BLOCK_ALIGNMENTS } from './limits';
 import { ensureFooter } from './list';
 import { AP_MONTHS } from './period';
 import { getDefinition } from './registry';
+import { RESPONSIVE_CLASSES, RESPONSIVE_STYLE } from './responsive';
 import type {
   BlockBase,
   BlockFontSize,
@@ -213,23 +214,34 @@ function resolveImage(state: RenderState, ref: ImageRef | undefined): string | u
   return undefined;
 }
 
-/** The wrapper `<td>` style for one block: its type's padding and background, then its `style`. */
-function sectionStyle(
+/** A pixel length's number (`32px` → 32); anything else is 0. */
+const pixels = (value: string): number => {
+  const match = /^(\d+(?:\.\d+)?)px$/.exec(value);
+  return match ? Number(match[1]) : 0;
+};
+
+/**
+ * The wrapper `<td>` for one block: its type's padding and background, then its `style`; and
+ * whether its sides are wide enough to narrow on a phone.
+ */
+function sectionLayout(
   palette: Palette,
   block: BlockBase,
   background: string,
   padding: string,
-): string {
+): { style: string; narrowSides: boolean } {
   const style = block.style ?? {};
   const [top = '0', right = top, bottom = top, left = right] = padding.trim().split(/\s+/);
   const paddingY = style.paddingY ? PADDING_Y[style.paddingY] : undefined;
   const align = style.align && BLOCK_ALIGNMENTS.includes(style.align) ? style.align : undefined;
-  return (
-    `padding:${paddingY ?? top} ${style.fullWidth ? '0' : right} ${paddingY ?? bottom} ${style.fullWidth ? '0' : left};` +
-    `background:${isHexColor(style.background) ? style.background : background};` +
-    (align ? `text-align:${align};` : '') +
-    (style.divider ? `border-bottom:1px solid ${palette.border};` : '')
-  );
+  return {
+    style:
+      `padding:${paddingY ?? top} ${style.fullWidth ? '0' : right} ${paddingY ?? bottom} ${style.fullWidth ? '0' : left};` +
+      `background:${isHexColor(style.background) ? style.background : background};` +
+      (align ? `text-align:${align};` : '') +
+      (style.divider ? `border-bottom:1px solid ${palette.border};` : ''),
+    narrowSides: !style.fullWidth && Math.max(pixels(right), pixels(left)) > 20,
+  };
 }
 
 function contextFor(state: RenderState, block: BlockBase): RenderContext {
@@ -263,11 +275,13 @@ function contextFor(state: RenderState, block: BlockBase): RenderContext {
     labels,
     options: state.options,
     width: { full: WIDTH, content: CONTENT_WIDTH, inner: style?.fullWidth ? WIDTH : CONTENT_WIDTH },
+    classes: RESPONSIVE_CLASSES,
     section(target: BlockBase, inner: string, options: SectionOptions = {}): string {
       const { background = palette.card, padding = '28px 32px', attributes = '' } = options;
+      const layout = sectionLayout(palette, target, background, padding);
       const annotation =
         state.options.annotate === true ? ` data-block-id="${escapeHtml(target.id)}"` : '';
-      return `<tr><td${annotation}${attributes ? ` ${attributes}` : ''} style="${sectionStyle(palette, target, background, padding)}${options.style ?? ''}">${inner}</td></tr>`;
+      return `<tr><td${layout.narrowSides ? ` class="${RESPONSIVE_CLASSES.pad}"` : ''}${annotation}${attributes ? ` ${attributes}` : ''} style="${layout.style}${options.style ?? ''}">${inner}</td></tr>`;
     },
     heading(text: string, options: { color?: string; size?: number } = {}): string {
       const { color = palette.heading, size = 24 } = options;
@@ -303,10 +317,11 @@ function contextFor(state: RenderState, block: BlockBase): RenderContext {
       alt: string,
       width: number,
       height = 120,
+      options: { fill?: boolean } = {},
     ): string {
       const src = image(ref);
       return src
-        ? `<img src="${escapeHtml(src)}" width="${width}" alt="${escapeHtml(alt)}" style="display:block;width:100%;max-width:${width}px;height:auto;border-radius:8px;">`
+        ? `<img${options.fill ? ` class="${RESPONSIVE_CLASSES.fill}"` : ''} src="${escapeHtml(src)}" width="${width}" alt="${escapeHtml(alt)}" style="display:block;width:100%;max-width:${width}px;height:auto;border-radius:8px;">`
         : `<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="width:100%;"><tr><td align="center" valign="middle" height="${height}" style="height:${height}px;background:${palette.soft};border:1px dashed ${palette.border};border-radius:8px;font-family:${fonts.body};font-size:${px(13)}px;color:${palette.muted};">${escapeHtml(alt.trim() || labels.image)}</td></tr></table>`;
     },
     optionalLink(label: string | undefined, href: string | undefined) {
@@ -428,14 +443,20 @@ export function renderEmail<B extends BlockBase = BuiltInBlock>(
     `<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1">\n` +
     `<meta http-equiv="X-UA-Compatible" content="IE=edge">\n<meta name="x-apple-disable-message-reformatting">\n` +
     `<meta name="color-scheme" content="light">\n` +
-    `<title>${escapeHtml(doc.subject)}</title>\n</head>\n` +
+    `<title>${escapeHtml(doc.subject)}</title>\n${RESPONSIVE_STYLE}\n</head>\n` +
     `<body style="margin:0;padding:0;background:${palette.page};-webkit-text-size-adjust:100%;">\n` +
     preheader +
     `<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:${palette.page};">\n<tr><td align="center" style="padding:24px 12px;">\n` +
-    `<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="${WIDTH}" style="width:${WIDTH}px;max-width:100%;background:${palette.card};border:1px solid ${palette.border};border-radius:10px;overflow:hidden;">\n` +
+    // Fluid up to 600px for every client that reads max-width; a fixed 600px ghost table for
+    // Outlook on Windows, which does not, so it lays the card out exactly as before.
+    `<!--[if mso]><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="${WIDTH}" align="center"><tr><td><![endif]-->\n` +
+    `<div style="max-width:${WIDTH}px;margin:0 auto;">\n` +
+    `<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="width:100%;background:${palette.card};border:1px solid ${palette.border};border-radius:10px;overflow:hidden;">\n` +
     sections +
     `\n</table>\n` +
     below.html +
+    `</div>\n` +
+    `<!--[if mso]></td></tr></table><![endif]-->\n` +
     `</td></tr>\n</table>\n</body>\n</html>`;
 
   if (below.text) state.lines.push('', below.text);

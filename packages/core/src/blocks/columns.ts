@@ -62,17 +62,19 @@ export const columnsBlock = defineBlock<ColumnsBlock>({
         ctx.text(...splitParagraphs(column.body));
         if (link.text) ctx.text(link.text);
         const image = column.image
-          ? ctx.imageOrPlaceholder(column.image, column.alt ?? '', columnPx, 110)
+          ? ctx.imageOrPlaceholder(column.image, column.alt ?? '', columnPx, 110, { fill: true })
           : '';
+        const last = index === count - 1;
+        const stack = last ? ctx.classes.stack : `${ctx.classes.stack} ${ctx.classes.space}`;
         return (
-          `<td width="${width}%" valign="top" style="padding:0;">` +
+          `<td class="${stack}" width="${width}%" valign="top" style="padding:0;">` +
           (image ? `<div style="margin:0 0 10px 0;">${image}</div>` : '') +
           (heading
             ? `<p style="margin:0 0 6px 0;font-family:${ctx.fonts.heading};font-size:${ctx.px(18)}px;line-height:1.3;color:${ctx.palette.heading};">${ctx.escape(column.heading ?? '')}</p>`
             : '') +
           ctx.paragraphs(column.body, `${ctx.bodyStyle()}margin:0 0 8px 0;`) +
           link.html +
-          `</td>${index < count - 1 ? gapCell(16) : ''}`
+          `</td>${last ? '' : gapCell(ctx, 16)}`
         );
       })
       .join('');
