@@ -8,19 +8,28 @@
  */
 export function afterConfirmCloses(run: () => void): void {
   let frames = 0;
-  const later = (next: () => void) =>
-    typeof requestAnimationFrame === 'function'
-      ? requestAnimationFrame(next)
-      : setTimeout(next, 16);
   const tick = () => {
     frames += 1;
     if (document.querySelector('[role="alertdialog"]') && frames < 60) {
-      later(tick);
+      nextFrame(tick);
       return;
     }
     run();
   };
-  later(tick);
+  nextFrame(tick);
+}
+
+/**
+ * Runs `run` at the next frame, once what is rendering now has been laid out; returns a cancel,
+ * for an effect's cleanup. Without animation frames (a test environment), a short timeout.
+ */
+export function nextFrame(run: () => void): () => void {
+  if (typeof requestAnimationFrame === 'function') {
+    const frame = requestAnimationFrame(run);
+    return () => cancelAnimationFrame(frame);
+  }
+  const timer = setTimeout(run, 16);
+  return () => clearTimeout(timer);
 }
 
 /**

@@ -36,7 +36,7 @@ import {
 import { builtInEditorBlocks } from '../blocks';
 import type { InsertTarget, NewsletterCanvasHandle } from '../canvas/canvas';
 import { errorMessage } from '../lib/errors';
-import { afterConfirmCloses } from '../lib/focus';
+import { afterConfirmCloses, nextFrame } from '../lib/focus';
 import { todayInZone } from '../period/today';
 import { useConfirm } from '../ui/confirm';
 import { useToasts } from '../ui/toast';
@@ -185,9 +185,11 @@ export function useNewsletterEditor<B extends BlockBase = BuiltInBlock>({
     canvasRef.current?.focusBlock(id);
   });
 
-  // The block the editor opened on, in view; once, on mount.
+  // The block the editor opened on, in view; once, on mount. A frame later, so the layout the
+  // editor settles on as it measures itself (its fill layout's panes) is the one scrolled.
   useEffect(() => {
-    if (initialSelection) canvasRef.current?.scrollToBlock(initialSelection);
+    if (!initialSelection) return;
+    return nextFrame(() => canvasRef.current?.scrollToBlock(initialSelection));
   }, [initialSelection]);
 
   const commit = useCallback(

@@ -24,6 +24,19 @@ describe('CanvasToolbar', () => {
     expect(screen.getByRole('toolbar', { name: 'Letter block' })).toBeInTheDocument();
   });
 
+  it('leads with Edit only where the editor asks for it (a narrow fill layout)', async () => {
+    const { unmount } = renderToolbar({ block: letter, index: 1, count: 4 });
+    expect(screen.queryByRole('button', { name: 'Edit Letter' })).not.toBeInTheDocument();
+    unmount();
+
+    const onEdit = vi.fn();
+    renderToolbar({ block: letter, index: 1, count: 4, onEdit });
+    const buttons = screen.getAllByRole('button');
+    expect(buttons[0]).toHaveAccessibleName('Edit Letter');
+    await userEvent.setup().click(buttons[0]!);
+    expect(onEdit).toHaveBeenCalledTimes(1);
+  });
+
   it('disables Move up on the first block and Move down on the last', () => {
     const { unmount } = renderToolbar({ block: header, index: 0, count: 4 });
     expect(screen.getByRole('button', { name: 'Move Header up' })).toBeDisabled();

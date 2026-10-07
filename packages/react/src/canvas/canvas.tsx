@@ -21,6 +21,7 @@ import {
 } from '@subterra-technologies/blockletter';
 import { editorDefinition, useEditorContext } from '../editor/context';
 import { cn } from '../lib/cn';
+import { revealInScroller } from '../lib/scroll';
 import { LiveRegion } from '../ui/live-region';
 import { StatusBadge } from '../ui/status-badge';
 import { CanvasBlock } from './canvas-block';
@@ -51,7 +52,10 @@ export interface NewsletterCanvasHandle {
   insertAt: (type: string, index: number) => void;
   /** Moves keyboard focus to a block's tab. */
   focusBlock: (id: string) => void;
-  /** Scrolls a block into view, leaving the focus where it is. */
+  /**
+   * Scrolls a block into view, leaving the focus where it is. Inside a scrolling pane (the
+   * editor's fill layout), only that pane scrolls, never the page around it.
+   */
   scrollToBlock: (id: string) => void;
 }
 
@@ -77,6 +81,11 @@ export interface NewsletterCanvasProps {
   onRefresh?: (id: string) => void;
   onRemove?: (id: string) => void;
   onDuplicate?: (id: string) => void;
+  /**
+   * Opens the selected block's form, for a layout where the inspector is out of view (the
+   * editor's narrow fill layout). Given, the block's toolbar has an Edit button.
+   */
+  onEdit?: (id: string) => void;
   ref?: Ref<NewsletterCanvasHandle>;
 }
 
@@ -113,6 +122,7 @@ export function NewsletterCanvas({
   onRefresh,
   onRemove,
   onDuplicate,
+  onEdit,
   ref,
 }: NewsletterCanvasProps) {
   const editor = useEditorContext();
@@ -249,8 +259,8 @@ export function NewsletterCanvas({
         if (index >= 0) focusTab(index);
       },
       scrollToBlock(id) {
-        const index = blocks.findIndex((block) => block.id === id);
-        tabsRef.current[index]?.scrollIntoView({ block: 'nearest' });
+        const tab = tabsRef.current[blocks.findIndex((block) => block.id === id)];
+        if (tab) revealInScroller(tab);
       },
     }),
     [blocks, endDrag, focusTab, insertBlock, lastSlot, locked],
@@ -532,6 +542,7 @@ export function NewsletterCanvas({
               onDuplicate={() => onDuplicate?.(selectedBlock.id)}
               onRefresh={() => onRefresh?.(selectedBlock.id)}
               onRemove={() => onRemove?.(selectedBlock.id)}
+              onEdit={onEdit ? () => onEdit(selectedBlock.id) : undefined}
             />
           </div>
         ) : null}

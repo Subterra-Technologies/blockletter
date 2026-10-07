@@ -1,5 +1,16 @@
-import { useCallback, useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react';
-import { BookmarkIcon, LockIcon, MoreHorizontalIcon } from 'lucide-react';
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type KeyboardEvent,
+  type ReactNode,
+  type RefObject,
+} from 'react';
+import { ArrowLeftIcon, BookmarkIcon, LockIcon, MoreHorizontalIcon } from 'lucide-react';
 import {
   isStructural,
   periodErrors,
@@ -77,6 +88,13 @@ export interface NewsletterEditorProps<B extends BlockBase = BuiltInBlock> {
   defaultTab?: InspectorTab;
   /** A block selected from the start, scrolled into view without taking the page's focus. */
   defaultSelectedId?: string;
+  /**
+   * Fits the editor to its container's height rather than growing with the issue: the top bar
+   * stays put, each pane scrolls on its own, and the page does not. Give the container a height
+   * (`calc(100dvh - 4rem)`, say, or a flex item's share). Below 64rem of its own width it shows one
+   * pane at a time, switched from the top bar: Blocks, Canvas, and Edit for the chosen block.
+   */
+  fill?: boolean;
 }
 
 /** The inspector's tabs: the selected block's content and look, the issue, the brand kit. */
@@ -94,7 +112,8 @@ const NO_OPTIONS: RenderOptions = {};
  *
  * Wide enough (64rem of its own width), it lays the three panes side by side, the palette and the
  * inspector staying in view as the page scrolls (set `--bl-sticky-top` on it for a fixed header
- * above); narrower, they stack, with nothing wider than the screen down to 320px.
+ * above); narrower, they stack, with nothing wider than the screen down to 320px. With `fill`, it
+ * fits its container instead: see `fill`.
  */
 export function NewsletterEditor<B extends BlockBase = BuiltInBlock>({
   value,
@@ -114,6 +133,7 @@ export function NewsletterEditor<B extends BlockBase = BuiltInBlock>({
   defaultMode = 'canvas',
   defaultTab = 'block',
   defaultSelectedId,
+  fill = false,
 }: NewsletterEditorProps<B>) {
   const context = useMemo<Partial<EditorContextValue>>(
     () => ({
@@ -133,6 +153,7 @@ export function NewsletterEditor<B extends BlockBase = BuiltInBlock>({
       theme={theme}
       className={cn(
         'bl:@container/editor bl:flex bl:min-w-0 bl:flex-col bl:rounded-xl bl:border bl:bg-background bl:text-foreground',
+        fill && 'bl:h-full bl:min-h-0 bl:overflow-hidden',
         className,
       )}
     >
@@ -151,6 +172,7 @@ export function NewsletterEditor<B extends BlockBase = BuiltInBlock>({
           defaultMode={defaultMode}
           defaultTab={defaultTab}
           defaultSelectedId={defaultSelectedId}
+          fill={fill}
         />
       </EditorProvider>
     </BlockletterRoot>
@@ -167,6 +189,24 @@ const blockWord = (count: number): string => (count === 1 ? '1 block' : `${count
 /** The room the desktop preview needs unscaled: the 600px email and its stage's padding. */
 const DESKTOP_PREVIEW_ROOM = 632;
 
+/** Narrower than this many rem (the `@5xl` container width), fill shows one pane at a time. */
+const WIDE_LAYOUT_REM = 64;
+
+/** The panes a narrow fill layout shows one at a time. */
+type Pane = 'blocks' | 'canvas' | 'edit';
+const PANE_LABELS: Readonly<Record<Pane, string>> = {
+  blocks: 'Blocks',
+  canvas: 'Canvas',
+  edit: 'Edit',
+};
+
+/**
+ * How the panes are laid out: with the page (`flow`, the default: the canvas as tall as the issue,
+ * the side panes sticky), or filling the editor's own height, side by side (`columns`) or one at a
+ * time (`single`).
+ */
+type Layout = 'flow' | 'columns' | 'single';
+
 interface WorkspaceProps<B extends BlockBase> {
   value: NewsletterDocument<B>;
   onChange: (value: NewsletterDocument<B>) => void;
@@ -181,6 +221,7 @@ interface WorkspaceProps<B extends BlockBase> {
   defaultMode: EditorMode;
   defaultTab: InspectorTab;
   defaultSelectedId: string | undefined;
+  fill: boolean;
 }
 
 /** Everything inside the root, where the confirmation and the toasts are within reach. */
@@ -198,6 +239,7 @@ function Workspace<B extends BlockBase>({
   defaultMode,
   defaultTab,
   defaultSelectedId,
+  fill,
 }: WorkspaceProps<B>) {
   const editor = useNewsletterEditor<B>({
     value,
@@ -221,10 +263,37 @@ function Workspace<B extends BlockBase>({
   const [savingTemplate, setSavingTemplate] = useState(false);
   const [previewWidth, setPreviewWidth] = useState<PreviewWidth>('desktop');
   const inspectorRef = useRef<BlockInspectorHandle | null>(null);
+  const body = useRef<HTMLDivElement>(null);
   const canvasColumn = useRef<HTMLDivElement>(null);
   const inspectorColumn = useRef<HTMLElement>(null);
-  /** Focus to move once the render it waits for is done: the inspector, or the palette. */
-  const pendingFocus = useRef<'inspector' | 'palette' | null>(null);
+  /**
+   * Focus to move once the render it waits for is done: the inspector, the palette, or the chosen
+   * block on the canvas.
+   */
+  const pendingFocus = useRef<'inspector' | 'palette' | 'block' | null>(null);
+
+  const narrow = useNarrow(body, fill);
+  const layout: Layout = !fill ? 'flow' : narrow ? 'single' : 'columns';
+  const single = layout === 'single';
+  // An issue-wide tab asked for (a deep link to the brand kit) opens on Edit, where it is.
+  const [chosenPane, setPane] = useState<Pane>(() =>
+    defaultTab === 'settings' || (defaultTab === 'brand' && onBrandChange) ? 'edit' : 'canvas',
+  );
+  // There is nothing to add while the issue is read-only, so no Blocks pane.
+  const pane: Pane = readOnly && chosenPane === 'blocks' ? 'canvas' : chosenPane;
+  const panes: readonly Pane[] = readOnly ? ['canvas', 'edit'] : ['blocks', 'canvas', 'edit'];
+  const paneTabId = (which: Pane) => `${ids}-pane-${which}`;
+  const panePanelId = (which: Pane) => (which === 'edit' ? inspectorId : `${ids}-panel-${which}`);
+  /** The attributes that make a pane a tab panel, in the single layout only. */
+  const panel = (which: Pane) =>
+    single
+      ? {
+          role: 'tabpanel',
+          id: panePanelId(which),
+          'aria-labelledby': paneTabId(which),
+          hidden: pane !== which,
+        }
+      : {};
 
   useEffect(() => {
     const target = pendingFocus.current;
@@ -232,6 +301,13 @@ function Workspace<B extends BlockBase>({
     if (target === 'palette') {
       pendingFocus.current = null;
       window.document.getElementById(paletteHeadingId)?.focus();
+    } else if (target === 'block') {
+      pendingFocus.current = null;
+      // The chosen block, or where there is none to go back to (none chosen, or the pane is
+      // showing the preview), the Canvas tab.
+      const canvas = canvasRef.current;
+      if (canvas && editor.selectedId) canvas.focusBlock(editor.selectedId);
+      else window.document.getElementById(paneTabId('canvas'))?.focus();
     } else if (tab === 'appearance') {
       pendingFocus.current = null;
       window.document.getElementById(appearanceHeadingId)?.focus({ preventScroll: true });
@@ -263,14 +339,42 @@ function Workspace<B extends BlockBase>({
    * A pick (a click, Enter) brings the block's form forward: a block tab opens, and where the
    * inspector is beside the canvas, focus moves to its heading so the keyboard lands in its fields.
    * A block chosen by moving it keeps focus where it was. Stacked, focus stays on the canvas: the
-   * inspector is further down the page.
+   * inspector is further down the page, or (one pane at a time) a tap on Edit away.
    */
   function pick(id: string, options?: { reveal?: boolean }): void {
     editor.select(id);
     if (options?.reveal === false) return;
     setTab((current) => (BLOCK_TABS.includes(current) ? current : 'block'));
-    if (inspectorBeside()) pendingFocus.current = 'inspector';
+    if (!single && inspectorBeside()) pendingFocus.current = 'inspector';
   }
+
+  /** One pane at a time: the block's Edit button brings its form up, focused on its heading. */
+  function edit(id: string): void {
+    editor.select(id);
+    setTab((current) => (BLOCK_TABS.includes(current) ? current : 'block'));
+    setPane('edit');
+    pendingFocus.current = 'inspector';
+  }
+
+  /** Back from the Edit pane (its button, or Escape), to the block that was being edited. */
+  const backToCanvas = useCallback(() => {
+    setPane('canvas');
+    pendingFocus.current = 'block';
+  }, []);
+
+  // Escape leaves the Edit pane. Listened for on the pane's own element, so an Escape that closes
+  // a menu or a dialog (which portal elsewhere, and mark the key handled) is not taken for it.
+  useEffect(() => {
+    const element = inspectorColumn.current;
+    if (!single || !element) return;
+    const onKeyDown = (event: globalThis.KeyboardEvent) => {
+      if (event.key !== 'Escape' || event.defaultPrevented) return;
+      event.preventDefault();
+      backToCanvas();
+    };
+    element.addEventListener('keydown', onKeyDown);
+    return () => element.removeEventListener('keydown', onKeyDown);
+  }, [single, backToCanvas]);
 
   /**
    * Canvas or Preview. A preview opened where the desktop email would have to shrink to fit (a
@@ -287,7 +391,16 @@ function Workspace<B extends BlockBase>({
   /** Insert above / below: the palette now places its choice at the line, so focus goes there. */
   function requestInsert(target: { index: number; label: string }): void {
     editor.requestInsert(target);
+    if (single) setPane('blocks');
     pendingFocus.current = 'palette';
+  }
+
+  /** An insertion given up (Cancel, Escape): one pane at a time, back to the canvas it was for. */
+  function cancelInsert(): void {
+    editor.cancelInsert();
+    if (!single) return;
+    setPane('canvas');
+    if (!editor.selectedId) pendingFocus.current = 'block';
   }
 
   /** The palette's choice: at the insertion point, a structural block at the top, else the end. */
@@ -301,38 +414,141 @@ function Workspace<B extends BlockBase>({
     if (!canvas) editor.insert(type, index);
     else if (index === undefined) canvas.addAtEnd(type);
     else canvas.insertAt(type, index);
+    // One pane at a time, the new block is shown where it landed, chosen and focused.
+    if (single) setPane('canvas');
   }
 
   const count = document.blocks.length;
   const selectedRefreshing = selected && editor.refreshing.has(selected.id) ? selected.id : null;
+  const modeSwitch = <ModeSwitch mode={mode} onChange={changeMode} />;
+  const moreMenu = onSaveAsTemplate ? (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button type="button" variant="outline" size="icon-sm" aria-label="More">
+          <MoreHorizontalIcon aria-hidden="true" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="bl:w-52">
+        <DropdownMenuItem onSelect={() => setSavingTemplate(true)}>
+          <BookmarkIcon aria-hidden="true" />
+          Save as template…
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  ) : null;
+
+  const canvas = (
+    <NewsletterCanvas
+      ref={canvasRef}
+      blocks={document.blocks}
+      selectedId={editor.selectedId}
+      readOnly={readOnly}
+      refreshingId={selectedRefreshing}
+      editorPanelId={inspectorId}
+      maxBlocks={editor.maxBlocks}
+      insertIndex={insertTarget?.index ?? null}
+      onPick={pick}
+      onReorder={({ from, to }) => editor.move(from, to)}
+      onInsert={({ type, index }) => editor.insert(type, index)}
+      onRequestInsert={requestInsert}
+      onCancelInsert={cancelInsert}
+      onToggleHidden={editor.toggleHidden}
+      onRefresh={(id) => void editor.refresh(id)}
+      onRemove={(id) => void editor.remove(id)}
+      onDuplicate={editor.duplicate}
+      {...(single ? { onEdit: edit } : {})}
+    />
+  );
+
+  const inspectorTabs = (
+    <Tabs value={tab} onValueChange={(next) => setTab(next as InspectorTab)}>
+      {/* Four tabs fit one row of the inspector at 13px; a larger text setting wraps them, and
+          the list grows to hold the second row. */}
+      <TabsList className="bl:w-full bl:flex-wrap bl:group-data-[orientation=horizontal]/tabs:h-auto">
+        <TabsTrigger value="block" className={TAB}>
+          Block
+        </TabsTrigger>
+        <TabsTrigger value="appearance" className={TAB}>
+          Appearance
+        </TabsTrigger>
+        <TabsTrigger value="settings" className={TAB}>
+          Settings
+        </TabsTrigger>
+        {onBrandChange ? (
+          <TabsTrigger value="brand" className={TAB}>
+            Brand kit
+          </TabsTrigger>
+        ) : null}
+      </TabsList>
+
+      <TabsContent value="block" className="bl:min-w-0 bl:pt-2">
+        {selected ? (
+          <BlockInspector
+            ref={attachInspector}
+            block={selected}
+            readOnly={readOnly}
+            readOnlyReason={readOnlyReason}
+            onChange={editor.update}
+          />
+        ) : (
+          <EmptyPanel>Choose a block on the canvas to edit what it says.</EmptyPanel>
+        )}
+      </TabsContent>
+
+      <TabsContent value="appearance" className="bl:min-w-0 bl:pt-2">
+        {selected ? (
+          <AppearancePanel
+            block={selected}
+            readOnly={readOnly}
+            headingId={appearanceHeadingId}
+            onChange={editor.update}
+          />
+        ) : (
+          <EmptyPanel>Choose a block on the canvas to change how it looks.</EmptyPanel>
+        )}
+      </TabsContent>
+
+      <TabsContent value="settings" className="bl:min-w-0 bl:pt-2">
+        <SettingsPanel editor={editor} sources={sources} readOnly={readOnly} />
+      </TabsContent>
+
+      {onBrandChange ? (
+        <TabsContent value="brand" className="bl:min-w-0 bl:pt-2">
+          <BrandKitEditor value={brand} onSave={onBrandChange} readOnly={readOnly} />
+        </TabsContent>
+      ) : null}
+    </Tabs>
+  );
 
   return (
     <>
-      <div className="bl:flex bl:flex-wrap bl:items-center bl:gap-x-3 bl:gap-y-2 bl:border-b bl:px-3 bl:py-2">
-        <ModeSwitch mode={mode} onChange={changeMode} />
+      <div className="bl:flex bl:shrink-0 bl:flex-wrap bl:items-center bl:gap-x-3 bl:gap-y-2 bl:border-b bl:px-3 bl:py-2">
+        {/* One pane at a time, the top bar switches panes (Canvas / Preview moves into the Canvas
+            pane it is about), and the editor's own menu stays beside the switch, so on a phone
+            the host's actions wrap to a row of their own rather than leaving it behind. */}
+        {single ? (
+          <div className="bl:flex bl:items-center bl:gap-2">
+            <PaneSwitch
+              panes={panes}
+              active={pane}
+              onChange={setPane}
+              tabId={paneTabId}
+              panelId={panePanelId}
+            />
+            {moreMenu}
+          </div>
+        ) : (
+          modeSwitch
+        )}
         <div className="bl:ml-auto bl:flex bl:min-w-0 bl:flex-wrap bl:items-center bl:gap-2">
           {toolbar}
-          {onSaveAsTemplate ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button type="button" variant="outline" size="icon-sm" aria-label="More">
-                  <MoreHorizontalIcon aria-hidden="true" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="bl:w-52">
-                <DropdownMenuItem onSelect={() => setSavingTemplate(true)}>
-                  <BookmarkIcon aria-hidden="true" />
-                  Save as template…
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          ) : null}
+          {single ? null : moreMenu}
         </div>
       </div>
       {readOnly ? (
         <p
           role="note"
-          className="bl:flex bl:items-start bl:gap-2 bl:border-b bl:bg-muted bl:px-4 bl:py-2 bl:text-[0.8125rem] bl:text-muted-foreground"
+          className="bl:flex bl:shrink-0 bl:items-start bl:gap-2 bl:border-b bl:bg-muted bl:px-4 bl:py-2 bl:text-[0.8125rem] bl:text-muted-foreground"
         >
           <LockIcon aria-hidden="true" className="bl:mt-0.5 bl:size-4 bl:shrink-0" />
           <span>
@@ -342,19 +558,35 @@ function Workspace<B extends BlockBase>({
       ) : null}
 
       <div
+        ref={body}
         className={cn(
-          'bl:grid bl:min-w-0 bl:flex-1',
-          readOnly
-            ? 'bl:@5xl/editor:grid-cols-[minmax(0,1fr)_21rem]'
-            : 'bl:@5xl/editor:grid-cols-[13rem_minmax(0,1fr)_21rem]',
+          layout === 'flow' &&
+            cn(
+              'bl:grid bl:min-w-0 bl:flex-1',
+              readOnly
+                ? 'bl:@5xl/editor:grid-cols-[minmax(0,1fr)_21rem]'
+                : 'bl:@5xl/editor:grid-cols-[13rem_minmax(0,1fr)_21rem]',
+            ),
+          // Side by side in the editor's own height: one row that fills it, and panes that scroll.
+          layout === 'columns' &&
+            cn(
+              'bl:grid bl:min-h-0 bl:min-w-0 bl:flex-1 bl:grid-rows-[minmax(0,1fr)]',
+              readOnly
+                ? 'bl:grid-cols-[minmax(0,1fr)_21rem]'
+                : 'bl:grid-cols-[13rem_minmax(0,1fr)_21rem]',
+            ),
+          single && 'bl:flex bl:min-h-0 bl:min-w-0 bl:flex-1 bl:flex-col',
         )}
       >
         {readOnly ? null : (
           <section
-            aria-label="Block palette"
+            {...(single ? panel('blocks') : { 'aria-label': 'Block palette' })}
             className={cn(
-              'bl:min-w-0 bl:border-b bl:px-2 bl:py-4',
-              'bl:@5xl/editor:sticky bl:@5xl/editor:top-[var(--bl-sticky-top,0px)] bl:@5xl/editor:max-h-[calc(100dvh-var(--bl-sticky-top,0px))] bl:@5xl/editor:self-start bl:@5xl/editor:overflow-y-auto bl:@5xl/editor:border-b-0',
+              'bl:min-w-0 bl:px-2 bl:py-4',
+              layout === 'flow' &&
+                'bl:border-b bl:@5xl/editor:sticky bl:@5xl/editor:top-[var(--bl-sticky-top,0px)] bl:@5xl/editor:max-h-[calc(100dvh-var(--bl-sticky-top,0px))] bl:@5xl/editor:self-start bl:@5xl/editor:overflow-y-auto bl:@5xl/editor:border-b-0',
+              layout !== 'flow' && 'bl:min-h-0 bl:overflow-y-auto',
+              single && 'bl:flex-1',
             )}
           >
             <BlockPalette
@@ -363,9 +595,10 @@ function Workspace<B extends BlockBase>({
               countLabel={`${count} of ${editor.maxBlocks} blocks`}
               insertLabel={insertTarget?.label ?? null}
               disabled={editor.full}
-              draggable={mode === 'canvas'}
+              // Dragging needs the canvas beside the palette.
+              draggable={mode === 'canvas' && !single}
               onAdd={add}
-              onCancelInsert={editor.cancelInsert}
+              onCancelInsert={cancelInsert}
               onDragStart={(type) => canvasRef.current?.paletteDragStart(type)}
               onDragEnd={() => canvasRef.current?.endDrag()}
             />
@@ -376,110 +609,79 @@ function Workspace<B extends BlockBase>({
             the side panes stop where their content does. */}
         <div
           ref={canvasColumn}
+          {...panel('canvas')}
           className={cn(
             'bl:flex bl:min-w-0 bl:flex-col',
-            readOnly ? 'bl:@5xl/editor:border-r' : 'bl:@5xl/editor:border-x',
+            layout === 'flow' && (readOnly ? 'bl:@5xl/editor:border-r' : 'bl:@5xl/editor:border-x'),
+            layout === 'columns' && cn('bl:min-h-0', readOnly ? 'bl:border-r' : 'bl:border-x'),
+            single && 'bl:min-h-0 bl:flex-1',
           )}
         >
+          {single ? (
+            <div className="bl:flex bl:shrink-0 bl:items-center bl:border-b bl:px-3 bl:py-2">
+              {modeSwitch}
+            </div>
+          ) : null}
           {mode === 'canvas' ? (
-            <NewsletterCanvas
-              ref={canvasRef}
-              blocks={document.blocks}
-              selectedId={editor.selectedId}
-              readOnly={readOnly}
-              refreshingId={selectedRefreshing}
-              editorPanelId={inspectorId}
-              maxBlocks={editor.maxBlocks}
-              insertIndex={insertTarget?.index ?? null}
-              onPick={pick}
-              onReorder={({ from, to }) => editor.move(from, to)}
-              onInsert={({ type, index }) => editor.insert(type, index)}
-              onRequestInsert={requestInsert}
-              onCancelInsert={editor.cancelInsert}
-              onToggleHidden={editor.toggleHidden}
-              onRefresh={(id) => void editor.refresh(id)}
-              onRemove={(id) => void editor.remove(id)}
-              onDuplicate={editor.duplicate}
-            />
+            layout === 'flow' ? (
+              canvas
+            ) : (
+              <div className="bl:flex bl:min-h-0 bl:flex-1 bl:flex-col bl:overflow-y-auto">
+                {canvas}
+              </div>
+            )
           ) : (
             <section
               aria-labelledby={previewHeadingId}
-              className="bl:flex bl:min-w-0 bl:flex-1 bl:flex-col"
+              className={cn(
+                'bl:flex bl:min-w-0 bl:flex-1 bl:flex-col',
+                layout !== 'flow' && 'bl:min-h-0 bl:overflow-y-auto',
+              )}
             >
               <h2 id={previewHeadingId} className="bl:sr-only">
                 Preview
               </h2>
-              <PreviewPane document={document} defaultWidth={previewWidth} />
+              <PreviewPane
+                document={document}
+                defaultWidth={previewWidth}
+                fill={layout !== 'flow'}
+              />
             </section>
           )}
         </div>
 
         <section
           ref={inspectorColumn}
-          id={inspectorId}
-          aria-label="Inspector"
+          {...(single ? panel('edit') : { id: inspectorId, 'aria-label': 'Inspector' })}
           className={cn(
-            'bl:min-w-0 bl:border-t bl:p-3 bl:@md/editor:p-4',
-            'bl:@5xl/editor:sticky bl:@5xl/editor:top-[var(--bl-sticky-top,0px)] bl:@5xl/editor:max-h-[calc(100dvh-var(--bl-sticky-top,0px))] bl:@5xl/editor:self-start bl:@5xl/editor:overflow-y-auto bl:@5xl/editor:border-t-0',
+            'bl:min-w-0',
+            layout === 'flow' &&
+              'bl:border-t bl:p-3 bl:@md/editor:p-4 bl:@5xl/editor:sticky bl:@5xl/editor:top-[var(--bl-sticky-top,0px)] bl:@5xl/editor:max-h-[calc(100dvh-var(--bl-sticky-top,0px))] bl:@5xl/editor:self-start bl:@5xl/editor:overflow-y-auto bl:@5xl/editor:border-t-0',
+            layout === 'columns' && 'bl:min-h-0 bl:overflow-y-auto bl:p-3 bl:@md/editor:p-4',
+            single && 'bl:flex bl:min-h-0 bl:flex-1 bl:flex-col',
           )}
         >
-          <Tabs value={tab} onValueChange={(next) => setTab(next as InspectorTab)}>
-            {/* Four tabs fit one row of the inspector at 13px; a larger text setting wraps them, and
-                the list grows to hold the second row. */}
-            <TabsList className="bl:w-full bl:flex-wrap bl:group-data-[orientation=horizontal]/tabs:h-auto">
-              <TabsTrigger value="block" className={TAB}>
-                Block
-              </TabsTrigger>
-              <TabsTrigger value="appearance" className={TAB}>
-                Appearance
-              </TabsTrigger>
-              <TabsTrigger value="settings" className={TAB}>
-                Settings
-              </TabsTrigger>
-              {onBrandChange ? (
-                <TabsTrigger value="brand" className={TAB}>
-                  Brand kit
-                </TabsTrigger>
-              ) : null}
-            </TabsList>
-
-            <TabsContent value="block" className="bl:min-w-0 bl:pt-2">
-              {selected ? (
-                <BlockInspector
-                  ref={attachInspector}
-                  block={selected}
-                  readOnly={readOnly}
-                  readOnlyReason={readOnlyReason}
-                  onChange={editor.update}
-                />
-              ) : (
-                <EmptyPanel>Choose a block on the canvas to edit what it says.</EmptyPanel>
-              )}
-            </TabsContent>
-
-            <TabsContent value="appearance" className="bl:min-w-0 bl:pt-2">
-              {selected ? (
-                <AppearancePanel
-                  block={selected}
-                  readOnly={readOnly}
-                  headingId={appearanceHeadingId}
-                  onChange={editor.update}
-                />
-              ) : (
-                <EmptyPanel>Choose a block on the canvas to change how it looks.</EmptyPanel>
-              )}
-            </TabsContent>
-
-            <TabsContent value="settings" className="bl:min-w-0 bl:pt-2">
-              <SettingsPanel editor={editor} sources={sources} readOnly={readOnly} />
-            </TabsContent>
-
-            {onBrandChange ? (
-              <TabsContent value="brand" className="bl:min-w-0 bl:pt-2">
-                <BrandKitEditor value={brand} onSave={onBrandChange} readOnly={readOnly} />
-              </TabsContent>
-            ) : null}
-          </Tabs>
+          {single ? (
+            <>
+              <div className="bl:flex bl:shrink-0 bl:items-center bl:border-b bl:px-2 bl:py-1.5">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  aria-keyshortcuts="Escape"
+                  onClick={backToCanvas}
+                >
+                  <ArrowLeftIcon aria-hidden="true" />
+                  Back to canvas
+                </Button>
+              </div>
+              <div className="bl:min-h-0 bl:flex-1 bl:overflow-y-auto bl:p-3 bl:@md/editor:p-4">
+                {inspectorTabs}
+              </div>
+            </>
+          ) : (
+            inspectorTabs
+          )}
         </section>
       </div>
 
@@ -492,6 +694,106 @@ function Workspace<B extends BlockBase>({
         />
       ) : null}
     </>
+  );
+}
+
+/**
+ * Whether `element` is narrower than the wide layout (`WIDE_LAYOUT_REM`), while `enabled`. Measured
+ * before the first paint and again whenever it is resized. Until there is a width to go by (no
+ * layout yet, or none at all, as in a test runner), it is the wide layout.
+ */
+function useNarrow(element: RefObject<HTMLElement | null>, enabled: boolean): boolean {
+  const [narrow, setNarrow] = useState(false);
+  useLayoutEffect(() => {
+    const node = element.current;
+    if (!enabled || !node) return;
+    const measure = (width: number) => {
+      if (width <= 0) return;
+      const rem = parseFloat(getComputedStyle(node.ownerDocument.documentElement).fontSize) || 16;
+      setNarrow(width < WIDE_LAYOUT_REM * rem);
+    };
+    measure(node.getBoundingClientRect().width);
+    if (typeof ResizeObserver === 'undefined') return;
+    const observer = new ResizeObserver((entries) => measure(entries[0]?.contentRect.width ?? 0));
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [element, enabled]);
+  return enabled && narrow;
+}
+
+/**
+ * The panes of a narrow fill layout, as tabs: one shows at a time. Arrow keys move along them
+ * (and show each), Home and End go to the ends, and only the shown one is a Tab stop.
+ */
+function PaneSwitch({
+  panes,
+  active,
+  onChange,
+  tabId,
+  panelId,
+}: {
+  panes: readonly Pane[];
+  active: Pane;
+  onChange: (pane: Pane) => void;
+  tabId: (pane: Pane) => string;
+  panelId: (pane: Pane) => string;
+}) {
+  const buttons = useRef(new Map<Pane, HTMLButtonElement>());
+
+  function onKeyDown(event: KeyboardEvent<HTMLButtonElement>, index: number): void {
+    const last = panes.length - 1;
+    const to =
+      event.key === 'ArrowRight'
+        ? index === last
+          ? 0
+          : index + 1
+        : event.key === 'ArrowLeft'
+          ? index === 0
+            ? last
+            : index - 1
+          : event.key === 'Home'
+            ? 0
+            : event.key === 'End'
+              ? last
+              : -1;
+    const next = panes[to];
+    if (!next) return;
+    event.preventDefault();
+    onChange(next);
+    buttons.current.get(next)?.focus();
+  }
+
+  return (
+    <div
+      role="tablist"
+      aria-label="Editor panes"
+      className="bl:inline-flex bl:h-8 bl:items-center bl:rounded-lg bl:bg-muted bl:p-[3px]"
+    >
+      {panes.map((pane, index) => (
+        <button
+          key={pane}
+          ref={(node) => {
+            if (node) buttons.current.set(pane, node);
+            else buttons.current.delete(pane);
+          }}
+          type="button"
+          role="tab"
+          id={tabId(pane)}
+          aria-controls={panelId(pane)}
+          aria-selected={active === pane}
+          tabIndex={active === pane ? 0 : -1}
+          onClick={() => onChange(pane)}
+          onKeyDown={(event) => onKeyDown(event, index)}
+          className={cn(
+            'bl:inline-flex bl:h-full bl:items-center bl:rounded-md bl:px-3 bl:text-[0.8125rem] bl:font-medium bl:whitespace-nowrap bl:text-foreground/65 bl:outline-none bl:transition-colors',
+            'bl:hover:text-foreground bl:focus-visible:ring-[3px] bl:focus-visible:ring-ring/50',
+            'bl:aria-selected:bg-background bl:aria-selected:text-foreground bl:aria-selected:shadow-sm',
+          )}
+        >
+          {PANE_LABELS[pane]}
+        </button>
+      ))}
+    </div>
   );
 }
 

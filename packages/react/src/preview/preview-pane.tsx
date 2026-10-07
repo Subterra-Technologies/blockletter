@@ -15,6 +15,8 @@ export type PreviewWidth = 'desktop' | 'phone';
 
 /** The shortest the frame gets; it grows to fill the pane, and the email scrolls inside it. */
 const MIN_FRAME_HEIGHT = 560;
+/** The shortest a filling frame gets, before the pane has been measured or on a tiny screen. */
+const MIN_FILL_FRAME_HEIGHT = 240;
 /** The stage's padding on each axis, which the frame has to fit inside. */
 const STAGE_PADDING = 32;
 const WIDTHS: Readonly<Record<PreviewWidth, number>> = { desktop: 600, phone: 375 };
@@ -37,6 +39,11 @@ export interface PreviewPaneProps {
   title?: string;
   /** Phone when the pane is phone-sized, so the first look is readable. */
   defaultWidth?: PreviewWidth;
+  /**
+   * Fits the frame to the height the pane is given (the editor's fill layout), rather than a
+   * frame at least 560px tall that the page scrolls past. Either way the email scrolls inside it.
+   */
+  fill?: boolean;
 }
 
 /**
@@ -55,6 +62,7 @@ export function PreviewPane({
   document: doc,
   title = 'Email preview',
   defaultWidth = 'desktop',
+  fill = false,
 }: PreviewPaneProps) {
   const { brand, definitions, renderOptions } = useEditorContext();
   const stageRef = useRef<HTMLDivElement | null>(null);
@@ -91,10 +99,11 @@ export function PreviewPane({
   // Scales the email down when the pane is narrower than the chosen width.
   const available = stage.width - STAGE_PADDING;
   const scale = available > 0 && available < frameWidth ? Math.max(0.4, available / frameWidth) : 1;
-  const frameHeight = Math.max(
-    MIN_FRAME_HEIGHT,
-    Math.round((stage.height - STAGE_PADDING) / scale),
-  );
+  // The observed size is the stage's content box, inside its padding: filling, the frame takes
+  // all of it.
+  const frameHeight = fill
+    ? Math.max(MIN_FILL_FRAME_HEIGHT, Math.floor(stage.height / scale))
+    : Math.max(MIN_FRAME_HEIGHT, Math.round((stage.height - STAGE_PADDING) / scale));
 
   function openInTab(): void {
     if (!html || typeof URL.createObjectURL !== 'function') return;
@@ -181,7 +190,10 @@ export function PreviewPane({
       ) : null}
       <div
         ref={stageRef}
-        className="bl:flex bl:min-h-[24rem] bl:flex-1 bl:items-start bl:justify-center bl:overflow-hidden bl:bg-muted bl:p-4"
+        className={cn(
+          'bl:flex bl:flex-1 bl:items-start bl:justify-center bl:overflow-hidden bl:bg-muted bl:p-4',
+          fill ? 'bl:min-h-64' : 'bl:min-h-[24rem]',
+        )}
       >
         {'error' in rendered ? (
           <p role="alert" className="bl:self-center bl:text-sm bl:text-danger">
