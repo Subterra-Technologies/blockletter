@@ -1,0 +1,394 @@
+/*
+ * Blockletter's one stylesheet. Hosts import the compiled `dist/styles.css` and need no Tailwind,
+ * PostCSS or reset of their own.
+ *
+ * Tailwind v4 with the `bl` prefix (`bl:flex`, `bl:hover:bg-accent`) and no Preflight. Every rule
+ * applies inside `.bl-root` (`BlockletterRoot`) or to an element carrying a `bl:` class, so nothing
+ * reaches the host page and nothing depends on the host's own reset:
+ *
+ * - Tailwind's theme variables come out prefixed (`--bl-spacing`, `--bl-radius-md`) and, with the
+ *   design tokens below, sit in a cascade layer of their own, `blockletter`. Any unlayered host
+ *   rule therefore overrides a token, whichever stylesheet loads first:
+ *   `.bl-root { --bl-primary: #6d28d9; }`.
+ * - The reset and the utilities are unlayered, so a host's unlayered element rules (`h2 { margin }`,
+ *   a Bootstrap-style reboot) cannot override what they set, and a host's layered Tailwind never
+ *   outranks them. Each reset rule is `.bl-root` plus `:where()`, one class of specificity, and
+ *   comes before the utilities, so any utility beats it. A host rule for a property neither sets
+ *   (a bare `p { font-size: 18px }`) still reaches the editor; scope it with `:not(.bl-root *)`.
+ * - Keyframes are renamed `bl-*`: Tailwind's and tw-animate-css's own names (`spin`, `pulse`,
+ *   `enter`, `exit`) are ones a host page may well define differently.
+ *
+ * Global, and out of our hands: Tailwind's `@property` registrations for its internal `--tw-*`
+ * variables, and the `properties` layer that sets those variables on every element in browsers
+ * without `@property`. A host on Tailwind v4 emits the same declarations.
+ *
+ * `source(none)` on the utilities: class names are read from this package's own files only.
+ */
+@import 'tailwindcss/theme.css' layer(blockletter) prefix(bl);
+/* shadcn's `animate-in`, `fade-in-0`, `zoom-in-95`, `slide-in-from-top-2`… The `prefix` build
+   computes the slide distances with `--spacing()`, which honours the prefix; the default build
+   reads a bare `var(--spacing)` that does not exist under one, and slides by nothing. */
+@import 'tw-animate-css/prefix' prefix(bl);
+
+/* shadcn's components carry `dark:` classes. They follow the root's palette: an explicit
+   `data-theme`, or a `.dark` ancestor when the root has no explicit light theme. */
+@custom-variant dark (&:is(.bl-root[data-theme='dark'] *, .dark .bl-root:not([data-theme='light']) *));
+
+@source './**/*.{ts,tsx}';
+
+/* Semantic colours resolve through the `--bl-*` tokens on `.bl-root`, so one set of utilities
+   serves both palettes and a host can retheme the editor without rebuilding it. */
+@theme inline {
+  --color-background: var(--bl-background);
+  --color-foreground: var(--bl-foreground);
+  --color-card: var(--bl-card);
+  --color-card-foreground: var(--bl-card-foreground);
+  --color-popover: var(--bl-popover);
+  --color-popover-foreground: var(--bl-popover-foreground);
+  --color-primary: var(--bl-primary);
+  --color-primary-foreground: var(--bl-primary-foreground);
+  --color-secondary: var(--bl-secondary);
+  --color-secondary-foreground: var(--bl-secondary-foreground);
+  --color-muted: var(--bl-muted);
+  --color-muted-foreground: var(--bl-muted-foreground);
+  --color-accent: var(--bl-accent);
+  --color-accent-foreground: var(--bl-accent-foreground);
+  --color-destructive: var(--bl-destructive);
+  --color-border: var(--bl-border);
+  --color-input: var(--bl-input);
+  --color-ring: var(--bl-ring);
+  /* The canvas's own marks over the email (selection, focus, the insertion line). */
+  --color-canvas-mark: var(--bl-canvas-mark);
+  /* Status tones: text on white, and the soft fill a badge or row sits on. */
+  --color-success: var(--bl-success);
+  --color-success-soft: var(--bl-success-soft);
+  --color-warning: var(--bl-warning);
+  --color-warning-soft: var(--bl-warning-soft);
+  --color-danger: var(--bl-danger);
+  --color-danger-soft: var(--bl-danger-soft);
+  --color-info: var(--bl-info);
+  --color-info-soft: var(--bl-info-soft);
+}
+
+@theme {
+  /* The same default `.bl-root` sets, so `bl:font-sans` agrees with it. */
+  --font-sans: ui-sans-serif, system-ui, sans-serif;
+
+  /* Tailwind's default animations under `bl-` names. Keyframes are emitted only when used. */
+  --animate-spin: bl-spin 1s linear infinite;
+  --animate-ping: bl-ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
+  --animate-pulse: bl-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  --animate-bounce: bl-bounce 1s infinite;
+
+  @keyframes bl-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @keyframes bl-ping {
+    75%,
+    100% {
+      transform: scale(2);
+      opacity: 0;
+    }
+  }
+
+  @keyframes bl-pulse {
+    50% {
+      opacity: 0.5;
+    }
+  }
+
+  @keyframes bl-bounce {
+    0%,
+    100% {
+      transform: translateY(-25%);
+      animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+    }
+
+    50% {
+      transform: none;
+      animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+    }
+  }
+}
+
+/* tw-animate-css's enter and exit, as it defines them, under `bl-` names. */
+@theme inline {
+  --animate-in: bl-enter var(--tw-animation-duration, var(--tw-duration, 0.15s))
+    var(--tw-ease, ease) var(--tw-animation-delay, 0s) var(--tw-animation-iteration-count, 1)
+    var(--tw-animation-direction, normal) var(--tw-animation-fill-mode, none);
+  --animate-out: bl-exit var(--tw-animation-duration, var(--tw-duration, 0.15s))
+    var(--tw-ease, ease) var(--tw-animation-delay, 0s) var(--tw-animation-iteration-count, 1)
+    var(--tw-animation-direction, normal) var(--tw-animation-fill-mode, none);
+
+  @keyframes bl-enter {
+    from {
+      opacity: var(--tw-enter-opacity, 1);
+      transform: translate3d(var(--tw-enter-translate-x, 0), var(--tw-enter-translate-y, 0), 0)
+        scale3d(var(--tw-enter-scale, 1), var(--tw-enter-scale, 1), var(--tw-enter-scale, 1))
+        rotate(var(--tw-enter-rotate, 0));
+      filter: blur(var(--tw-enter-blur, 0));
+    }
+  }
+
+  @keyframes bl-exit {
+    to {
+      opacity: var(--tw-exit-opacity, 1);
+      transform: translate3d(var(--tw-exit-translate-x, 0), var(--tw-exit-translate-y, 0), 0)
+        scale3d(var(--tw-exit-scale, 1), var(--tw-exit-scale, 1), var(--tw-exit-scale, 1))
+        rotate(var(--tw-exit-rotate, 0));
+      filter: blur(var(--tw-exit-blur, 0));
+    }
+  }
+}
+
+/* ---------------------------------------------------------------------------------------------
+   Design tokens. Neutral, so the editor sits quietly inside any host's product: white surfaces,
+   near-black text, and the near-black primary kept for primary actions and the current selection.
+   Every `*-foreground` and status colour clears 4.5:1 on the surface it pairs with, and so does
+   `primary` as text (the Button `link` variant) in both palettes. A host restyles the editor by
+   setting these on `.bl-root`.
+   --------------------------------------------------------------------------------------------- */
+@layer blockletter {
+  .bl-root {
+    --bl-background: #ffffff;
+    --bl-foreground: #0a0a0a;
+    --bl-card: #ffffff;
+    --bl-card-foreground: #0a0a0a;
+    --bl-popover: #ffffff;
+    --bl-popover-foreground: #0a0a0a;
+    /* 17:1 with its foreground, and 17.7:1 as text on white. */
+    --bl-primary: #18181b;
+    --bl-primary-foreground: #fafafa;
+    --bl-secondary: #f4f4f5;
+    --bl-secondary-foreground: #18181b;
+    --bl-muted: #f4f4f5;
+    /* 5.7:1 on white, 5.2:1 on the muted surface. */
+    --bl-muted-foreground: #66666d;
+    --bl-accent: #f4f4f5;
+    --bl-accent-foreground: #18181b;
+    --bl-destructive: #dc2626;
+    --bl-border: #e4e4e7;
+    --bl-input: #e4e4e7;
+    /* Dark enough that the 50% focus halo the controls draw still clears 3:1 on white (3.4:1). */
+    --bl-ring: #18181b;
+    /* The canvas's selection, focus and insertion marks. They sit on the email, not the editor,
+       so they pair with a white line and must read on the email's white card in either palette. */
+    --bl-canvas-mark: var(--bl-primary);
+    --bl-success: #15803d;
+    --bl-success-soft: #f0fdf4;
+    --bl-warning: #a16207;
+    --bl-warning-soft: #fefce8;
+    --bl-danger: #b91c1c;
+    --bl-danger-soft: #fef2f2;
+    --bl-info: #1d4ed8;
+    --bl-info-soft: #eff6ff;
+    /* What dims the page behind a dialog. */
+    --bl-overlay: rgb(9 9 11 / 0.45);
+    /* The editor's own text. The email on the canvas uses the brand kit's fonts instead. */
+    --bl-font-sans: ui-sans-serif, system-ui, sans-serif;
+
+    color-scheme: light;
+    font-family: var(--bl-font-sans);
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: var(--bl-foreground);
+    background: var(--bl-background);
+    scrollbar-color: #d4d4d8 transparent;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* The same palette after dark. Surfaces climb rather than invert (page, then card, then
+     popover) so depth still reads when nothing casts a shadow worth seeing, and the primary turns
+     light, because a near-black fill is all but invisible on a dark page. */
+  .bl-root[data-theme='dark'],
+  .dark .bl-root:not([data-theme='light']) {
+    --bl-background: #0b0b0d;
+    --bl-foreground: #f4f4f5;
+    --bl-card: #141417;
+    --bl-card-foreground: #f4f4f5;
+    --bl-popover: #18181b;
+    --bl-popover-foreground: #f4f4f5;
+    /* 14:1 with its foreground, and 15.5:1 as text on the page. */
+    --bl-primary: #e4e4e7;
+    --bl-primary-foreground: #18181b;
+    --bl-secondary: #232327;
+    --bl-secondary-foreground: #f4f4f5;
+    --bl-muted: #1c1c1f;
+    /* 7.7:1 on the page, 6.6:1 on the muted surface. */
+    --bl-muted-foreground: #a1a1aa;
+    --bl-accent: #232327;
+    --bl-accent-foreground: #fafafa;
+    --bl-destructive: #f87171;
+    --bl-border: #2a2a2f;
+    --bl-input: #2a2a2f;
+    /* Light enough that the 50% focus halo still clears 3:1 on the page (4:1). */
+    --bl-ring: #d4d4d8;
+    /* Mid grey, not the light primary: the email's card stays white after dark (4.8:1 on it). */
+    --bl-canvas-mark: #71717a;
+    --bl-success: #4ade80;
+    --bl-success-soft: #0c2417;
+    --bl-warning: #fbbf24;
+    --bl-warning-soft: #2a1f05;
+    --bl-danger: #f87171;
+    --bl-danger-soft: #2c1214;
+    --bl-info: #7dd3fc;
+    --bl-info-soft: #0d2233;
+
+    color-scheme: dark;
+  }
+}
+
+/* ---------------------------------------------------------------------------------------------
+   A scoped Preflight: the resets shadcn's components assume, inside `.bl-root` only. Unlayered,
+   one class of specificity, and ahead of the utilities, so every utility wins over it.
+   --------------------------------------------------------------------------------------------- */
+.bl-root,
+.bl-root *,
+.bl-root ::before,
+.bl-root ::after {
+  box-sizing: border-box;
+  border: 0 solid var(--bl-border);
+}
+.bl-root :where(h1, h2, h3, h4, h5, h6) {
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: normal;
+  text-wrap: balance;
+  overflow-wrap: normal;
+  margin: 0;
+}
+.bl-root :where(p, blockquote, dl, dd, figure, pre, hr) {
+  margin: 0;
+}
+/* Not in Preflight, which never meets a host page: text takes the editor's colour and letter
+   case, so a host's bare `h2 { color: #333; text-transform: uppercase }` cannot put dark text on
+   the dark palette or shout a dialog title. Plain inheritance unless such a rule exists; any
+   utility or inline style still wins. */
+.bl-root :where(h1, h2, h3, h4, h5, h6, p, li, dt, dd, blockquote, figcaption, label, legend) {
+  color: inherit;
+  text-transform: inherit;
+}
+.bl-root :where(ol, ul, menu) {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.bl-root :where(a) {
+  color: inherit;
+  text-decoration: inherit;
+}
+.bl-root :where(button, input, select, optgroup, textarea) {
+  font: inherit;
+  color: inherit;
+  letter-spacing: inherit;
+  margin: 0;
+  background-color: transparent;
+  border-radius: 0;
+}
+.bl-root :where(button, [role='button']) {
+  cursor: pointer;
+}
+.bl-root :where(button:disabled, [role='button'][aria-disabled='true']) {
+  cursor: default;
+}
+.bl-root :where(button, input:where([type='button'], [type='reset'], [type='submit'])) {
+  appearance: button;
+  padding: 0;
+}
+.bl-root :where(img, svg, video, canvas) {
+  display: block;
+  vertical-align: middle;
+}
+.bl-root :where(img, video) {
+  max-width: 100%;
+  height: auto;
+}
+/* Tabular data lines up: every number in a table, and anything marked `bl:tabular-nums`. */
+.bl-root :where(table) {
+  border-collapse: collapse;
+  text-indent: 0;
+  font-variant-numeric: tabular-nums;
+}
+.bl-root :where(fieldset) {
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+.bl-root :where(legend) {
+  padding: 0;
+}
+.bl-root :where(textarea) {
+  resize: vertical;
+}
+.bl-root :where(input, textarea)::placeholder {
+  color: var(--bl-muted-foreground);
+  opacity: 1;
+}
+/* Date fields are native inputs. From Tailwind's Preflight: Safari draws them taller than text
+   inputs, pads their parts, and will not let their text be aligned. */
+.bl-root ::-webkit-date-and-time-value {
+  min-height: 1lh;
+  text-align: inherit;
+}
+.bl-root ::-webkit-datetime-edit {
+  display: inline-flex;
+}
+.bl-root ::-webkit-datetime-edit-fields-wrapper {
+  padding: 0;
+}
+.bl-root ::-webkit-datetime-edit,
+.bl-root ::-webkit-datetime-edit-year-field,
+.bl-root ::-webkit-datetime-edit-month-field,
+.bl-root ::-webkit-datetime-edit-day-field,
+.bl-root ::-webkit-datetime-edit-hour-field,
+.bl-root ::-webkit-datetime-edit-minute-field,
+.bl-root ::-webkit-datetime-edit-second-field,
+.bl-root ::-webkit-datetime-edit-millisecond-field,
+.bl-root ::-webkit-datetime-edit-meridiem-field {
+  padding-block: 0;
+}
+.bl-root ::-webkit-calendar-picker-indicator {
+  line-height: 1;
+}
+.bl-root :where([hidden]:not([hidden='until-found'])) {
+  display: none !important;
+}
+/* Keyboard focus for anything that does not draw its own ring. `:focus-visible` sits inside
+   `:where()` so the rule keeps one class of specificity and `bl:outline-none` still wins. */
+.bl-root :where(a:focus-visible, summary:focus-visible, [tabindex]:focus-visible) {
+  outline: 2px solid var(--bl-ring);
+  outline-offset: 2px;
+  border-radius: 0.25rem;
+}
+/* Selected text, in either palette: a neutral grey with near-black text (13.5:1). */
+.bl-root ::selection {
+  background: #d4d4d8;
+  color: #09090b;
+}
+
+@tailwind utilities source(none);
+
+/* After the utilities, and two classes deep, so this wins over the `bl:bg-black/50` the
+   overlays carry: the editor dims the page with a near-black tint, not flat black. */
+.bl-root [data-slot='dialog-overlay'],
+.bl-root [data-slot='alert-dialog-overlay'] {
+  background: var(--bl-overlay);
+}
+
+/* tw-animate-css has no reduced-motion guard of its own. A reader who asked for less movement
+   gets overlays, menus and tooltips that appear without moving, and a spinner that stops. */
+@media (prefers-reduced-motion: reduce) {
+  .bl-root *,
+  .bl-root ::before,
+  .bl-root ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

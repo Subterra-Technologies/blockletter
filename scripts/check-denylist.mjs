@@ -5,7 +5,8 @@
  * the local place names its sample copy used. Blockletter ships generic defaults and fictional
  * sample data only.
  *
- * The terms are base64-encoded so this file does not itself advertise them.
+ * The terms are base64-encoded so this file does not itself advertise them. The state is
+ * deliberately not on the list: Subterra, whose own brand the demo uses, is headquartered there.
  */
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
@@ -18,7 +19,6 @@ const decode = (value) => Buffer.from(value, 'base64').toString('utf8');
 
 /** Case-insensitive terms, base64. */
 const TERMS = [
-  'REDACTED',
   'REDACTED',
   'REDACTED',
   'REDACTED',

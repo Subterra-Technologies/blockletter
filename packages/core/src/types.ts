@@ -35,7 +35,7 @@ export interface Link {
 }
 
 export type SocialNetwork =
-  'facebook' | 'instagram' | 'linkedin' | 'x' | 'youtube' | 'tiktok' | 'website';
+  'facebook' | 'instagram' | 'linkedin' | 'x' | 'youtube' | 'tiktok' | 'github' | 'website';
 
 export interface SocialLink {
   network: SocialNetwork;
