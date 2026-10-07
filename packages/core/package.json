@@ -1,0 +1,41 @@
+{
+  "name": "@subterra-technologies/blockletter",
+  "version": "0.0.0",
+  "description": "Blockletter core: a typed newsletter document model and an email-safe HTML + plain-text renderer. Zero dependencies; runs in the browser, Node, edge runtimes and Convex.",
+  "license": "UNLICENSED",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "blockletter-source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Subterra-Technologies/blockletter.git",
+    "directory": "packages/core"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "keywords": [
+    "email",
+    "newsletter",
+    "email-builder",
+    "html-email",
+    "blocks"
+  ]
+}

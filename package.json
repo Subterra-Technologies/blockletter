@@ -1,0 +1,39 @@
+{
+  "name": "blockletter-monorepo",
+  "private": true,
+  "type": "module",
+  "description": "Block-based email newsletter builder: a typed document model, an email-safe renderer, and an accessible React editor.",
+  "workspaces": [
+    "packages/core",
+    "packages/react",
+    "apps/*"
+  ],
+  "scripts": {
+    "build": "npm run build -w packages/core && npm run build -w packages/react --if-present && npm run build -w apps/playground --if-present",
+    "dev": "npm run dev -w apps/playground",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "npm run test:e2e -w apps/playground --if-present",
+    "lint": "eslint .",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "check:denylist": "node scripts/check-denylist.mjs",
+    "check": "npm run lint && npm run typecheck && npm test && npm run build && npm run check:denylist"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "@types/node": "^22.20.4",
+    "eslint": "^9.39.5",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "prettier": "^3.9.9",
+    "tsup": "^8.5.1",
+    "typescript": "5.9.3",
+    "typescript-eslint": "^8.71.1",
+    "vitest": "^5.0.3"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
