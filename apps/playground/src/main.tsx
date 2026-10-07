@@ -8,6 +8,9 @@ import { renderEmailPage } from './render-page';
 
 const link = readDeepLink();
 
+// The app restores the docs' scroll itself: the browser would try before the docs are shown.
+history.scrollRestoration = 'manual';
+
 if (link.render) {
   // Just the email, as an inbox shows it: no editor, no playground around it.
   void renderEmailPage(link.render, link.org);

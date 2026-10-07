@@ -53,8 +53,8 @@ export function Blocks({ playground }: { playground: Playground }) {
             a built-in type, so a block of your own is registered exactly the same way.
           </p>
           <p>
-            Add any of them to the issue above. The ones marked <em>fills from data</em> take their
-            items from a data source.
+            Add any of them to the issue open in the editor. The ones marked{' '}
+            <em>fills from data</em> take their items from a data source.
           </p>
           <CodeBlock title="A block of your own" code={BLOCK_SNIPPET} />
         </div>
@@ -65,7 +65,7 @@ export function Blocks({ playground }: { playground: Playground }) {
             {status ? (
               <>
                 {' '}
-                <a href="#try-it">Back to the editor</a>
+                <a href="#editor">See it in the editor</a>
               </>
             ) : null}
           </p>

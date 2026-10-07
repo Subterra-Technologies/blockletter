@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import {
   periodLabel,
   renderEmail,
@@ -6,25 +6,14 @@ import {
   type RenderOptions,
 } from '@subterra-technologies/blockletter';
 import { BlockletterRoot, NewIssueDialog } from '@subterra-technologies/blockletter-react';
-import { SectionNav, type NavSection } from './components/section-nav';
+import { COPY_MESSAGES, type CopyState } from './components/email-tools';
+import { TopBar } from './components/top-bar';
 import type { DeepLink } from './deep-link';
+import { useRoute, type Route, type View } from './route';
 import { SUBTERRA_SITE_URL } from './sample/subterra';
-import { Accessibility } from './sections/accessibility';
-import { Blocks } from './sections/blocks';
-import { Brand } from './sections/brand';
-import { DataSources } from './sections/data-sources';
-import { Rendering } from './sections/rendering';
-import { TryIt, type EditorView } from './sections/try-it';
 import { usePlayground } from './use-playground';
-
-const SECTIONS: readonly NavSection[] = [
-  { id: 'try-it', label: 'Try it' },
-  { id: 'blocks', label: 'Blocks' },
-  { id: 'data-sources', label: 'Data sources' },
-  { id: 'rendering', label: 'Rendering' },
-  { id: 'brand-kit', label: 'Brand kit' },
-  { id: 'accessibility', label: 'Accessibility' },
-];
+import { DocsScreen } from './views/docs';
+import { EditorScreen, type EditorView } from './views/editor';
 
 /** A file name for the downloaded email: its subject, made safe for a file system. */
 const fileNameFor = (document: NewsletterDocument): string =>
@@ -33,14 +22,44 @@ const fileNameFor = (document: NewsletterDocument): string =>
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-|-$/g, '')}.html`;
 
+/**
+ * The editor never scrolls the page and the docs do. Leaving the docs remembers how far down the
+ * reader was; coming back returns there, or to the section the address names.
+ */
+function useDocsScroll(route: Route) {
+  const saved = useRef(0);
+  const previous = useRef<View | null>(null);
+
+  // A layout effect, so the listener is gone before hiding the docs clamps the page to the top.
+  useLayoutEffect(() => {
+    if (route.view !== 'docs') return;
+    const save = () => {
+      saved.current = window.scrollY;
+    };
+    window.addEventListener('scroll', save, { passive: true });
+    return () => window.removeEventListener('scroll', save);
+  }, [route.view]);
+
+  useLayoutEffect(() => {
+    const was = previous.current;
+    previous.current = route.view;
+    if (route.view !== 'docs' || was === 'docs') return;
+    const section = route.section ? document.getElementById(route.section) : null;
+    if (section) section.scrollIntoView({ block: 'start', behavior: 'instant' });
+    else window.scrollTo({ top: saved.current, behavior: 'instant' });
+  }, [route]);
+}
+
 export function App({ link }: { link: DeepLink }) {
+  const route = useRoute();
   const playground = usePlayground(link.org);
   const [newIssueOpen, setNewIssueOpen] = useState(link.newIssue);
   const [view, setView] = useState<EditorView>({ key: 0 });
-  const [copied, setCopied] = useState(false);
-  const copiedTimer = useRef<number | undefined>(undefined);
+  const [copyState, setCopyState] = useState<CopyState>('idle');
+  const copyTimer = useRef<number | undefined>(undefined);
 
-  useEffect(() => () => window.clearTimeout(copiedTimer.current), []);
+  useDocsScroll(route);
+  useEffect(() => () => window.clearTimeout(copyTimer.current), []);
 
   const { issue, organization, brand } = playground;
   const period = issue?.document.period;
@@ -68,71 +87,67 @@ export function App({ link }: { link: DeepLink }) {
     URL.revokeObjectURL(url);
   };
 
+  // The clipboard can be refused (an insecure origin, a blocked permission): say so, not nothing.
   const copy = async () => {
     if (!email) return;
-    await navigator.clipboard.writeText(email.html);
-    setCopied(true);
-    window.clearTimeout(copiedTimer.current);
-    copiedTimer.current = window.setTimeout(() => setCopied(false), 2500);
+    let outcome: CopyState = 'copied';
+    try {
+      await navigator.clipboard.writeText(email.html);
+    } catch {
+      outcome = 'failed';
+    }
+    setCopyState(outcome);
+    window.clearTimeout(copyTimer.current);
+    copyTimer.current = window.setTimeout(() => setCopyState('idle'), 2500);
   };
 
-  // The docs' "edit the brand kit" opens that tab in the editor and brings the editor into view.
+  // The docs' "edit the brand kit" opens the editor on that tab.
   const editBrand = () => {
     setView((current) => ({ key: current.key + 1, tab: 'brand' }));
-    document.getElementById('try-it')?.scrollIntoView({ block: 'start' });
+    window.location.hash = 'editor';
   };
 
+  const inEditor = route.view === 'editor';
+
   return (
-    <div className="pg-page">
-      <a className="pg-skip" href="#try-it">
-        Skip to the editor
+    <div className="pg-page" data-view={route.view}>
+      <a className="pg-skip" href={inEditor ? '#workspace' : '#docs'}>
+        {inEditor ? 'Skip to the editor' : 'Skip to the docs'}
       </a>
-      <header className="pg-top">
-        <div className="pg-shell pg-top__inner">
-          <p className="pg-brand">
-            <span className="pg-brand__name">Blockletter</span>
-            <a className="pg-brand__by" href={SUBTERRA_SITE_URL}>
-              by Subterra Technologies
-            </a>
-          </p>
-          <p className="pg-top__note">Pre-release · not on npm yet</p>
-        </div>
-      </header>
-      <SectionNav sections={SECTIONS} />
+      <TopBar view={route.view} />
 
-      <main>
-        <TryIt
-          playground={playground}
-          link={link}
-          view={view}
-          renderOptions={renderOptions}
-          onNewIssue={() => setNewIssueOpen(true)}
-          onDownload={download}
-          onCopy={() => void copy()}
-          copied={copied}
-        />
-        <Blocks playground={playground} />
-        <DataSources playground={playground} />
-        <Rendering document={issue?.document} email={email} />
-        <Brand brand={brand} onEdit={editBrand} />
-        <Accessibility />
-      </main>
+      <EditorScreen
+        hidden={!inEditor}
+        playground={playground}
+        link={link}
+        view={view}
+        renderOptions={renderOptions}
+        onNewIssue={() => setNewIssueOpen(true)}
+        tools={{ onDownload: download, onCopy: () => void copy(), copyState }}
+      />
+      <DocsScreen hidden={inEditor} playground={playground} email={email} onEditBrand={editBrand} />
 
-      <footer className="pg-footer">
-        <div className="pg-shell pg-footer__inner">
-          <p>
-            Blockletter is built by <a href={SUBTERRA_SITE_URL}>Subterra Technologies</a>. The
-            Subterra sample is taken from its public website; the makers&rsquo; guild is made up,
-            down to every name and number.
-          </p>
-          <p>
-            Your edits live in this browser only.{' '}
-            <button type="button" className="pg-link" onClick={() => void playground.reset()}>
-              Reset the demo
-            </button>
-          </p>
-        </div>
-      </footer>
+      {inEditor ? null : (
+        <footer className="pg-footer">
+          <div className="pg-shell pg-footer__inner">
+            <p>
+              Blockletter is built by <a href={SUBTERRA_SITE_URL}>Subterra Technologies</a>. The
+              Subterra sample is taken from its public website; the makers&rsquo; guild is made up,
+              down to every name and number.
+            </p>
+            <p>
+              Your edits stay in this browser.{' '}
+              <button type="button" className="pg-link" onClick={() => void playground.reset()}>
+                Reset the demo
+              </button>
+            </p>
+          </div>
+        </footer>
+      )}
+
+      <p role="status" className="pg-visually-hidden">
+        {COPY_MESSAGES[copyState]}
+      </p>
 
       {/* The dialog lives outside the editor, so it brings its own root for its portal and toasts. */}
       <BlockletterRoot {...(link.theme ? { theme: link.theme } : {})}>

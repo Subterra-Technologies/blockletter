@@ -76,15 +76,17 @@ The rule it was built on: _if I entered it once, I shouldn't have to enter it ag
 
 ## The demo
 
-The demo is a documentation page you can operate: the editor comes first, and each section after
-it pairs an explanation and its code with the live piece it describes, all driven by the issue
-open in the editor. It opens on _Field Notes_, a newsletter built from Subterra Technologies' own
-website; a fictional makers' guild shows every data-bound block filling itself.
+The demo opens as the editor itself, filling the screen the way it would inside your app: the
+palette, the canvas and the inspector each scroll on their own, and on a phone it shows one pane at
+a time. **Docs**, one click away in its top bar, pairs each explanation and its code with the live
+piece it describes, all driven by the issue open in the editor. It opens on _Field Notes_, a
+newsletter built from Subterra Technologies' own website; a fictional makers' guild shows every
+data-bound block filling itself.
 
-<img src="docs/media/site.png" alt="The demo page: the headline 'Email newsletters that assemble themselves from your app's data', the sample organisation and issue pickers, and the editor beneath them, under a section navigation reading Try it, Blocks, Data sources, Rendering, Brand kit and Accessibility." width="100%">
+<img src="docs/media/site.png" alt="The demo: a top bar with the Editor and Docs views and a GitHub link, the sample organization and issue pickers, and the editor filling the rest of the screen with its block palette, the Field Notes issue on the canvas and the inspector." width="100%">
 
-Each link below opens the live demo on a particular view. Running it locally, add the same query to
-`http://localhost:5173/`.
+Each link below opens the live demo on a particular view. Running it locally, add the same query
+or fragment to `http://localhost:5173/`.
 
 | Try this                                       | Link                                                                                                                    |
 | ---------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
@@ -96,6 +98,8 @@ Each link below opens the live demo on a particular view. Running it locally, ad
 | Use the editor in the dark                     | [Dark theme](https://subterra-technologies.github.io/blockletter/?theme=dark)                                           |
 | Read the email exactly as an inbox receives it | [Rendered HTML](https://subterra-technologies.github.io/blockletter/?render=email)                                      |
 | …and the plain-text version sent with it       | [Plain text](https://subterra-technologies.github.io/blockletter/?render=text)                                          |
+| Read the docs beside the live pieces           | [Docs](https://subterra-technologies.github.io/blockletter/#docs)                                                       |
+| See the renderer's output for the open issue   | [Rendering](https://subterra-technologies.github.io/blockletter/#rendering)                                             |
 
 ## A tour
 
@@ -151,7 +155,7 @@ The demo shows all four live for whatever issue is open.
 
 <table>
   <tr>
-    <td width="26%"><img src="docs/media/mobile-canvas.png" alt="The editor on a phone: the canvas with the banner block selected."></td>
+    <td width="26%"><img src="docs/media/mobile-canvas.png" alt="The editor on a phone: one pane at a time, switched from its top bar, here the canvas with the banner block selected."></td>
     <td><img src="docs/media/dark.png" alt="The editor's dark theme, with the post list block selected and its data-source picker in the inspector."></td>
   </tr>
 </table>
@@ -206,6 +210,7 @@ export function IssueEditor({ issue, brand, onSave, onSaveBrand }) {
   const [doc, setDoc] = useState(issue);
   return (
     <NewsletterEditor
+      fill // take the container's height, each pane scrolling on its own
       value={doc}
       onChange={setDoc}
       brand={brand}
@@ -218,6 +223,11 @@ export function IssueEditor({ issue, brand, onSave, onSaveBrand }) {
   );
 }
 ```
+
+With `fill`, the editor fits whatever height its container has (`calc(100dvh - 4rem)` under a
+4rem header, say, or a flex item's share): its top bar stays put and each pane scrolls on its own,
+as in the demo. Where it is narrower than 64rem it shows one pane at a time, switched from its top
+bar. Leave `fill` out and the editor grows with the issue instead, scrolling with your page.
 
 The stylesheet is compiled and scoped to the editor, so your app needs no CSS framework or setup
 of its own. Every part (canvas, palette, inspector, preview, brand kit, template picker, dialogs)

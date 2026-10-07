@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-07T19:15:11.798762+00:00",
+  "generatedAt": "2026-10-07T21:36:46.109236+00:00",
   "title": "Design System: Blockletter demo",
   "extensions": {
     "colorMeta": {
@@ -218,27 +218,31 @@
     "typographyMeta": {
       "display": {
         "displayName": "Display",
-        "purpose": "The single page H1."
+        "purpose": "The Docs view's single H1, max 30ch."
       },
       "headline": {
         "displayName": "Headline",
-        "purpose": "Section H2s."
+        "purpose": "Docs section H2s."
       },
       "title": {
         "displayName": "Title",
-        "purpose": "Panel and catalog group headings."
+        "purpose": "Panel headings and the sheet's heading."
+      },
+      "lede": {
+        "displayName": "Lede",
+        "purpose": "The one paragraph under the docs H1, max 68ch."
       },
       "body": {
         "displayName": "Body",
-        "purpose": "Prose, 62ch in sections, 72ch for the lede."
+        "purpose": "Prose, 62ch in sections."
       },
       "body-small": {
         "displayName": "Body Small",
-        "purpose": "Controls, nav, tabs, meta, tables, footer."
+        "purpose": "Controls, view and section links, tabs, meta, tables, footer, credit link."
       },
       "label": {
         "displayName": "Label",
-        "purpose": "Field labels, code-panel titles, quiet and tool buttons, status pill."
+        "purpose": "Field labels, reset sentence, code-panel titles, quiet and tool buttons, status pill."
       },
       "code": {
         "displayName": "Code",
@@ -249,7 +253,12 @@
       {
         "name": "editor-lift",
         "value": "0 1px 2px rgb(24 24 27 / 0.05), 0 18px 40px -20px rgb(24 24 27 / 0.22)",
-        "purpose": "Only under the editor, the page's subject."
+        "purpose": "Only under the editor in the workspace, the page's subject."
+      },
+      {
+        "name": "sheet-lift",
+        "value": "0 -16px 40px -16px rgb(24 24 27 / 0.3)",
+        "purpose": "The modal bottom sheet, cast upward over a 0.32 Ink backdrop."
       },
       {
         "name": "panel-hairline",
@@ -259,40 +268,82 @@
     ],
     "motion": [
       {
-        "name": "ease-indicator",
+        "name": "pg-ease",
         "value": "cubic-bezier(0.16, 1, 0.3, 1)",
-        "purpose": "Section-nav indicator slide, 320ms on transform and width; none under reduced motion."
+        "purpose": "The demo's one easing (--pg-ease), shared by the section-nav indicator and the sheet."
+      },
+      {
+        "name": "indicator-slide",
+        "value": "transform 320ms var(--pg-ease), width 320ms var(--pg-ease)",
+        "purpose": "Section-nav current-section indicator; none under reduced motion. The view underline is static."
+      },
+      {
+        "name": "sheet-rise",
+        "value": "transform 320ms var(--pg-ease) from translateY(100%)",
+        "purpose": "Bottom sheet entering and leaving, with overlay and display allow-discrete; none under reduced motion."
+      },
+      {
+        "name": "backdrop-fade",
+        "value": "background-color 320ms var(--pg-ease), rgb(24 24 27 / 0) to rgb(24 24 27 / 0.32)",
+        "purpose": "The sheet's backdrop; none under reduced motion."
       },
       {
         "name": "control-hover",
         "value": "background-color 120ms ease",
-        "purpose": "Button hover fill."
+        "purpose": "Button and source-link hover fill."
       },
       {
         "name": "in-page-jump",
         "value": "scroll-behavior: smooth",
-        "purpose": "Anchor jumps; auto under reduced motion."
+        "purpose": "Docs anchor jumps; auto under reduced motion."
       }
     ],
     "breakpoints": [
       {
-        "name": "stack-controls",
-        "value": "640px"
+        "name": "credit-hidden",
+        "value": "max-width: 359px"
+      },
+      {
+        "name": "toggle-label-hidden",
+        "value": "max-width: 399px"
+      },
+      {
+        "name": "sheet-capped",
+        "value": "min-width: 600px"
+      },
+      {
+        "name": "phone-bar-and-stacked-controls",
+        "value": "max-width: 639px / 640px"
       },
       {
         "name": "nav-scroll-and-catalog-columns",
         "value": "720px"
       },
       {
-        "name": "intro-single-column",
-        "value": "900px"
+        "name": "compact-sample-bar",
+        "value": "max-width: 1023px (COMPACT_QUERY); split and pre-release note from 1024px"
       },
       {
-        "name": "split",
-        "value": "1024px"
+        "name": "reset-sentence",
+        "value": "hidden 1024px to 1279px, shown from 1280px"
+      },
+      {
+        "name": "editor-one-pane",
+        "value": "64rem of the editor's own width (package behaviour)"
       }
     ],
-    "editorRelationship": "The page's --pg-* tokens extend the editor's --bl-* defaults: surface #ffffff, subtle #f4f4f5, rule #e4e4e7 and ink #18181b match --bl-background, --bl-muted, --bl-border and --bl-primary. The page passes --bl-sticky-top: var(--pg-nav-height) to the editor and never restyles .bl-root internals."
+    "editorRelationship": "The page's --pg-* tokens extend the editor's --bl-* defaults: surface #ffffff, subtle #f4f4f5, rule #e4e4e7 and ink #18181b match --bl-background, --bl-muted, --bl-border and --bl-primary. The demo renders the editor with its fill layout inside the workspace, adds Download and Copy to the editor's own toolbar through its toolbar slot, and never restyles .bl-root internals.",
+    "shell": {
+      "barHeight": "56px (--pg-bar-height)",
+      "sampleBarHeight": "52px wide; 56px compact (8px padding around 40px controls)",
+      "navHeight": "48px (--pg-nav-height), sticky at 56px in Docs",
+      "inset": "clamp(12px, 1.5vw, 20px) (--pg-inset)",
+      "appMax": "1760px (--pg-app-max)",
+      "editorView": "height: 100dvh; min-height: 30rem; the page never scrolls, the editor's panes do",
+      "docsScrollPaddingTop": "calc(56px + 48px + 16px) = 120px",
+      "sectionScrollMarginTop": "calc(12px - var(--pg-section-pad))",
+      "readingColumn": "min(100% - 2 * gutter, 1200px)"
+    }
   },
   "components": [
     {
@@ -320,20 +371,52 @@
       "css": ".ds-btn{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 14px;border:1px solid var(--pg-rule-strong,#d4d4d8);border-radius:8px;background:var(--pg-surface,#fff);color:var(--pg-ink,#18181b);font:500 0.875rem/1 var(--pg-sans,system-ui,sans-serif);cursor:pointer;transition:background-color 120ms ease} .ds-btn:hover{background:var(--pg-subtle,#f4f4f5)} .ds-btn:focus-visible{outline:2px solid var(--pg-accent,#04263f);outline-offset:2px} .ds-btn svg{width:16px;height:16px} .ds-btn-quiet{height:32px;padding:0 10px;font-size:0.8125rem}"
     },
     {
+      "name": "Tool button (copy)",
+      "kind": "button",
+      "refersTo": "button-tool",
+      "description": "32px, 6px radius, in the editor's own toolbar: Download .html and Copy HTML, the copy holding a 6rem minimum width so its outcome labels do not shift the bar.",
+      "html": "<div class=\"ds-toolrow\"><button class=\"ds-btn ds-btn-tool\" type=\"button\">Download .html</button><button class=\"ds-btn ds-btn-tool ds-btn-copy\" type=\"button\">Copy HTML</button></div>",
+      "css": ".ds-btn{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 14px;border:1px solid var(--pg-rule-strong,#d4d4d8);border-radius:8px;background:var(--pg-surface,#fff);color:var(--pg-ink,#18181b);font:500 0.875rem/1 var(--pg-sans,system-ui,sans-serif);cursor:pointer;transition:background-color 120ms ease} .ds-btn:hover{background:var(--pg-subtle,#f4f4f5)} .ds-btn:focus-visible{outline:2px solid var(--pg-accent,#04263f);outline-offset:2px} .ds-btn svg{width:16px;height:16px} .ds-toolrow{display:flex;gap:8px} .ds-btn-tool{justify-content:center;height:32px;padding:0 10px;border-radius:6px;font-size:0.8125rem} .ds-btn-copy{min-width:6rem}"
+    },
+    {
       "name": "Sample select",
       "kind": "input",
       "refersTo": "select",
-      "description": "Labelled native select for the demo's sample data.",
+      "description": "Labelled native select for the demo's sample data, stacked (label above) in the docs and the sheet; inline in the wide sample bar.",
       "html": "<div class=\"ds-field\"><label for=\"ds-org\">Sample organization</label><select id=\"ds-org\" class=\"ds-select\"><option>Subterra Technologies</option><option>Makers guild</option></select></div>",
       "css": ".ds-field{display:flex;flex-direction:column;gap:6px;font-family:ui-sans-serif,system-ui,sans-serif} .ds-field label{color:#52525b;font-size:0.8125rem;font-weight:500} .ds-select{appearance:none;min-width:200px;height:36px;padding:0 34px 0 12px;border:1px solid #d4d4d8;border-radius:8px;background:#fff url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%2352525b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' viewBox='0 0 24 24'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E\") no-repeat right 10px center;color:#18181b;font:inherit;font-size:0.875rem;cursor:pointer} .ds-select:hover{border-color:#a1a1aa} .ds-select:focus-visible{outline:2px solid #04263f;outline-offset:2px}"
+    },
+    {
+      "name": "Sample toggle and icon buttons",
+      "kind": "button",
+      "refersTo": "sample-toggle",
+      "description": "The compact sample bar under 1024px: a 40px field-like button naming the sample, and 40px icon buttons for Download and Copy that keep their names for screen readers.",
+      "html": "<div class=\"ds-compact\"><button type=\"button\" class=\"ds-toggle\" aria-haspopup=\"dialog\"><span class=\"ds-toggle__label\">Sample</span><span class=\"ds-toggle__value\">Subterra Technologies · Field Notes · October 2026</span><svg class=\"ds-toggle__icon\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M10 5H3\"/><path d=\"M12 19H3\"/><path d=\"M14 3v4\"/><path d=\"M16 17v4\"/><path d=\"M21 12h-9\"/><path d=\"M21 19h-5\"/><path d=\"M21 5h-7\"/><path d=\"M8 10v4\"/><path d=\"M8 12H3\"/></svg></button><button type=\"button\" class=\"ds-icon\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M12 15V3\"/><path d=\"M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4\"/><path d=\"m7 10 5 5 5-5\"/></svg><span class=\"ds-vh\">Download .html</span></button><button type=\"button\" class=\"ds-icon\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><rect width=\"14\" height=\"14\" x=\"8\" y=\"8\" rx=\"2\"/><path d=\"M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2\"/></svg><span class=\"ds-vh\">Copy HTML</span></button></div>",
+      "css": ".ds-compact{display:flex;gap:8px;padding:8px 12px;background:#fafafa;font-family:ui-sans-serif,system-ui,sans-serif} .ds-toggle{display:flex;flex:1;align-items:center;gap:8px;min-width:0;height:40px;padding:0 12px;border:1px solid #d4d4d8;border-radius:8px;background:#fff;color:#18181b;font:inherit;font-size:0.875rem;text-align:left;cursor:pointer} .ds-toggle:hover,.ds-icon:hover{background:#f4f4f5} .ds-toggle__label{flex:none;color:#52525b;font-weight:500} .ds-toggle__value{flex:1;min-width:0;overflow:hidden;font-weight:500;text-overflow:ellipsis;white-space:nowrap} .ds-toggle__icon{flex:none;width:16px;height:16px;color:#52525b} .ds-icon{display:inline-grid;flex:none;place-items:center;width:40px;height:40px;padding:0;border:1px solid #d4d4d8;border-radius:8px;background:#fff;color:#18181b;cursor:pointer} .ds-icon svg{width:18px;height:18px} .ds-toggle:focus-visible,.ds-icon:focus-visible{outline:2px solid #04263f;outline-offset:2px} .ds-vh{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap} @media (max-width:399px){.ds-toggle__label{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap} .ds-toggle__icon{display:none}}"
+    },
+    {
+      "name": "Bottom sheet",
+      "kind": "custom",
+      "refersTo": "sheet",
+      "description": "Native modal dialog holding the stacked sample controls on small screens: 16px top radius, 32rem cap from 600px, 0.32 Ink backdrop, 320ms rise on --pg-ease, none under reduced motion.",
+      "html": "<div class=\"ds-sheet-demo\"><div class=\"ds-sheet\" role=\"dialog\" aria-labelledby=\"ds-sheet-h\"><div class=\"ds-sheet__head\"><h2 id=\"ds-sheet-h\">Sample data</h2><button type=\"button\" class=\"ds-btn ds-btn-quiet\">Done</button></div><div class=\"ds-sheet__body\"><label>Sample organization<select><option>Subterra Technologies</option></select></label><label>Issue<select><option>Field Notes · October 2026</option></select></label><button type=\"button\" class=\"ds-btn ds-btn-primary\">New issue</button></div></div></div>",
+      "css": ".ds-btn{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 14px;border:1px solid var(--pg-rule-strong,#d4d4d8);border-radius:8px;background:var(--pg-surface,#fff);color:var(--pg-ink,#18181b);font:500 0.875rem/1 var(--pg-sans,system-ui,sans-serif);cursor:pointer;transition:background-color 120ms ease} .ds-btn:hover{background:var(--pg-subtle,#f4f4f5)} .ds-btn:focus-visible{outline:2px solid var(--pg-accent,#04263f);outline-offset:2px} .ds-btn svg{width:16px;height:16px} .ds-btn-quiet{height:32px;padding:0 10px;font-size:0.8125rem} .ds-btn-primary{justify-content:center;border-color:#18181b;background:#18181b;color:#fff} .ds-btn-primary:hover{background:#27272a} .ds-sheet-demo{display:flex;align-items:flex-end;justify-content:center;min-height:340px;background:rgb(24 24 27 / 0.32)} .ds-sheet{box-sizing:border-box;width:100%;max-width:32rem;padding:4px 16px 24px;border:1px solid #e4e4e7;border-bottom:0;border-radius:16px 16px 0 0;background:#fff;color:#18181b;box-shadow:0 -16px 40px -16px rgb(24 24 27 / 0.3);font-family:ui-sans-serif,system-ui,sans-serif;animation:ds-rise 320ms cubic-bezier(0.16,1,0.3,1)} .ds-sheet__head{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-block:8px;border-bottom:1px solid #e4e4e7} .ds-sheet__head h2{margin:0;font-size:1rem;font-weight:650} .ds-sheet__body{display:grid;gap:12px;margin-top:20px} .ds-sheet__body label{display:flex;flex-direction:column;gap:6px;color:#52525b;font-size:0.8125rem;font-weight:500} .ds-sheet__body select{height:36px;padding:0 12px;border:1px solid #d4d4d8;border-radius:8px;background:#fff;color:#18181b;font:inherit;font-size:0.875rem} .ds-sheet__body select:focus-visible{outline:2px solid #04263f;outline-offset:2px} @keyframes ds-rise{from{transform:translateY(100%)}} @media (prefers-reduced-motion:reduce){.ds-sheet{animation:none}}"
+    },
+    {
+      "name": "Top bar",
+      "kind": "nav",
+      "refersTo": "top-bar",
+      "description": "56px white bar: navy wordmark with a muted credit link, the Editor and Docs view links (static navy underline on the current one, on the bar's rule), and the GitHub source link, icon-only under 640px.",
+      "html": "<header class=\"ds-bar\"><p class=\"ds-brand\"><span class=\"ds-brand__name\">Blockletter</span><a class=\"ds-brand__by\" href=\"#\">by Subterra Technologies</a></p><nav aria-label=\"Views\"><ul class=\"ds-views\"><li><a href=\"#\" aria-current=\"page\">Editor</a></li><li><a href=\"#\">Docs</a></li></ul></nav><div class=\"ds-bar__end\"><p class=\"ds-note\">Pre-release · not on npm yet</p><a class=\"ds-source\" href=\"#\"><svg viewBox=\"0 0 16 16\" fill=\"currentColor\" aria-hidden=\"true\"><path d=\"M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z\"/></svg><span>GitHub</span></a></div></header>",
+      "css": ".ds-bar{display:flex;align-items:center;gap:8px 24px;height:56px;box-sizing:border-box;padding:0 20px;background:#fff;border-bottom:1px solid #e4e4e7;font-family:ui-sans-serif,system-ui,sans-serif;color:#18181b} .ds-brand{display:flex;align-items:baseline;gap:2px 10px;margin:0} .ds-brand__name{color:#04263f;font-size:1.0625rem;font-weight:700;letter-spacing:-0.01em} .ds-brand__by{color:#52525b;font-size:0.875rem;text-decoration:underline;text-decoration-color:#d4d4d8;text-underline-offset:3px} .ds-brand__by:hover{color:#04263f;text-decoration-color:currentColor} .ds-views{display:flex;margin:0;padding:0;list-style:none} .ds-views a{position:relative;display:flex;align-items:center;height:55px;padding:0 12px;color:#52525b;font-size:0.875rem;font-weight:500;text-decoration:none} .ds-views a:hover,.ds-views a[aria-current]{color:#18181b} .ds-views a[aria-current]::after{content:'';position:absolute;left:12px;right:12px;bottom:-1px;height:2px;background:#04263f} .ds-views a:focus-visible{outline:2px solid #04263f;outline-offset:-8px} .ds-bar__end{display:flex;align-items:center;gap:12px;margin-left:auto} .ds-note{margin:0;padding:2px 10px;border:1px solid #e4e4e7;border-radius:999px;color:#52525b;font-size:0.8125rem;white-space:nowrap} .ds-source{display:inline-flex;align-items:center;gap:8px;height:36px;box-sizing:border-box;padding:0 12px;border:1px solid #d4d4d8;border-radius:8px;color:#18181b;font-size:0.875rem;font-weight:500;text-decoration:none;transition:background-color 120ms ease} .ds-source:hover{background:#f4f4f5} .ds-source:focus-visible,.ds-brand__by:focus-visible{outline:2px solid #04263f;outline-offset:2px} .ds-source svg{width:16px;height:16px} @media (max-width:639px){.ds-source{width:36px;padding:0;justify-content:center} .ds-source span{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap} .ds-note{display:none}}"
     },
     {
       "name": "Section nav",
       "kind": "nav",
       "refersTo": "nav-link",
-      "description": "Sticky on-this-page nav with a sliding navy current-section indicator.",
-      "html": "<nav class=\"ds-nav\" aria-label=\"On this page\"><a href=\"#\" aria-current=\"location\">Try it</a><a href=\"#\">Blocks</a><a href=\"#\">Data sources</a><a href=\"#\">Rendering</a></nav>",
-      "css": ".ds-nav{display:flex;gap:4px;background:#fafafa;border-bottom:1px solid #e4e4e7;font-family:ui-sans-serif,system-ui,sans-serif} .ds-nav a{display:flex;align-items:center;height:48px;padding:0 12px;color:#52525b;font-size:0.875rem;font-weight:500;text-decoration:none;box-shadow:inset 0 -2px 0 transparent;transition:box-shadow 320ms cubic-bezier(0.16,1,0.3,1)} .ds-nav a:hover,.ds-nav a[aria-current]{color:#18181b} .ds-nav a[aria-current]{box-shadow:inset 0 -2px 0 #04263f} .ds-nav a:focus-visible{outline:2px solid #04263f;outline-offset:-6px} @media (prefers-reduced-motion:reduce){.ds-nav a{transition:none}}"
+      "description": "Sticky docs nav under the top bar; a 2px navy indicator slides to the current section on --pg-ease. Above the first section nothing is current.",
+      "html": "<nav class=\"ds-nav\" aria-label=\"On this page\"><a href=\"#\" aria-current=\"location\">Embed it</a><a href=\"#\">Blocks</a><a href=\"#\">Data sources</a><a href=\"#\">Rendering</a><span class=\"ds-nav__indicator\" aria-hidden=\"true\" style=\"width:84px\"></span></nav>",
+      "css": ".ds-nav{position:relative;display:flex;gap:4px;background:#fafafa;border-bottom:1px solid #e4e4e7;font-family:ui-sans-serif,system-ui,sans-serif} .ds-nav a{display:flex;align-items:center;height:48px;padding:0 12px;color:#52525b;font-size:0.875rem;font-weight:500;text-decoration:none} .ds-nav a:hover,.ds-nav a[aria-current]{color:#18181b} .ds-nav a:focus-visible{outline:2px solid #04263f;outline-offset:-6px} .ds-nav__indicator{position:absolute;bottom:0;left:0;height:2px;background:#04263f;pointer-events:none;transition:transform 320ms cubic-bezier(0.16,1,0.3,1),width 320ms cubic-bezier(0.16,1,0.3,1)} @media (prefers-reduced-motion:reduce){.ds-nav__indicator{transition:none}}"
     },
     {
       "name": "Underline tabs",
@@ -370,13 +453,13 @@
   ],
   "narrative": {
     "northStar": "The Editor's Own Desk",
-    "overview": "**Creative North Star: \"The Editor's Own Desk\"**\n\nThe demo page is the Blockletter editor's world carried out to the page around it. The editor ships a zinc-neutral, shadcn-lineage stylesheet (`--bl-*` tokens: white background, `#e4e4e7` border, `#f4f4f5` muted, `#18181b` primary). The page (`--pg-*` tokens in `src/playground.css`) reuses those same values for its ground, rules, subtle fills and ink, so the editor reads as the page's subject rather than an embedded foreign widget. The page never reaches inside `.bl-root`; it only frames it.\n\nDensity is that of good developer documentation: a light top bar, a sticky section nav, then sections that pair prose with a live panel, all driven by the one issue open in the editor. Surfaces are white on a near-white ground, separated by 1px rules rather than fills or heavy shadows. Subterra navy is the one accent and stays scarce: the wordmark, links, the current-section mark, the selected tab and code keywords.",
+    "overview": "**Creative North Star: \"The Editor's Own Desk\"**\n\nThe demo is the Blockletter editor's world carried out to the screen around it. The editor ships a zinc-neutral, shadcn-lineage stylesheet (`--bl-*` tokens: white background, `#e4e4e7` border, `#f4f4f5` muted, `#18181b` primary). The demo (`--pg-*` tokens in `src/playground.css`) reuses those same values for its ground, rules, subtle fills and ink, so the editor reads as the subject rather than an embedded foreign widget. The demo never reaches inside `.bl-root`; it only frames it.\n\nIt is an app shell with two views of one issue. The Editor view is the tool itself: a white top bar, a slim sample bar on the ground, and the editor filling every remaining pixel, its panes scrolling on their own while the page stays still. The Docs view reads as good developer documentation: the same top bar held at the top, a sticky section nav under it, and sections that pair prose with a live panel driven by the issue open in the editor. Surfaces are white on a near-white ground, separated by 1px rules rather than fills or heavy shadows. Subterra navy is the one accent and stays scarce: the wordmark, links, the current view, the current section, the selected tab and code keywords.",
     "keyCharacteristics": [
       "Zinc neutrals; surface, wash, hairline and ink match the editor's default theme value for value.",
       "One accent, Subterra navy, used for location and links, never for fills of large areas.",
-      "1px hairline rules carry structure; shadows are near-invisible except the single lift under the editor.",
+      "1px hairline rules carry structure; the editor is the one lifted surface on the page, and the small-screen sheet the one modal layer.",
       "One system sans for all prose and UI; monospace only for code, API names and keys.",
-      "One motion: the section-nav indicator slide, removed under reduced motion."
+      "Two motions on one ease: the section-nav indicator slide and the sample sheet's rise, both removed under reduced motion."
     ],
     "rules": [
       {
@@ -406,21 +489,22 @@
       },
       {
         "name": "The One Lift Rule",
-        "body": "Only the editor is lifted off the ground. Every other container is flat and bordered.",
+        "body": "Only the editor is lifted off the ground. Every other page container is flat and bordered; the only other shadow belongs to the modal sheet, which sits above the page rather than on it.",
         "section": "elevation"
       }
     ],
     "dos": [
-      "**Do** take every neutral from the shared zinc set; the page and the editor must read as one surface.",
-      "**Do** keep navy for links, location (nav indicator, selected tab), focus and code keywords.",
-      "**Do** separate sections and panel regions with 1px Hairline rules, not fills or shadows.",
-      "**Do** size controls to the editor: 36px page controls, 32px in or beside editor chrome.",
+      "**Do** take every neutral from the shared zinc set; the demo and the editor must read as one surface.",
+      "**Do** keep navy for links, location (current view, section indicator, selected tab), focus and code keywords.",
+      "**Do** separate bars, sections and panel regions with 1px Hairline rules, not fills or shadows.",
+      "**Do** size controls to the editor: 36px page controls, 32px in or beside editor chrome, 40px for the compact sample bar's touch targets.",
+      "**Do** let the Editor view be the screen: the page holds still and the editor's panes scroll.",
       "**Do** give every motion a reduced-motion fallback with no movement.",
       "**Do** scope page styles outside `.bl-root`; frame the editor, never restyle it."
     ],
     "donts": [
       "**Don't** add a second accent colour to the page chrome; Code Green lives only in code.",
-      "**Don't** lift anything but the editor with a visible shadow.",
+      "**Don't** lift any page surface but the editor with a visible shadow; only a modal layer may cast another.",
       "**Don't** use monospace outside code, rendered output and keys.",
       "**Don't** bring the sample issue's other brand colours (Subterra logo blue and the issue's palette) into page chrome.",
       "**Don't** uppercase or letter-space labels, buttons or nav."
