@@ -57,14 +57,17 @@ interface BlockDefinition<B extends BlockBase = BlockBase> {
   validate(block: unknown, path: string): ValidationIssue[];
   /** Soft warnings the editor shows while the block is selected ("Add alt text"). */
   issues?(block: B): string[];
-  /** One line for lists: "Button · Learn more". */
+  /** The block's own text for one-line lists; `blockSummary` prefixes the label. */
   summary?(block: B): string;
   /** Email HTML: one or more `<tr>` rows (use `ctx.section`). Return '' to omit. */
   render(block: B, ctx: RenderContext): string;
 }
 
-builtInBlocks: readonly BlockDefinition[];          // all 21, in palette order
+builtInBlocks: readonly BlockDefinition[];          // all 21, in palette order (frozen)
+headerBlock, letterBlock, … statsBlock;              // each built-in definition by name
 defineBlock<B extends BlockBase>(definition: BlockDefinition<B>): BlockDefinition<B>;
+// Validation helpers for host blocks, the same ones the built-ins use
+validateObject(input, path, options): ObjectValidator; blockValidator(type, build);
 getDefinition(type: string, definitions?): BlockDefinition | undefined;
 BLOCK_GROUPS: readonly { id: BlockGroup; label: string }[];
 paletteGroups(definitions?): { id; label; items: BlockDefinition[] }[];
@@ -73,7 +76,7 @@ paletteGroups(definitions?): { id; label; items: BlockDefinition[] }[];
 ### Blocks and documents
 
 ```ts
-createBlock(type, definitions?): Block;              // fresh id, hidden: false
+createBlock(type, definitions?): Block;              // fresh id, hidden: false; throws if unknown
 newBlockId(type): string;
 blockLabel(type, definitions?): string;
 blockSummary(block, definitions?): string;
@@ -83,12 +86,13 @@ createDocument(init?: Partial<NewsletterDocument>): NewsletterDocument;
 migrateDocument(input: unknown): NewsletterDocument; // upgrades older versions; v1 is identity
 
 // Pure list operations shared by the editor and hosts
-moveBlock(blocks, from, to); insertBlock(blocks, block, index); removeBlock(blocks, id);
+moveBlock(blocks, from, to); insertBlock(blocks, block, index?); removeBlock(blocks, id);
 duplicateBlock(blocks, id); updateBlock(blocks, block); toggleHidden(blocks, id);
 ensureFooter(blocks, createFooter): blocks;          // exactly one footer, visible, last
 
 LIMITS: { maxBlocks: 30; maxTextLength: 5000; eventTiles: 4; posts: 3;
           columns: [2, 3]; stats: [2, 4]; photos: [2, 6] };
+BLOCK_ALIGNMENTS; BLOCK_PADDINGS; BLOCK_FONT_SIZES; SOCIAL_NETWORKS; styleSummary(style);
 validateDocument(doc, definitions?): ValidationIssue[];
 assertValidDocument(doc, definitions?): asserts doc is NewsletterDocument; // throws BlockletterValidationError
 class BlockletterValidationError extends Error { issues: ValidationIssue[] }
@@ -113,26 +117,33 @@ interface RenderOptions {
 interface RenderedEmail { html: string; text: string; warnings: string[] }
 
 renderEmail(doc, options?): RenderedEmail;
-escapeHtml(value); absoluteUrl(url, baseUrl);
+renderBlock(block, options?): RenderedBlock;   // one block's rows, e.g. to draw a host block on a canvas
+DEFAULT_LABELS; escapeHtml(value); absoluteUrl(url, baseUrl); splitParagraphs(body);
 ```
 
 `warnings` are for the host and never block rendering: no unsubscribe URL, an image without alt
-text, a relative link with no `baseUrl`, HTML over Gmail's ~102 KB clipping threshold.
+text, a relative link with no `baseUrl`, an image that only exists in the browser (`blob:` or an
+image `data:` URL, which previews accept but inboxes cannot load), an unknown block type, HTML over
+Gmail's ~102 KB clipping threshold.
 
 `RenderContext` is what a block's `render` receives: the resolved `palette`, font stacks,
 `brand`, `labels`, plus helpers — `section(block, inner, options)`, `heading`, `paragraphs`,
 `button`, `image(ref)`, `imageOrPlaceholder`, `optionalLink`, `url(href)`, `escape`, `px(size)`,
-`text(...lines)` (the plain-text twin), and `width` (`{ full: 600, content: 536 }`).
+`text(...lines)` (the plain-text twin), `warn(message)`, `bodyStyle`/`smallStyle`, `options`,
+and `width` (`{ full: 600, content: 536, inner }`, where `inner` accounts for the block's own
+padding).
 
 ### Brand kit and palette
 
 ```ts
 DEFAULT_BRAND: BrandKit;                  // neutral; never any client's identity
 BRAND_FONTS; FONT_STACKS; fontStack(font): string;
-interface Palette { page; card; border; text; muted; heading; accent; accentText; band;
-                    bandText; bandMuted; tileDay; soft; footer; footerText; link }
+interface Palette { page; card; border; text; muted; heading; accent; accentInk; accentText;
+                    band; bandText; bandMuted; tileDay; soft; footer; footerText; link }
 resolvePalette(brand?): Palette;          // brand colours over the default palette, contrast-aware
-relativeLuminance(hex); contrastRatio(a, b); isHexColor(value); HEX_COLOR: RegExp;
+DEFAULT_PALETTE;
+relativeLuminance(hex); contrastRatio(a, b); readable(color, on, ratio); labelOn(background);
+isHexColor(value); HEX_COLOR: RegExp;
 validateBrandKit(input: unknown): ValidationIssue[];
 ```
 
@@ -150,11 +161,13 @@ htmlToText(html): string; plainTextToHtml(text): string;
 isIsoDate(value); addDays(iso, days); compareIsoDates(a, b);
 todayIn(timeZone: string, now?: Date): string;       // 'YYYY-MM-DD' in that zone
 monthPeriod(monthKey): IssuePeriod; periodLabel(period): string;
-validatePeriod(period): string[];
-PERIOD_PRESETS; suggestPeriod(today, preset?): IssuePeriod;
-formatShortDate(iso): string;                         // AP style: "Sept. 5"
+validatePeriod(period, rules?): string[]; periodErrors(period, rules?): PeriodErrors;
+PERIOD_PRESETS; presetRange(preset, today); applyPeriodPreset(…);
+suggestPeriod(today, preset?, { lookaheadDays? }): IssuePeriod;
+formatShortDate(iso, months?): string;                // AP style: "Sept. 5"
+parseShortDate(text, year); monthLabel(monthKey); coversDate; isInLookahead;
 periodTokens(period?, brand?): Record<string, string>;
-fillTokens(value, tokens): string;
+fillTokens(value, tokens): string; fillBlockTokens(block, tokens);
 
 BUILT_IN_TEMPLATES: readonly NewsletterTemplate[];
 applyTemplate(template, { period?, brand? }): NewsletterDocument; // fresh ids, tokens filled
@@ -165,9 +178,13 @@ templateFromDocument(doc, { id, name, description }): NewsletterTemplate; // tok
 
 ```ts
 refreshBlock(block, source, context): Promise<Block>; // re-reads the source into a list block
-assembleDocument(template, { period?, brand?, sources? }): Promise<NewsletterDocument>;
+assembleDocument(template, { period?, brand?, sources?, signal? }): Promise<NewsletterDocument>;
 sourceFor(block, sources): DataSource | undefined;
 ```
+
+Every text colour the palette produces meets WCAG AA: `accentInk` is the accent darkened (same
+hue) until it reads as text on the card, `tileDay` is adjusted to 3:1 on the band, and labels on
+buttons and bands pick whichever of light or dark reads.
 
 Refresh rules: `event_tiles` takes the source's first `limit` items; `sponsors`, `name_list`
 and `post_list` replace previously sourced items (those with `ref`) and keep hand-written ones;
