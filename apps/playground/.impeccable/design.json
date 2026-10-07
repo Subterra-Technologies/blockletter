@@ -1,0 +1,429 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-07T19:15:11.798762+00:00",
+  "title": "Design System: Blockletter demo",
+  "extensions": {
+    "colorMeta": {
+      "ground": {
+        "role": "neutral",
+        "displayName": "Paper Ground",
+        "canonical": "#fafafa",
+        "tonalRamp": [
+          "#18181b",
+          "#27272a",
+          "#3f3f46",
+          "#52525b",
+          "#a1a1aa",
+          "#d4d4d8",
+          "#e4e4e7",
+          "#f4f4f5"
+        ]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "White Surface",
+        "canonical": "#ffffff",
+        "tonalRamp": [
+          "#18181b",
+          "#27272a",
+          "#3f3f46",
+          "#52525b",
+          "#a1a1aa",
+          "#d4d4d8",
+          "#e4e4e7",
+          "#f4f4f5"
+        ]
+      },
+      "subtle": {
+        "role": "neutral",
+        "displayName": "Zinc Wash",
+        "canonical": "#f4f4f5",
+        "tonalRamp": [
+          "#18181b",
+          "#27272a",
+          "#3f3f46",
+          "#52525b",
+          "#a1a1aa",
+          "#d4d4d8",
+          "#e4e4e7",
+          "#f4f4f5"
+        ]
+      },
+      "rule": {
+        "role": "neutral",
+        "displayName": "Hairline",
+        "canonical": "#e4e4e7",
+        "tonalRamp": [
+          "#18181b",
+          "#27272a",
+          "#3f3f46",
+          "#52525b",
+          "#a1a1aa",
+          "#d4d4d8",
+          "#e4e4e7",
+          "#f4f4f5"
+        ]
+      },
+      "rule-strong": {
+        "role": "neutral",
+        "displayName": "Hairline Strong",
+        "canonical": "#d4d4d8",
+        "tonalRamp": [
+          "#18181b",
+          "#27272a",
+          "#3f3f46",
+          "#52525b",
+          "#a1a1aa",
+          "#d4d4d8",
+          "#e4e4e7",
+          "#f4f4f5"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "#18181b",
+        "tonalRamp": [
+          "#18181b",
+          "#27272a",
+          "#3f3f46",
+          "#52525b",
+          "#a1a1aa",
+          "#d4d4d8",
+          "#e4e4e7",
+          "#f4f4f5"
+        ]
+      },
+      "ink-raised": {
+        "role": "neutral",
+        "displayName": "Ink Raised",
+        "canonical": "#27272a",
+        "tonalRamp": [
+          "#18181b",
+          "#27272a",
+          "#3f3f46",
+          "#52525b",
+          "#a1a1aa",
+          "#d4d4d8",
+          "#e4e4e7",
+          "#f4f4f5"
+        ]
+      },
+      "body": {
+        "role": "neutral",
+        "displayName": "Body Zinc",
+        "canonical": "#3f3f46",
+        "tonalRamp": [
+          "#18181b",
+          "#27272a",
+          "#3f3f46",
+          "#52525b",
+          "#a1a1aa",
+          "#d4d4d8",
+          "#e4e4e7",
+          "#f4f4f5"
+        ]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Muted Zinc",
+        "canonical": "#52525b",
+        "tonalRamp": [
+          "#18181b",
+          "#27272a",
+          "#3f3f46",
+          "#52525b",
+          "#a1a1aa",
+          "#d4d4d8",
+          "#e4e4e7",
+          "#f4f4f5"
+        ]
+      },
+      "subterra-navy": {
+        "role": "primary",
+        "displayName": "Subterra Navy",
+        "canonical": "#04263f",
+        "tonalRamp": [
+          "#021422",
+          "#04263f",
+          "#0b3a5c",
+          "#1a5078",
+          "#3f7096",
+          "#7fa3bf",
+          "#cfe0ec",
+          "#e7eef3"
+        ]
+      },
+      "navy-tint": {
+        "role": "primary",
+        "displayName": "Navy Mist",
+        "canonical": "#e7eef3",
+        "tonalRamp": [
+          "#021422",
+          "#04263f",
+          "#0b3a5c",
+          "#1a5078",
+          "#3f7096",
+          "#7fa3bf",
+          "#cfe0ec",
+          "#e7eef3"
+        ]
+      },
+      "code-string": {
+        "role": "tertiary",
+        "displayName": "Code Green",
+        "canonical": "#0f6e5a",
+        "tonalRamp": [
+          "#06362c",
+          "#0a4f41",
+          "#0f6e5a",
+          "#2a8a74",
+          "#5aa894",
+          "#97c9bb",
+          "#cbe5dd",
+          "#e8f4f0"
+        ]
+      },
+      "code-comment": {
+        "role": "neutral",
+        "displayName": "Comment Zinc",
+        "canonical": "#63636b",
+        "tonalRamp": [
+          "#18181b",
+          "#27272a",
+          "#3f3f46",
+          "#52525b",
+          "#a1a1aa",
+          "#d4d4d8",
+          "#e4e4e7",
+          "#f4f4f5"
+        ]
+      },
+      "error": {
+        "role": "error",
+        "displayName": "Error Red",
+        "canonical": "#b42318",
+        "tonalRamp": [
+          "#5c120c",
+          "#861a12",
+          "#b42318",
+          "#d1432f",
+          "#e8705c",
+          "#f3a597",
+          "#fad3cc",
+          "#fdecea"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "The single page H1."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Section H2s."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Panel and catalog group headings."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Prose, 62ch in sections, 72ch for the lede."
+      },
+      "body-small": {
+        "displayName": "Body Small",
+        "purpose": "Controls, nav, tabs, meta, tables, footer."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Field labels, code-panel titles, quiet and tool buttons, status pill."
+      },
+      "code": {
+        "displayName": "Code",
+        "purpose": "Code panels, inline code, rendered output, kbd."
+      }
+    },
+    "shadows": [
+      {
+        "name": "editor-lift",
+        "value": "0 1px 2px rgb(24 24 27 / 0.05), 0 18px 40px -20px rgb(24 24 27 / 0.22)",
+        "purpose": "Only under the editor, the page's subject."
+      },
+      {
+        "name": "panel-hairline",
+        "value": "0 1px 2px rgb(24 24 27 / 0.04)",
+        "purpose": "Live panels; barely there."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-indicator",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Section-nav indicator slide, 320ms on transform and width; none under reduced motion."
+      },
+      {
+        "name": "control-hover",
+        "value": "background-color 120ms ease",
+        "purpose": "Button hover fill."
+      },
+      {
+        "name": "in-page-jump",
+        "value": "scroll-behavior: smooth",
+        "purpose": "Anchor jumps; auto under reduced motion."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "stack-controls",
+        "value": "640px"
+      },
+      {
+        "name": "nav-scroll-and-catalog-columns",
+        "value": "720px"
+      },
+      {
+        "name": "intro-single-column",
+        "value": "900px"
+      },
+      {
+        "name": "split",
+        "value": "1024px"
+      }
+    ],
+    "editorRelationship": "The page's --pg-* tokens extend the editor's --bl-* defaults: surface #ffffff, subtle #f4f4f5, rule #e4e4e7 and ink #18181b match --bl-background, --bl-muted, --bl-border and --bl-primary. The page passes --bl-sticky-top: var(--pg-nav-height) to the editor and never restyles .bl-root internals."
+  },
+  "components": [
+    {
+      "name": "Button",
+      "kind": "button",
+      "refersTo": "button",
+      "description": "Default bordered page control, 36px.",
+      "html": "<button class=\"ds-btn\" type=\"button\">Edit the brand kit</button>",
+      "css": ".ds-btn{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 14px;border:1px solid var(--pg-rule-strong,#d4d4d8);border-radius:8px;background:var(--pg-surface,#fff);color:var(--pg-ink,#18181b);font:500 0.875rem/1 var(--pg-sans,system-ui,sans-serif);cursor:pointer;transition:background-color 120ms ease} .ds-btn:hover{background:var(--pg-subtle,#f4f4f5)} .ds-btn:focus-visible{outline:2px solid var(--pg-accent,#04263f);outline-offset:2px} .ds-btn svg{width:16px;height:16px}"
+    },
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Ink-filled; at most one per band (New issue, Refresh).",
+      "html": "<button class=\"ds-btn ds-btn-primary\" type=\"button\">New issue</button>",
+      "css": ".ds-btn{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 14px;border:1px solid var(--pg-rule-strong,#d4d4d8);border-radius:8px;background:var(--pg-surface,#fff);color:var(--pg-ink,#18181b);font:500 0.875rem/1 var(--pg-sans,system-ui,sans-serif);cursor:pointer;transition:background-color 120ms ease} .ds-btn:hover{background:var(--pg-subtle,#f4f4f5)} .ds-btn:focus-visible{outline:2px solid var(--pg-accent,#04263f);outline-offset:2px} .ds-btn svg{width:16px;height:16px} .ds-btn-primary{border-color:#18181b;background:#18181b;color:#fff} .ds-btn-primary:hover{background:#27272a}"
+    },
+    {
+      "name": "Quiet Button",
+      "kind": "button",
+      "refersTo": "button-quiet",
+      "description": "32px in-panel action with a 16px icon (copy, add to the issue).",
+      "html": "<button class=\"ds-btn ds-btn-quiet\" type=\"button\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><rect width=\"14\" height=\"14\" x=\"8\" y=\"8\" rx=\"2\"/><path d=\"M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2\"/></svg><span>Copy code</span></button>",
+      "css": ".ds-btn{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 14px;border:1px solid var(--pg-rule-strong,#d4d4d8);border-radius:8px;background:var(--pg-surface,#fff);color:var(--pg-ink,#18181b);font:500 0.875rem/1 var(--pg-sans,system-ui,sans-serif);cursor:pointer;transition:background-color 120ms ease} .ds-btn:hover{background:var(--pg-subtle,#f4f4f5)} .ds-btn:focus-visible{outline:2px solid var(--pg-accent,#04263f);outline-offset:2px} .ds-btn svg{width:16px;height:16px} .ds-btn-quiet{height:32px;padding:0 10px;font-size:0.8125rem}"
+    },
+    {
+      "name": "Sample select",
+      "kind": "input",
+      "refersTo": "select",
+      "description": "Labelled native select for the demo's sample data.",
+      "html": "<div class=\"ds-field\"><label for=\"ds-org\">Sample organization</label><select id=\"ds-org\" class=\"ds-select\"><option>Subterra Technologies</option><option>Makers guild</option></select></div>",
+      "css": ".ds-field{display:flex;flex-direction:column;gap:6px;font-family:ui-sans-serif,system-ui,sans-serif} .ds-field label{color:#52525b;font-size:0.8125rem;font-weight:500} .ds-select{appearance:none;min-width:200px;height:36px;padding:0 34px 0 12px;border:1px solid #d4d4d8;border-radius:8px;background:#fff url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%2352525b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' viewBox='0 0 24 24'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E\") no-repeat right 10px center;color:#18181b;font:inherit;font-size:0.875rem;cursor:pointer} .ds-select:hover{border-color:#a1a1aa} .ds-select:focus-visible{outline:2px solid #04263f;outline-offset:2px}"
+    },
+    {
+      "name": "Section nav",
+      "kind": "nav",
+      "refersTo": "nav-link",
+      "description": "Sticky on-this-page nav with a sliding navy current-section indicator.",
+      "html": "<nav class=\"ds-nav\" aria-label=\"On this page\"><a href=\"#\" aria-current=\"location\">Try it</a><a href=\"#\">Blocks</a><a href=\"#\">Data sources</a><a href=\"#\">Rendering</a></nav>",
+      "css": ".ds-nav{display:flex;gap:4px;background:#fafafa;border-bottom:1px solid #e4e4e7;font-family:ui-sans-serif,system-ui,sans-serif} .ds-nav a{display:flex;align-items:center;height:48px;padding:0 12px;color:#52525b;font-size:0.875rem;font-weight:500;text-decoration:none;box-shadow:inset 0 -2px 0 transparent;transition:box-shadow 320ms cubic-bezier(0.16,1,0.3,1)} .ds-nav a:hover,.ds-nav a[aria-current]{color:#18181b} .ds-nav a[aria-current]{box-shadow:inset 0 -2px 0 #04263f} .ds-nav a:focus-visible{outline:2px solid #04263f;outline-offset:-6px} @media (prefers-reduced-motion:reduce){.ds-nav a{transition:none}}"
+    },
+    {
+      "name": "Underline tabs",
+      "kind": "custom",
+      "refersTo": "tab",
+      "description": "Panel tabs; the selected tab takes a 2px navy underline.",
+      "html": "<div class=\"ds-tabs\" role=\"tablist\" aria-label=\"Output\"><button role=\"tab\" aria-selected=\"true\">HTML</button><button role=\"tab\" aria-selected=\"false\" tabindex=\"-1\">Plain text</button><button role=\"tab\" aria-selected=\"false\" tabindex=\"-1\">Warnings</button></div>",
+      "css": ".ds-tabs{display:flex;gap:2px;padding:0 12px;border-bottom:1px solid #e4e4e7;font-family:ui-sans-serif,system-ui,sans-serif} .ds-tabs button{height:40px;padding:0 12px;border:0;border-bottom:2px solid transparent;background:none;color:#52525b;font:inherit;font-size:0.875rem;font-weight:500;cursor:pointer} .ds-tabs button:hover,.ds-tabs button[aria-selected=true]{color:#18181b} .ds-tabs button[aria-selected=true]{border-bottom-color:#04263f} .ds-tabs button:focus-visible{outline:2px solid #04263f;outline-offset:-4px}"
+    },
+    {
+      "name": "Live panel",
+      "kind": "card",
+      "refersTo": "panel",
+      "description": "White ruled panel that shows a mechanism live against the open issue.",
+      "html": "<section class=\"ds-panel\"><div class=\"ds-panel__head\"><h3>The issue in the editor, rendered</h3><p>For October 2026</p></div><div class=\"ds-panel__body\">Rendered output appears here.</div><div class=\"ds-panel__foot\"><span>3 warnings</span></div></section>",
+      "css": ".ds-panel{border:1px solid #e4e4e7;border-radius:12px;background:#fff;box-shadow:0 1px 2px rgb(24 24 27 / 0.04);overflow:hidden;font-family:ui-sans-serif,system-ui,sans-serif;color:#18181b} .ds-panel__head{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px 16px;padding:18px 20px 16px;border-bottom:1px solid #e4e4e7} .ds-panel__head h3{margin:0;font-size:1rem;font-weight:650} .ds-panel__head p,.ds-panel__foot{margin:0;color:#52525b;font-size:0.875rem} .ds-panel__body{padding:16px 20px;font-size:0.875rem} .ds-panel__foot{padding:14px 20px;border-top:1px solid #e4e4e7}"
+    },
+    {
+      "name": "Code panel",
+      "kind": "custom",
+      "refersTo": "code-panel",
+      "description": "Titled snippet on Zinc Wash with three-colour highlighting.",
+      "html": "<figure class=\"ds-code\"><figcaption><span>Render an issue</span></figcaption><pre><code><span class=\"k\">import</span> { renderEmail } <span class=\"k\">from</span> <span class=\"s\">'@subterra-technologies/blockletter'</span>;\n<span class=\"c\">// Pure: runs in the browser, Node and edge runtimes.</span>\n<span class=\"k\">const</span> { html, text } = renderEmail(document);</code></pre></figure>",
+      "css": ".ds-code{margin:0;border:1px solid #e4e4e7;border-radius:10px;background:#f4f4f5;overflow:hidden;font-family:ui-sans-serif,system-ui,sans-serif} .ds-code figcaption{padding:10px 14px;border-bottom:1px solid #e4e4e7;background:#fff;color:#52525b;font-size:0.8125rem;font-weight:600} .ds-code pre{margin:0;padding:16px;color:#27272a;font:0.8125rem/1.65 ui-monospace,SFMono-Regular,Menlo,monospace;white-space:pre-wrap} .ds-code .k{color:#04263f;font-weight:600} .ds-code .s{color:#0f6e5a} .ds-code .c{color:#63636b;font-style:italic}"
+    },
+    {
+      "name": "Data tag",
+      "kind": "chip",
+      "refersTo": "tag",
+      "description": "Small navy-tint pill marking a block that fills from data.",
+      "html": "<span class=\"ds-tag\">fills from data</span>",
+      "css": ".ds-tag{padding:1px 8px;border-radius:999px;background:#e7eef3;color:#04263f;font:500 0.75rem/1.6 ui-sans-serif,system-ui,sans-serif}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Editor's Own Desk",
+    "overview": "**Creative North Star: \"The Editor's Own Desk\"**\n\nThe demo page is the Blockletter editor's world carried out to the page around it. The editor ships a zinc-neutral, shadcn-lineage stylesheet (`--bl-*` tokens: white background, `#e4e4e7` border, `#f4f4f5` muted, `#18181b` primary). The page (`--pg-*` tokens in `src/playground.css`) reuses those same values for its ground, rules, subtle fills and ink, so the editor reads as the page's subject rather than an embedded foreign widget. The page never reaches inside `.bl-root`; it only frames it.\n\nDensity is that of good developer documentation: a light top bar, a sticky section nav, then sections that pair prose with a live panel, all driven by the one issue open in the editor. Surfaces are white on a near-white ground, separated by 1px rules rather than fills or heavy shadows. Subterra navy is the one accent and stays scarce: the wordmark, links, the current-section mark, the selected tab and code keywords.",
+    "keyCharacteristics": [
+      "Zinc neutrals; surface, wash, hairline and ink match the editor's default theme value for value.",
+      "One accent, Subterra navy, used for location and links, never for fills of large areas.",
+      "1px hairline rules carry structure; shadows are near-invisible except the single lift under the editor.",
+      "One system sans for all prose and UI; monospace only for code, API names and keys.",
+      "One motion: the section-nav indicator slide, removed under reduced motion."
+    ],
+    "rules": [
+      {
+        "name": "The One Voice Rule",
+        "body": "Navy is the only accent on the page. It marks where you are and what you can follow; it never fills a band, card or hero. Code Green exists only inside code.",
+        "section": "colors"
+      },
+      {
+        "name": "The Shared Zinc Rule",
+        "body": "Page neutrals come from the zinc scale the editor's theme is drawn from, and the structural ones (surface, wash, hairline, ink) match the editor's `--bl-*` defaults exactly. Before adding a grey, check it against both.",
+        "section": "colors"
+      },
+      {
+        "name": "The Sample Brand Stays in the Sample Rule",
+        "body": "Subterra's logo blue and the rest of the sample issue's palette belong to the email inside the editor, not to the page chrome.",
+        "section": "colors"
+      },
+      {
+        "name": "The Mono Means Code Rule",
+        "body": "Monospace appears only in code panels, inline `code`, rendered output and `kbd`. Never for labels, numbers or decoration.",
+        "section": "typography"
+      },
+      {
+        "name": "The Sentence Case Rule",
+        "body": "Labels, buttons, tabs and nav are sentence case at normal tracking; nothing is uppercased or letter-spaced on the page.",
+        "section": "typography"
+      },
+      {
+        "name": "The One Lift Rule",
+        "body": "Only the editor is lifted off the ground. Every other container is flat and bordered.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "**Do** take every neutral from the shared zinc set; the page and the editor must read as one surface.",
+      "**Do** keep navy for links, location (nav indicator, selected tab), focus and code keywords.",
+      "**Do** separate sections and panel regions with 1px Hairline rules, not fills or shadows.",
+      "**Do** size controls to the editor: 36px page controls, 32px in or beside editor chrome.",
+      "**Do** give every motion a reduced-motion fallback with no movement.",
+      "**Do** scope page styles outside `.bl-root`; frame the editor, never restyle it."
+    ],
+    "donts": [
+      "**Don't** add a second accent colour to the page chrome; Code Green lives only in code.",
+      "**Don't** lift anything but the editor with a visible shadow.",
+      "**Don't** use monospace outside code, rendered output and keys.",
+      "**Don't** bring the sample issue's other brand colours (Subterra logo blue and the issue's palette) into page chrome.",
+      "**Don't** uppercase or letter-space labels, buttons or nav."
+    ]
+  }
+}
