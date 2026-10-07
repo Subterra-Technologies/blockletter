@@ -1,0 +1,52 @@
+name: Demo
+
+# Builds the playground and publishes it to this repository's GitHub Pages site,
+# https://subterra-technologies.github.io/blockletter/. While the repository is private the
+# job skips itself: the organisation's plan serves Pages only from public repositories. Once it
+# is public, set Settings → Pages → Source to "GitHub Actions" and push to main.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    if: ${{ !github.event.repository.private }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Build the playground
+        run: npm run build -w apps/playground
+        env:
+          BASE_PATH: /blockletter/
+      - name: Single-page app fallback
+        run: cp apps/playground/dist/index.html apps/playground/dist/404.html
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: apps/playground/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

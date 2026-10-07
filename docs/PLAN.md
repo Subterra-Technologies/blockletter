@@ -1,7 +1,9 @@
 # Blockletter plan
 
 Blockletter is the newsletter builder from Subterra's chamber-of-commerce platform, extracted
-into a standalone, reusable project: private while it is made generic, then open-sourced.
+into a standalone, reusable project. One repository holds the source, the demo and the docs. It
+stays private while the launch checklist below is worked through, then goes public under the MIT
+licence for the open-source community.
 
 The builder earned extraction because of what it already does well — a visual drag-and-drop
 canvas with a full keyboard path, an email renderer that survives Outlook and Gmail, saved
@@ -13,17 +15,17 @@ See [ARCHITECTURE.md](./ARCHITECTURE.md) for the package design and public API.
 
 ## Status
 
-| Phase | Scope                                                                                          | State       |
-| ----- | ---------------------------------------------------------------------------------------------- | ----------- |
-| 0     | Private repo, monorepo scaffold, CI, denylist guard, architecture                              | Done        |
-| 1     | Core: document model, 21 blocks, renderer, brand, templates, periods, data sources, validation | In progress |
-| 2     | React editor: canvas, palette, inspector, appearance, brand kit, templates, preview            | In progress |
-| 3     | Playground app + quality gates (Playwright + axe, email checks)                                | Next        |
-| 4     | Private distribution via GitHub Packages                                                       | Planned     |
-| 5     | Convex adapter                                                                                 | Planned     |
-| 6     | chamber-platform adopts Blockletter                                                            | Planned     |
-| 7     | Product gaps to close before going public                                                      | Planned     |
-| 8     | Open-source launch                                                                             | Planned     |
+| Phase | Scope                                                                                          | State   |
+| ----- | ---------------------------------------------------------------------------------------------- | ------- |
+| 0     | Private repo, monorepo scaffold, CI, denylist guard, architecture                              | Done    |
+| 1     | Core: document model, 21 blocks, renderer, brand, templates, periods, data sources, validation | Done    |
+| 2     | React editor: canvas, palette, inspector, appearance, brand kit, templates, preview            | Done    |
+| 3     | Demo site (live docs) + quality gates (Playwright + axe at four widths)                        | Done    |
+| 4     | Releases: Changesets, npm publishing at launch                                                 | Planned |
+| 5     | Convex adapter                                                                                 | Planned |
+| 6     | chamber-platform adopts Blockletter                                                            | Planned |
+| 7     | Product gaps to close before going public                                                      | Planned |
+| 8     | Open-source launch                                                                             | Planned |
 
 ## Phases
 
@@ -67,24 +69,26 @@ Port the editor into `packages/react`, decoupled from Convex, Next.js and the ho
   sandboxed iframe with desktop/phone widths.
 - Port the ~285 component tests with a shared test helper instead of per-file Convex mocks.
 
-### 3 — Playground and quality gates
+### 3 — Demo site and quality gates
 
-- `apps/playground`: Vite + React, a fictional organisation, fictional data sources,
-  localStorage persistence, template start flow, brand kit, "Download .html".
-- Playwright + axe at 320, 390, 768 and 1440px: no horizontal overflow, axe clean, keyboard
-  insert/move/select, preview mode.
-- Email checks in CI: rendered fixture size under Gmail's clipping threshold, no relative
-  links, every image has alt text, HTML structure sanity; per-block golden HTML files.
-- Later: caniemail-based feature lint; screenshot rendering across clients (Email on Acid or
-  Litmus) before 1.0.
+- `apps/playground` is the demo: a documentation page you can operate. The editor comes first;
+  Blocks, Data sources, Rendering, Brand kit and Accessibility each pair prose and code with a
+  live widget driven by the open issue. Samples: Subterra's own _Field Notes_ (public website
+  content, no third-party names) and a fictional makers' guild. localStorage persistence, deep
+  links, and `?render=email|text` pages.
+- Playwright + axe at 320, 390, 768 and 1440px in CI: no horizontal overflow, axe clean.
+- The rendered email is a fluid hybrid: it reflows on phones and keeps 600px in Outlook.
+- `.github/workflows/demo.yml` publishes the demo to GitHub Pages from this repository; it skips
+  itself while the repository is private.
+- Later: a caniemail-based feature lint, and screenshot rendering across real email clients
+  before 1.0.
 
-### 4 — Private distribution
+### 4 — Releases
 
 - Changesets for versioning and changelogs.
-- Release workflow publishes to GitHub Packages (`@subterra-technologies/*`).
-- Consumer setup (documented in the README): `.npmrc` with
-  `@subterra-technologies:registry=https://npm.pkg.github.com` and a read-only token
-  (`NPM_TOKEN` on Vercel).
+- At launch, publish `@subterra-technologies/blockletter` and `-react` to npm (or rename first;
+  see open questions). Until then, Subterra's own projects can install from a git checkout or a
+  GitHub Packages build if they need it early.
 
 ### 5 — Convex adapter (`packages/convex`)
 
@@ -111,20 +115,25 @@ Dogfooding proves the API and stops two copies drifting.
 - Rich text in text blocks (bold, italic, links, lists) — the source only rendered rich HTML.
 - Undo / redo.
 - Click-to-select from the preview.
-- Mobile-responsive email (stacking columns via media queries, with table fallbacks), Outlook
-  VML for background images, optional dark-mode email styles.
+- Outlook VML for background images, optional dark-mode email styles. (Mobile-responsive
+  email is done.)
 - Social icons (hosted PNGs), merge tags / personalisation helpers.
 - i18n: editor labels and render labels.
-- Docs site and recipes: Next.js + Convex, Next.js + Supabase + Resend, plain Node rendering.
+- Recipes: Next.js with a hosted database, a serverless send route, plain Node rendering.
 
 ### 8 — Open-source launch checklist
 
-- [ ] Licence chosen (recommendation: MIT) and added; `license` fields updated.
+- [x] Licence: MIT (decided 2026-10-07), in `LICENSE` and every package's `license` field.
+- [x] README, CONTRIBUTING, CODE_OF_CONDUCT, SECURITY, issue and pull request templates.
+- [x] Demo built into this repository, with a Pages workflow ready to publish it.
 - [ ] Public name and npm scope decided (`blockletter` is unclaimed on npm as of 2026-10-07).
-- [ ] README, CONTRIBUTING, CODE_OF_CONDUCT, SECURITY, issue/PR templates.
-- [ ] Hosted playground.
 - [ ] Denylist and secret scan pass across the full history.
 - [ ] 1.0 API review: everything exported is intended to be supported.
+- [ ] Delete the retired `Subterra-Technologies/blockletter-demo` repository (now private and
+      empty apart from a README).
+- [ ] Make the repository public, set Settings → Pages → Source to "GitHub Actions", and check
+      the demo at https://subterra-technologies.github.io/blockletter/.
+- [ ] Publish the packages and remove the README's pre-release note.
 
 ## Decisions
 
@@ -139,12 +148,15 @@ Dogfooding proves the API and stops two copies drifting.
    inside the repo; ESM output for consumers.
 6. **Compiled, prefixed Tailwind.** Keeps the source's styling approach while asking nothing
    of consumers' CSS setup.
-7. **Private first.** GitHub Packages under the org scope while the API settles; `UNLICENSED`
-   until the launch checklist is done.
+7. **One repository, private until launch.** Source, demo and docs live together; the demo
+   publishes from this repository's Pages once it is public. A separate public demo repository
+   was tried and retired.
+8. **MIT licence.** Chosen for the widest use by the community.
+9. **A developer-facing demo with no sales pitch.** The demo credits Subterra lightly and names
+   no clients, partners or press.
 
 ## Open questions
 
-- Licence (MIT recommended) — needed only at launch.
 - Keep `@subterra-technologies/*` on public npm, or publish as `blockletter` /
   `@blockletter/*`?
 - When to schedule Phase 6 relative to the chamber's own roadmap.

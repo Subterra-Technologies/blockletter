@@ -19,3 +19,6 @@ blob-report/
 .idea/
 .vscode/*
 !.vscode/extensions.json
+
+# Impeccable review captures (regenerated on demand)
+apps/playground/.impeccable/review/
