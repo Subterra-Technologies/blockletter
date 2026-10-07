@@ -127,12 +127,12 @@ Dogfooding proves the API and stops two copies drifting.
 - [x] README, CONTRIBUTING, CODE_OF_CONDUCT, SECURITY, issue and pull request templates.
 - [x] Demo built into this repository, with a Pages workflow ready to publish it.
 - [ ] Public name and npm scope decided (`blockletter` is unclaimed on npm as of 2026-10-07).
-- [ ] Denylist and secret scan pass across the full history.
+- [x] Denylist and secret scan pass across the full history (2026-10-07).
 - [ ] 1.0 API review: everything exported is intended to be supported.
 - [ ] Delete the retired `Subterra-Technologies/blockletter-demo` repository (now private and
       empty apart from a README).
-- [ ] Make the repository public, set Settings → Pages → Source to "GitHub Actions", and check
-      the demo at https://subterra-technologies.github.io/blockletter/.
+- [x] Repository public and the demo live at https://subterra-technologies.github.io/blockletter/
+      (2026-10-07).
 - [ ] Publish the packages and remove the README's pre-release note.
 
 ## Decisions

@@ -18,9 +18,9 @@ JavaScript does, and blocks that fill themselves from your own records.
 
 </div>
 
-> **Status: pre-release.** The packages go to npm with the first public release, and the live demo
-> goes online with it. Until then, clone the repository and run `npm run dev` to use everything
-> shown here.
+> **Status: pre-release.** The [live demo](https://subterra-technologies.github.io/blockletter/)
+> runs everything shown here. The packages are not on npm yet; they publish with the first release.
+> Until then, clone the repository to build with them.
 
 ---
 
@@ -83,8 +83,8 @@ website; a fictional makers' guild shows every data-bound block filling itself.
 
 <img src="docs/media/site.png" alt="The demo page: the headline 'Email newsletters that assemble themselves from your app's data', the sample organisation and issue pickers, and the editor beneath them, under a section navigation reading Try it, Blocks, Data sources, Rendering, Brand kit and Accessibility." width="100%">
 
-Each link below opens the live demo on a particular view once it is online; locally, add the same
-query to `http://localhost:5173/`.
+Each link below opens the live demo on a particular view. Running it locally, add the same query to
+`http://localhost:5173/`.
 
 | Try this                                       | Link                                                                                                                    |
 | ---------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
