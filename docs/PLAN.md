@@ -23,7 +23,7 @@ See [ARCHITECTURE.md](./ARCHITECTURE.md) for the package design and public API.
 | 3     | Demo site (live docs) + quality gates (Playwright + axe at four widths)                        | Done    |
 | 4     | Releases: Changesets, npm publishing at launch                                                 | Planned |
 | 5     | Convex adapter                                                                                 | Planned |
-| 6     | chamber-platform adopts Blockletter                                                            | Planned |
+| 6     | Subterra's own products adopt Blockletter                                                      | Planned |
 | 7     | Product gaps to close before going public                                                      | Planned |
 | 8     | Open-source launch                                                                             | Planned |
 
@@ -100,15 +100,13 @@ Most of Subterra's own projects run on Convex, so this is the first backend adap
   a server helper that resolves `assetId`s before `renderEmail` inside a query.
 - Optional Convex component owning templates and the brand kit tables.
 
-### 6 — chamber-platform adopts Blockletter
+### 6 — Subterra's own products adopt Blockletter
 
-Dogfooding proves the API and stops two copies drifting.
+Dogfooding proves the API in real products.
 
-- Implement the chamber's five data sources (events, sponsors, new members, posts, calendar).
-- Map stored blocks to Blockletter shapes (ids → snapshot items, `cta` → `button`, file ids →
-  `ImageRef`) with a one-off Convex migration of drafts and templates; keep sent issues frozen.
-- Rendering parity tests: old renderer vs Blockletter on the same fixtures before switching.
-- Needs explicit approval: it migrates production data.
+- Each product implements its data sources against its own records.
+- Stored newsletters are migrated to Blockletter documents, with rendering parity tests against
+  the old output before switching over; issues already sent stay as they were.
 
 ### 7 — Gaps to close before going public
 
@@ -143,7 +141,7 @@ Dogfooding proves the API and stops two copies drifting.
    dependencies and runs in any JavaScript runtime.
 2. **Snapshot items, not id lookups.** Makes rendering pure and portable; refresh is explicit.
 3. **Built-ins are plugins.** Guarantees the extension API is good enough for real blocks.
-4. **Fresh history.** The source repository's history contains client data.
+4. **Fresh history.** The project starts clean, without the history of the codebase it came from.
 5. **npm workspaces + tsup + a source export condition.** Familiar tooling; no build step
    inside the repo; ESM output for consumers.
 6. **Compiled, prefixed Tailwind.** Keeps the source's styling approach while asking nothing
@@ -159,4 +157,3 @@ Dogfooding proves the API and stops two copies drifting.
 
 - Keep `@subterra-technologies/*` on public npm, or publish as `blockletter` /
   `@blockletter/*`?
-- When to schedule Phase 6 relative to the chamber's own roadmap.
