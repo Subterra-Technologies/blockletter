@@ -128,7 +128,10 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-describe('the editor in a pseudo-locale', () => {
+// Each scenario walks many states of the whole editor and scans every node after each step: about
+// two seconds on a fast machine, and more than twice that on a shared CI runner. The default
+// five-second limit would fail them for being thorough, not for being wrong.
+describe('the editor in a pseudo-locale', { timeout: 30_000 }, () => {
   it('finds a string left in English, which is what makes the rest of these mean something', () => {
     render(
       <BlockletterRoot messages={PSEUDO}>
