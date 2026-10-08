@@ -38,6 +38,9 @@ updates:
       interval: monthly
     ignore:
       - dependency-name: '@subterra-technologies/*'
+      # As at the root: the Node types follow the oldest Node the examples run on (22.18).
+      - dependency-name: '@types/node'
+        update-types: ['version-update:semver-major']
     groups:
       examples:
         patterns: ['*']
