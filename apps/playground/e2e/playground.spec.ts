@@ -103,6 +103,59 @@ test('goes to the docs and back with the editor as it was left', async ({ page }
   );
 });
 
+test('deletes a block, undoes it and redoes it', async ({ page }) => {
+  await openDemo(page);
+  const quote = page.getByRole('tablist', { name: 'Canvas' }).getByRole('tab', { name: 'Quote' });
+  await expect(page.getByRole('button', { name: 'Undo' })).toBeDisabled();
+  await quote.click();
+  await page.getByRole('button', { name: 'Delete Quote' }).click();
+
+  // Nothing to confirm: the block goes at once, and its toast offers it back.
+  await expect(page.getByRole('alertdialog')).toHaveCount(0);
+  await expect(quote).toHaveCount(0);
+  const toast = page.getByRole('status').filter({ hasText: 'Quote deleted.' });
+  await expect(toast).toBeVisible();
+  await expectAccessible(page);
+
+  await toast.getByRole('button', { name: 'Undo' }).click();
+  await expect(quote).toHaveCount(1);
+  await expect(quote).toHaveAttribute('aria-selected', 'true');
+  await expect(quote).toBeFocused();
+  await expect(page.getByText('Undid: deleted the Quote block.')).toBeVisible();
+
+  await page.getByRole('button', { name: 'Redo' }).click();
+  await expect(quote).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Redo' })).toBeDisabled();
+
+  // The keys do the same, wherever the focus is in the editor.
+  await page.keyboard.press('ControlOrMeta+z');
+  await expect(quote).toHaveCount(1);
+  await page.keyboard.press('ControlOrMeta+Shift+z');
+  await expect(quote).toHaveCount(0);
+});
+
+test('undoes and redoes from the More menu on a phone', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await openDemo(page);
+  const quote = page.getByRole('tablist', { name: 'Canvas' }).getByRole('tab', { name: 'Quote' });
+  await quote.click();
+  await page.getByRole('button', { name: 'Delete Quote' }).click();
+  await expect(quote).toHaveCount(0);
+
+  const more = page.getByRole('button', { name: 'More' });
+  await more.click();
+  await page.getByRole('menuitem', { name: 'Undo' }).click();
+  await expect(quote).toHaveCount(1);
+  // The menu closes and hands the focus back to More.
+  await expect(more).toBeFocused();
+  await more.click();
+  await expect(page.getByRole('menuitem', { name: 'Redo' })).toBeEnabled();
+  await expectAccessible(page);
+  await page.getByRole('menuitem', { name: 'Redo' }).click();
+  await expect(quote).toHaveCount(0);
+  await expectNoSidewaysScroll(page);
+});
+
 test('opens the docs at the section its address names', async ({ page }) => {
   await page.goto('/#rendering');
   const heading = page.getByRole('heading', { name: 'Rendering', level: 2 });
