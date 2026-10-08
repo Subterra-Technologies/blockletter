@@ -16,7 +16,11 @@
 // Primitives
 // ---------------------------------------------------------------------------
 
-/** Six-digit hex colour such as `#1f2937`; the only colour form a document accepts. */
+/**
+ * Six-digit hex colour such as `#1f2937`; the only colour form a document accepts.
+ *
+ * @pattern ^#[0-9a-fA-F]{6}$
+ */
 export type HexColor = string;
 
 /**
@@ -83,12 +87,17 @@ export interface BlockBase<T extends string = string> {
 
 /** An item a data source supplied carries the source's id for the record it copies. */
 export interface SourcedItem {
+  /** The data source's own id for the record this item copies. Absent: written by hand. */
   ref?: string;
 }
 
 export interface EventTileItem extends SourcedItem {
   title: string;
-  /** Calendar date `YYYY-MM-DD`, already in the organisation's own time zone. */
+  /**
+   * Calendar date `YYYY-MM-DD`, already in the organisation's own time zone.
+   *
+   * @pattern ^[0-9]{4}-[0-9]{2}-[0-9]{2}$
+   */
   date: string;
   /** Display time, e.g. "6:30 PM". */
   time?: string;
@@ -122,7 +131,11 @@ export interface DatedItem extends SourcedItem {
   /** Display date, e.g. "Sept. 5". Free text, so "Every Saturday" is fine too. */
   date: string;
   text: string;
-  /** `YYYY-MM-DD`, for ordering; items without one keep their place after dated ones. */
+  /**
+   * `YYYY-MM-DD`, for ordering; items without one keep their place after dated ones.
+   *
+   * @pattern ^[0-9]{4}-[0-9]{2}-[0-9]{2}$
+   */
   sortDate?: string;
 }
 
@@ -191,7 +204,7 @@ export interface CalloutBlock extends BlockBase<'callout'> {
   ctaUrl: string;
 }
 
-/** Recent posts or articles, each linking out. */
+/** Up to three recent posts or articles, each linking out. */
 export interface PostListBlock extends BlockBase<'post_list'> {
   heading: string;
   items: PostItem[];
@@ -352,9 +365,23 @@ export type ListBlockType = keyof ListBlockItems;
 
 /** The dates an issue covers. All `YYYY-MM-DD`, in the organisation's own time zone. */
 export interface IssuePeriod {
+  /**
+   * First day the issue covers.
+   *
+   * @pattern ^[0-9]{4}-[0-9]{2}-[0-9]{2}$
+   */
   start: string;
+  /**
+   * Last day the issue covers.
+   *
+   * @pattern ^[0-9]{4}-[0-9]{2}-[0-9]{2}$
+   */
   end: string;
-  /** Last day of the "coming up" window after `end`, for sources that list upcoming events. */
+  /**
+   * Last day of the "coming up" window after `end`, for sources that list upcoming events.
+   *
+   * @pattern ^[0-9]{4}-[0-9]{2}-[0-9]{2}$
+   */
   lookaheadEnd?: string;
 }
 

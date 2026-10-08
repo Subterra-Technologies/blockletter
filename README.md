@@ -49,6 +49,7 @@ The rule it was built on: _if I entered it once, I shouldn't have to enter it ag
 - [A tour](#a-tour)
 - [How it works](#how-it-works)
 - [Getting started](#getting-started)
+- [Documents from other languages and LLMs](#documents-from-other-languages-and-llms)
 - [The blocks](#the-blocks)
 - [Accessibility](#accessibility)
 - [Development](#development)
@@ -360,6 +361,63 @@ const jobEditorBlock = defineEditorBlock<JobBlock>({
 
 A block without a canvas drawing of its own is drawn on the canvas from its email HTML.
 
+## Documents from other languages and LLMs
+
+A document is plain JSON, so a program in any language, or a language model, can write one. The
+core package ships JSON Schemas (draft-07) generated from its TypeScript types, with each type's
+and field's documentation as its `description`:
+
+| Schema              | Import                                                               |
+| ------------------- | -------------------------------------------------------------------- |
+| Newsletter document | `@subterra-technologies/blockletter/schema/newsletter-document.json` |
+| Newsletter template | `@subterra-technologies/blockletter/schema/newsletter-template.json` |
+| Brand kit           | `@subterra-technologies/blockletter/schema/brand-kit.json`           |
+
+A schema checks shape: block types, required fields, field types, colours and dates. It also
+rejects properties the types do not declare, so a misspelt field is caught. **A document that
+matches the schema must still pass `validateDocument()`** where your app stores or renders it.
+That function is the source of truth for the rules the schema leaves out: the 30-block and
+5,000-character limits, how many items each list block takes, unique block ids, real calendar
+dates and safe image addresses. `validateBrandKit()` does the same for brand kits.
+
+```ts
+import { validateDocument } from '@subterra-technologies/blockletter';
+import schema from '@subterra-technologies/blockletter/schema/newsletter-document.json' with { type: 'json' };
+import Ajv from 'ajv';
+
+const ajv = new Ajv({ allErrors: true });
+const matchesSchema = ajv.compile(schema);
+
+if (!matchesSchema(input)) throw new Error(ajv.errorsText(matchesSchema.errors));
+const issues = validateDocument(input); // [] once it is ready to render
+```
+
+To have a model write an issue, give it the schema as a structured-output response format (or as
+a tool's input schema), check its reply the same way, and send any issues back for it to fix:
+
+```ts
+// The response format OpenAI-compatible chat APIs take; `model` is whichever one you use.
+const request = {
+  model,
+  messages: [{ role: 'user', content: "Write this month's issue for a community garden club." }],
+  response_format: {
+    type: 'json_schema',
+    json_schema: { name: 'newsletter_document', schema },
+  },
+};
+```
+
+The schema is shaped for these APIs: the root is an object, every object sets
+`additionalProperties: false`, no `$ref` carries keywords of its own, and constants are one-value
+enums. Their strict, grammar-enforced modes take only part of JSON Schema, though, and a whole
+document is past some of their limits: some need every property to be required, and some cap how
+many may be optional, where a document has dozens. So for a whole document, pass the schema
+where it guides the model rather than binds it (a response format with strict mode off, or a
+tool's input schema), and let the checks above catch what it gets wrong.
+
+If your app registers blocks of its own, add a definition for each to the schema's `definitions`
+and list it in `definitions.BuiltInBlock.anyOf`.
+
 ## The blocks
 
 | Group        | Block              | What it is                                                      |
@@ -419,6 +477,10 @@ npm run check      # denylist, lint, typecheck, tests, build
 Requires Node 22+. The packages import each other's source inside the repository, so there is no
 build step while you work. `node apps/playground/scripts/capture-media.mjs` regenerates the
 screenshots and animations in this README from a running build of the demo.
+
+After changing a type in `packages/core/src/types.ts`, run `npm run schema -w packages/core` to
+regenerate the JSON Schemas (it runs TypeScript directly, so it needs Node 22.18 or newer); the
+tests fail while a committed schema is stale.
 
 ## Contributing
 

@@ -53,6 +53,9 @@ npm run test:e2e   # the demo in Chromium, with axe at four widths
 
 - **Tests with the change.** Renderer changes assert on the HTML and the plain-text version;
   editor changes use Testing Library and the helpers in `packages/react/test/helpers`.
+- **Regenerated schemas.** A change to a type in `packages/core/src/types.ts` changes the JSON
+  Schemas in `packages/core/schema/`: run `npm run schema -w packages/core` and commit them with
+  it. The tests fail while they are stale.
 - **Email-safe output.** Tables and inline styles, absolute links, escaped text, nothing an email
   client strips. A layout change should be checked at 600px and at phone width, in at least one
   real client; [docs/COMPATIBILITY.md](docs/COMPATIBILITY.md) says what the output relies on and
