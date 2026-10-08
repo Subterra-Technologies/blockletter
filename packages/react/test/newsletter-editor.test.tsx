@@ -1,34 +1,28 @@
-import { useState } from 'react';
-import {
-  act,
-  createEvent,
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-  within,
-} from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { act, createEvent, fireEvent, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import {
-  createDocument,
-  type BlockBase,
-  type DataSource,
-  type EventTileItem,
-  type NewsletterDocument,
-} from '@subterra-technologies/blockletter';
+import type { DataSource, EventTileItem } from '@subterra-technologies/blockletter';
 // The public entry, the way a host imports the editor.
 import {
   EditorFields,
-  NewsletterEditor,
   TextField,
   builtInEditorBlocks,
   type BlockEditorProps,
   type EditorBlockDefinition,
-  type NewsletterEditorProps,
 } from '../src';
 import { SHOUT_DEFINITION, type ShoutBlock } from './helpers/canvas-registry';
-import { TEST_BRAND, TEST_SOURCES, testBlock } from './helpers/fixtures';
+import {
+  DIVIDER,
+  EVENTS,
+  FOOTER,
+  HEADER,
+  SEPTEMBER,
+  TEXT,
+  blockTab,
+  canvas,
+  issue,
+  renderEditor,
+} from './helpers/editor-harness';
+import { TEST_SOURCES } from './helpers/fixtures';
 
 /**
  * The assembled editor, driven the way a host drives it: the document held in the host's state,
@@ -36,56 +30,6 @@ import { TEST_BRAND, TEST_SOURCES, testBlock } from './helpers/fixtures';
  * was extracted from was tested for; nothing here saves or sends, because the editor does neither.
  */
 
-const HEADER = testBlock('header', { title: 'Book club news', issueLabel: 'September 2026' });
-const TEXT = testBlock('text', { body: 'Join us Friday at nine.' });
-const DIVIDER = testBlock('divider');
-const EVENTS = testBlock('event_tiles', { source: 'events', items: [] });
-const FOOTER = testBlock('footer');
-
-/** A month already over, so the period can be changed: an issue covers up to today. */
-const SEPTEMBER = { start: '2026-09-01', end: '2026-09-30', lookaheadEnd: '2026-11-10' };
-
-const issue = (blocks: BlockBase[]): NewsletterDocument<BlockBase> =>
-  createDocument<BlockBase>({
-    subject: 'September at the book club',
-    preheader: 'Readings and a sale',
-    period: SEPTEMBER,
-    blocks,
-  });
-
-type HostProps = Partial<Omit<NewsletterEditorProps<BlockBase>, 'value' | 'onChange'>>;
-
-/** The editor over a document the host keeps in state. */
-function renderEditor(initial: NewsletterDocument<BlockBase>, props: HostProps = {}) {
-  const onChange = vi.fn<(next: NewsletterDocument<BlockBase>) => void>();
-  function Host() {
-    const [value, setValue] = useState(initial);
-    return (
-      <NewsletterEditor<BlockBase>
-        value={value}
-        onChange={(next) => {
-          onChange(next);
-          setValue(next);
-        }}
-        brand={TEST_BRAND}
-        sources={[TEST_SOURCES.events]}
-        {...props}
-      />
-    );
-  }
-  const user = userEvent.setup();
-  const view = render(<Host />);
-  const latest = (): NewsletterDocument<BlockBase> => {
-    const call = onChange.mock.calls.at(-1);
-    if (!call) throw new Error('onChange was never called');
-    return call[0];
-  };
-  const types = () => latest().blocks.map((block) => block.type);
-  return { ...view, user, onChange, latest, types };
-}
-
-const canvas = () => within(screen.getByRole('tablist', { name: 'Canvas' }));
-const blockTab = (name: string) => canvas().getByRole('tab', { name });
 const palette = () => within(screen.getByRole('region', { name: 'Block palette' }));
 const paletteButton = (name: string) => palette().getByRole('button', { name });
 const inspectorTab = (name: string) =>
@@ -580,7 +524,7 @@ describe('NewsletterEditor', () => {
     expect(screen.getByRole('heading', { level: 2, name: 'Brand kit' })).toBeInTheDocument();
   });
 
-  it('opens on a block a host names, in view, without taking the page’s focus', () => {
+  it('opens on a block a host names, in view, without taking the page’s focus', async () => {
     const scrolled = vi.spyOn(Element.prototype, 'scrollIntoView');
     const { onChange } = renderEditor(issue([HEADER, TEXT, FOOTER]), {
       defaultSelectedId: TEXT.id,
@@ -589,7 +533,9 @@ describe('NewsletterEditor', () => {
     expect(blockTab('Text')).toHaveAttribute('aria-selected', 'true');
     expect(screen.getByRole('toolbar', { name: 'Text block' })).toBeInTheDocument();
     expect(screen.getByRole('textbox', { name: 'Text' })).toHaveValue('Join us Friday at nine.');
-    expect(scrolled.mock.contexts).toContain(blockTab('Text'));
+    // A frame later, once the editor has settled on its layout. With the page as the only
+    // scroller here, the block is scrolled into view the page's way.
+    await waitFor(() => expect(scrolled.mock.contexts).toContain(blockTab('Text')));
     expect(document.body).toHaveFocus();
     expect(onChange).not.toHaveBeenCalled();
   });

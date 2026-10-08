@@ -7,6 +7,7 @@ import {
   CopyIcon,
   EyeIcon,
   EyeOffIcon,
+  PencilIcon,
   RefreshCwIcon,
   Trash2Icon,
 } from 'lucide-react';
@@ -35,6 +36,8 @@ export interface CanvasToolbarProps {
   onDuplicate?: () => void;
   onRefresh?: () => void;
   onRemove?: () => void;
+  /** Opens the block's form where it is not in view (a phone); given, the toolbar leads with Edit. */
+  onEdit?: (() => void) | undefined;
 }
 
 /**
@@ -60,6 +63,7 @@ export function CanvasToolbar({
   onDuplicate,
   onRefresh,
   onRemove,
+  onEdit,
 }: CanvasToolbarProps) {
   const { definitions, sources } = useEditorContext();
   const name = blockLabel(block.type, definitions);
@@ -74,6 +78,17 @@ export function CanvasToolbar({
         aria-label={`${name} block`}
         className="bl:flex bl:items-center bl:gap-0.5 bl:rounded-lg bl:border bl:bg-background bl:p-0.5 bl:text-foreground bl:shadow-md"
       >
+        {onEdit ? (
+          <>
+            <ToolButton label={`Edit ${name}`} tip="Edit block" onClick={onEdit}>
+              <PencilIcon />
+            </ToolButton>
+            <Separator
+              orientation="vertical"
+              className="bl:mx-0.5 bl:data-[orientation=vertical]:h-4"
+            />
+          </>
+        ) : null}
         <ToolButton
           label={`Move ${name} up`}
           tip="Move up"

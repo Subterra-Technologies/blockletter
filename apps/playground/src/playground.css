@@ -1,9 +1,10 @@
 /*
- * The demo's docs page: the editor's own world carried out to the page around it. Zinc neutrals,
- * white surfaces on a near-white ground, 1px rules, 8 to 12px radii, one system sans, a monospace
- * only where there is code. Subterra navy is the single accent: links, the current section, code
- * keywords. Plain CSS on purpose; the editor brings its own compiled, scoped stylesheet and
- * nothing here reaches inside it.
+ * The demo around the editor: an app shell whose Editor view is the screen itself, and a Docs view
+ * that reads as a page. The editor's own world carried outward: zinc neutrals, white surfaces on a
+ * near-white ground, 1px rules, 8 to 12px radii, one system sans, a monospace only where there is
+ * code. Subterra navy is the single accent: links, the current view and section, code keywords.
+ * Plain CSS on purpose; the editor brings its own compiled, scoped stylesheet and nothing here
+ * reaches inside it.
  */
 
 :root {
@@ -24,6 +25,10 @@
     ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   --pg-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
   --pg-gutter: clamp(16px, 4vw, 40px);
+  /* The app shell's edge: the bars' contents and the editor's frame all start here. */
+  --pg-inset: clamp(12px, 1.5vw, 20px);
+  --pg-app-max: 1760px;
+  --pg-bar-height: 56px;
   --pg-nav-height: 48px;
   --pg-radius: 12px;
   --pg-ease: cubic-bezier(0.16, 1, 0.3, 1);
@@ -31,7 +36,8 @@
 
 html {
   scroll-behavior: smooth;
-  scroll-padding-top: var(--pg-nav-height);
+  /* In the docs, both bars stay on screen: a jump lands below them. */
+  scroll-padding-top: calc(var(--pg-bar-height) + var(--pg-nav-height) + 16px);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -69,14 +75,14 @@ body {
   outline-offset: 2px;
 }
 
-.pg-page :is(.pg-prose, .pg-status, .pg-footer, .pg-brand) a {
+.pg-page :is(.pg-prose, .pg-status, .pg-footer) a {
   color: var(--pg-accent);
   text-decoration: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: 3px;
 }
 
-.pg-page :is(.pg-prose, .pg-status, .pg-footer, .pg-brand) a:hover {
+.pg-page :is(.pg-prose, .pg-status, .pg-footer) a:hover {
   text-decoration-thickness: 2px;
 }
 
@@ -115,21 +121,59 @@ body {
   margin-inline: auto;
 }
 
-/* --- Top bar and section nav ------------------------------------------------------------- */
+/* --- The shell ------------------------------------------------------------------------------ */
 
-.pg-top {
+/*
+ * The Editor view is exactly the screen: the page never scrolls, the editor's panes do. On a
+ * screen shorter than 30rem the page may scroll instead of crushing the editor.
+ */
+.pg-page[data-view='editor'] {
+  height: 100dvh;
+  min-height: 30rem;
+}
+
+/* The views set their own display, which would otherwise beat the attribute that hides them. */
+.pg-view[hidden] {
+  display: none;
+}
+
+.pg-view--editor {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.pg-view--docs {
+  flex: 1 0 auto;
+}
+
+/* --- Top bar ------------------------------------------------------------------------------- */
+
+.pg-bar {
+  flex: none;
+  box-sizing: border-box;
+  height: var(--pg-bar-height);
   background: var(--pg-surface);
   border-bottom: 1px solid var(--pg-rule);
 }
 
-.pg-top__inner {
+/* Reading the docs, the bar stays: the way back to the editor is always one click. */
+.pg-page[data-view='docs'] .pg-bar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+}
+
+.pg-bar__inner {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
-  gap: 4px 16px;
-  min-height: 56px;
-  padding-block: 8px;
+  gap: 8px 24px;
+  box-sizing: border-box;
+  height: 100%;
+  max-width: var(--pg-app-max);
+  margin-inline: auto;
+  padding-inline: var(--pg-inset);
 }
 
 .pg-brand {
@@ -138,6 +182,7 @@ body {
   align-items: baseline;
   gap: 2px 10px;
   margin: 0;
+  min-width: 0;
 }
 
 .pg-brand__name {
@@ -147,23 +192,426 @@ body {
   letter-spacing: -0.01em;
 }
 
+/* Credited lightly: muted beside the navy name, the accent only under the pointer. */
 .pg-page .pg-brand__by {
   color: var(--pg-muted);
   font-size: 0.875rem;
+  text-decoration: underline;
+  text-decoration-color: var(--pg-rule-strong);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
 }
 
-.pg-top__note {
+.pg-page .pg-brand__by:hover {
+  color: var(--pg-accent);
+  text-decoration-color: currentColor;
+}
+
+.pg-views__list {
+  display: flex;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pg-page .pg-views__link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: calc(var(--pg-bar-height) - 1px);
+  padding: 0 12px;
+  color: var(--pg-muted);
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.pg-page .pg-views__link:hover,
+.pg-page .pg-views__link[aria-current] {
+  color: var(--pg-ink);
+}
+
+/* The current view is underlined in the accent, on the bar's own bottom rule. */
+.pg-page .pg-views__link[aria-current]::after {
+  content: '';
+  position: absolute;
+  right: 12px;
+  bottom: -1px;
+  left: 12px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--pg-accent);
+}
+
+.pg-page .pg-views__link:focus-visible {
+  outline-offset: -8px;
+}
+
+.pg-bar__end {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: auto;
+}
+
+.pg-bar__note {
   margin: 0;
   padding: 2px 10px;
   border: 1px solid var(--pg-rule);
   border-radius: 999px;
   color: var(--pg-muted);
   font-size: 0.8125rem;
+  white-space: nowrap;
 }
+
+.pg-page .pg-bar__source {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-sizing: border-box;
+  height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--pg-rule-strong);
+  border-radius: 8px;
+  color: var(--pg-ink);
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background-color 120ms ease;
+}
+
+.pg-page .pg-bar__source:hover {
+  background: var(--pg-subtle);
+}
+
+.pg-bar__source svg {
+  flex: none;
+  width: 16px;
+  height: 16px;
+}
+
+@media (max-width: 1023px) {
+  .pg-bar__note {
+    display: none;
+  }
+}
+
+/* A phone: the credit goes under the name, and the source link keeps only its mark. */
+@media (max-width: 639px) {
+  .pg-bar__inner {
+    gap: 8px 12px;
+  }
+
+  .pg-brand {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: flex-start;
+    gap: 0;
+    line-height: 1.25;
+  }
+
+  .pg-page .pg-brand__by {
+    font-size: 0.75rem;
+  }
+
+  .pg-page .pg-views__link {
+    padding: 0 10px;
+  }
+
+  .pg-page .pg-views__link[aria-current]::after {
+    right: 10px;
+    left: 10px;
+  }
+
+  .pg-page .pg-bar__source {
+    justify-content: center;
+    width: 36px;
+    padding: 0;
+  }
+
+  .pg-bar__source-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+
+/* The narrowest phones keep the name, the views and the source; the credit stays in the docs. */
+@media (max-width: 359px) {
+  .pg-page .pg-brand__by {
+    display: none;
+  }
+}
+
+/* --- Sample bar and the editor's frame --------------------------------------------------------- */
+
+.pg-samplebar {
+  flex: none;
+}
+
+.pg-samplebar__inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 24px;
+  box-sizing: border-box;
+  max-width: var(--pg-app-max);
+  margin-inline: auto;
+  padding: 8px var(--pg-inset);
+}
+
+.pg-reset {
+  margin: 0;
+  color: var(--pg-muted);
+  font-size: 0.8125rem;
+}
+
+/* Between a tablet and a wide screen the bar is one row only without the sentence; the button
+   still says what it does. */
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .pg-samplebar .pg-reset__note {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+
+.pg-workspace {
+  flex: 1 1 0;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 0;
+  max-width: var(--pg-app-max);
+  margin-inline: auto;
+  padding: 0 var(--pg-inset) var(--pg-inset);
+}
+
+/* The editor is the page's subject: lifted one step off the ground it sits on. */
+.pg-workspace > .bl-root {
+  box-shadow:
+    0 1px 2px rgb(24 24 27 / 0.05),
+    0 18px 40px -20px rgb(24 24 27 / 0.22);
+}
+
+.pg-loading {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  margin: 0;
+  border: 1px solid var(--pg-rule);
+  border-radius: 12px;
+  background: var(--pg-surface);
+  color: var(--pg-muted);
+}
+
+/* On a small screen, the sample bar is one button naming the sample in use. */
+.pg-sample-toggle {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--pg-rule-strong);
+  border-radius: 8px;
+  background: var(--pg-surface);
+  color: var(--pg-ink);
+  font: inherit;
+  font-size: 0.875rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.pg-sample-toggle:hover {
+  background: var(--pg-subtle);
+}
+
+.pg-sample-toggle:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pg-sample-toggle__label {
+  flex: none;
+  color: var(--pg-muted);
+  font-weight: 500;
+}
+
+.pg-sample-toggle__value {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pg-sample-toggle__icon {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  color: var(--pg-muted);
+}
+
+/* A small phone gives the sample's own name the room: "Sample" stays in the button's name only. */
+@media (max-width: 399px) {
+  .pg-sample-toggle__label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .pg-sample-toggle__icon {
+    display: none;
+  }
+}
+
+/* Beside it, the email tools as icons: they keep their names for screen readers. */
+.pg-icon-button {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid var(--pg-rule-strong);
+  border-radius: 8px;
+  background: var(--pg-surface);
+  color: var(--pg-ink);
+  cursor: pointer;
+}
+
+.pg-icon-button:hover {
+  background: var(--pg-subtle);
+}
+
+.pg-icon-button svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* The sheet rises from the bottom edge, where a thumb is, and the page behind it is inert. */
+.pg-sheet {
+  position: fixed;
+  inset: auto 0 0;
+  box-sizing: border-box;
+  width: auto;
+  max-width: none;
+  height: auto;
+  max-height: min(85dvh, 36rem);
+  margin: 0;
+  padding: 4px 16px 24px;
+  border: 0;
+  border-top: 1px solid var(--pg-rule);
+  border-radius: 16px 16px 0 0;
+  background: var(--pg-surface);
+  color: var(--pg-ink);
+  box-shadow: 0 -16px 40px -16px rgb(24 24 27 / 0.3);
+  overflow: auto;
+  overscroll-behavior: contain;
+  transform: translateY(100%);
+  transition:
+    transform 320ms var(--pg-ease),
+    overlay 320ms allow-discrete,
+    display 320ms allow-discrete;
+}
+
+.pg-sheet[open] {
+  transform: none;
+}
+
+@starting-style {
+  .pg-sheet[open] {
+    transform: translateY(100%);
+  }
+}
+
+.pg-sheet::backdrop {
+  background: rgb(24 24 27 / 0);
+  transition:
+    background-color 320ms var(--pg-ease),
+    overlay 320ms allow-discrete,
+    display 320ms allow-discrete;
+}
+
+.pg-sheet[open]::backdrop {
+  background: rgb(24 24 27 / 0.32);
+}
+
+@starting-style {
+  .pg-sheet[open]::backdrop {
+    background: rgb(24 24 27 / 0);
+  }
+}
+
+/* On a tablet the sheet keeps a phone's width rather than running the screen's. */
+@media (min-width: 600px) {
+  .pg-sheet {
+    max-width: 32rem;
+    margin-inline: auto;
+    border: 1px solid var(--pg-rule);
+    border-bottom: 0;
+  }
+}
+
+.pg-sheet__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 8px;
+  padding-block: 8px;
+  border-bottom: 1px solid var(--pg-rule);
+}
+
+.pg-sheet__head h2 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 650;
+}
+
+/* One column whatever the width: labels over their pickers, then New issue. */
+.pg-sheet .pg-controls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+  margin-block: 12px 20px;
+}
+
+.pg-sheet .pg-field select,
+.pg-sheet .pg-controls .pg-button {
+  width: 100%;
+  min-width: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pg-sheet,
+  .pg-sheet::backdrop {
+    transition: none;
+  }
+}
+
+/* --- Docs: section nav ------------------------------------------------------------------- */
 
 .pg-nav {
   position: sticky;
-  top: 0;
+  top: var(--pg-bar-height);
   z-index: 20;
   background: var(--pg-bg);
   border-bottom: 1px solid var(--pg-rule);
@@ -205,7 +653,7 @@ body {
   outline-offset: -6px;
 }
 
-/* The page's one motion: the current-section mark sliding between links. */
+/* The docs' one motion: the current-section mark sliding between links. */
 .pg-nav__indicator {
   position: absolute;
   bottom: 0;
@@ -232,6 +680,17 @@ body {
   flex-direction: column;
   gap: 6px;
   min-width: 0;
+}
+
+/* In the sample bar, each label sits beside its picker so the bar stays one row. */
+.pg-controls--inline .pg-field {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.pg-controls--inline .pg-field label {
+  white-space: nowrap;
 }
 
 .pg-field label {
@@ -264,6 +723,15 @@ body {
 
 .pg-field--grow select {
   min-width: 260px;
+}
+
+.pg-controls--inline .pg-field select {
+  min-width: 0;
+  width: 15rem;
+}
+
+.pg-controls--inline .pg-field--grow select {
+  width: 18rem;
 }
 
 .pg-button {
@@ -325,6 +793,11 @@ body {
   font-size: 0.8125rem;
 }
 
+/* Copy HTML, Copied and Copy failed take the same room, so the bar does not shift. */
+.pg-button--copy {
+  min-width: 6rem;
+}
+
 .pg-link {
   padding: 0;
   border: 0;
@@ -341,31 +814,16 @@ body {
   text-decoration-thickness: 2px;
 }
 
-/* --- Try it: the first viewport ------------------------------------------------------------- */
+/* --- Docs: the opening ---------------------------------------------------------------------- */
 
-/* The headline takes the whole row; the lede and the sample controls share the one below it. */
-.pg-intro {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: end;
-  gap: 10px 40px;
-  padding-block: clamp(20px, 3vw, 32px) 20px;
+.pg-docs-intro {
+  padding-block: clamp(32px, 5vw, 56px) clamp(28px, 4vw, 40px);
 }
 
-.pg-intro h1 {
-  grid-column: 1 / -1;
-}
-
-@media (max-width: 900px) {
-  .pg-intro {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
-
-.pg-intro h1 {
-  max-width: 34ch;
+.pg-docs-intro h1 {
+  max-width: 30ch;
   margin: 0;
-  font-size: clamp(1.625rem, 1.1rem + 1.6vw, 2.25rem);
+  font-size: clamp(1.75rem, 1.1rem + 2vw, 2.5rem);
   font-weight: 700;
   line-height: 1.08;
   letter-spacing: -0.03em;
@@ -373,10 +831,10 @@ body {
 }
 
 .pg-lede {
-  max-width: 72ch;
-  margin: 0;
-  color: var(--pg-muted);
-  font-size: 1rem;
+  max-width: 68ch;
+  margin: 14px 0 0;
+  color: var(--pg-body);
+  font-size: 1.0625rem;
 }
 
 .pg-controls {
@@ -386,34 +844,23 @@ body {
   gap: 12px;
 }
 
-.pg-editor {
-  padding-bottom: clamp(40px, 6vw, 72px);
+.pg-controls--inline {
+  align-items: center;
+  gap: 8px 20px;
 }
 
-/* The editor is the page's subject: lifted one step off the ground it sits on. */
-.pg-editor > .bl-root {
-  border-radius: 12px;
-  box-shadow:
-    0 1px 2px rgb(24 24 27 / 0.05),
-    0 18px 40px -20px rgb(24 24 27 / 0.22);
-}
-
-.pg-loading {
-  padding: 64px 0;
-  color: var(--pg-muted);
-  text-align: center;
+.pg-docs-intro .pg-controls {
+  margin-top: 28px;
 }
 
 /* --- Docs sections ------------------------------------------------------------------------- */
 
 .pg-section {
-  padding-block: clamp(56px, 8vw, 96px);
+  --pg-section-pad: clamp(56px, 8vw, 96px);
+  padding-block: var(--pg-section-pad);
   border-top: 1px solid var(--pg-rule);
-}
-
-.pg-section--try {
-  padding-block: 0;
-  border-top: 0;
+  /* A jump lands the heading just under the two bars, the section's rule tucked beneath them. */
+  scroll-margin-top: calc(12px - var(--pg-section-pad));
 }
 
 .pg-split {
@@ -861,10 +1308,6 @@ body {
 
 /* --- Footer --------------------------------------------------------------------------------- */
 
-.pg-page > main {
-  flex: 1;
-}
-
 .pg-footer {
   border-top: 1px solid var(--pg-rule);
   background: var(--pg-surface);
@@ -902,15 +1345,14 @@ body {
 }
 
 @media (max-width: 640px) {
-  .pg-controls,
-  .pg-field,
-  .pg-field select,
-  .pg-field--grow select {
+  .pg-controls--stacked,
+  .pg-controls--stacked .pg-field,
+  .pg-controls--stacked .pg-field select {
     width: 100%;
     min-width: 0;
   }
 
-  .pg-controls .pg-button {
+  .pg-controls--stacked .pg-button {
     width: 100%;
   }
 
@@ -926,10 +1368,6 @@ body {
   }
 }
 
-.pg-embed {
-  padding-bottom: clamp(56px, 8vw, 96px);
-}
-
-.pg-embed > .pg-code {
+#embed .pg-split > .pg-code {
   margin-top: 0;
 }

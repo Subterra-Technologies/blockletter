@@ -8,6 +8,7 @@ export function IssueEditor({ issue, brand, onSave }) {
   const [doc, setDoc] = useState(issue);
   return (
     <NewsletterEditor
+      fill // take the container's height, each pane scrolling on its own
       value={doc}
       onChange={setDoc}
       brand={brand}
