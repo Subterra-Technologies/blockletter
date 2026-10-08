@@ -1,5 +1,15 @@
 # @subterra-technologies/blockletter-react
 
+## 0.1.1
+
+### Patch Changes
+
+- [#25](https://github.com/Subterra-Technologies/blockletter/pull/25) [`6db427b`](https://github.com/Subterra-Technologies/blockletter/commit/6db427b099484dd76f5de2e13dba51f9820cfc21) Thanks [@NoahDeshotel](https://github.com/NoahDeshotel)! - The editor's error messages, the preview's new-tab copy and the footer's website label no longer use
+  patterns that can take quadratic time on long runs of blank lines, unclosed tags or slashes. The
+  preview's copy also no longer mistakes a `<header>` for the email's `<head>`.
+- Updated dependencies []:
+  - @subterra-technologies/blockletter@0.1.1
+
 ## 0.1.0
 
 ### Minor Changes

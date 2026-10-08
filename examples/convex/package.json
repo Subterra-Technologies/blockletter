@@ -8,8 +8,8 @@
     "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p convex/tsconfig.json"
   },
   "dependencies": {
-    "@subterra-technologies/blockletter": "^0.1.0",
-    "@subterra-technologies/blockletter-react": "^0.1.0",
+    "@subterra-technologies/blockletter": "^0.1.1",
+    "@subterra-technologies/blockletter-react": "^0.1.1",
     "convex": "^1.46.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
