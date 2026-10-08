@@ -1,0 +1,7 @@
+node_modules/
+dist/
+*.tsbuildinfo
+
+# Written by `npx convex dev`: which deployment to use, and its URL for the client
+.env*
+!.env.example

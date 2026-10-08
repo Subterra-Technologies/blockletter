@@ -1,0 +1,194 @@
+[
+  {
+    "id": "evt-001",
+    "title": "Bike tune-up clinic",
+    "date": "2026-10-17",
+    "time": "10:00 AM",
+    "location": "The workshop",
+    "slug": "bike-tune-up-clinic"
+  },
+  {
+    "id": "evt-002",
+    "title": "Repair café",
+    "date": "2026-10-28",
+    "time": "6:30 PM",
+    "location": "Front room",
+    "slug": "repair-cafe-october"
+  },
+  {
+    "id": "evt-003",
+    "title": "Knife and tool sharpening",
+    "date": "2026-11-07",
+    "time": "11:00 AM",
+    "location": "The workshop",
+    "slug": "sharpening-november"
+  },
+  {
+    "id": "evt-004",
+    "title": "Intro to the table saw",
+    "date": "2026-11-19",
+    "time": "6:00 PM",
+    "location": "The workshop",
+    "slug": "intro-to-the-table-saw"
+  },
+  {
+    "id": "evt-005",
+    "title": "Holiday gift workshop",
+    "date": "2026-12-05",
+    "time": "1:00 PM",
+    "location": "Front room",
+    "slug": "holiday-gift-workshop"
+  },
+  {
+    "id": "evt-006",
+    "title": "Snow shovel swap",
+    "date": "2026-12-12",
+    "time": "9:00 AM",
+    "location": "Back lot",
+    "slug": "snow-shovel-swap"
+  },
+  {
+    "id": "evt-007",
+    "title": "Volunteer orientation",
+    "date": "2027-01-09",
+    "time": "10:00 AM",
+    "location": "Front room",
+    "slug": "volunteer-orientation-january"
+  },
+  {
+    "id": "evt-008",
+    "title": "Soldering for beginners",
+    "date": "2027-01-21",
+    "time": "6:30 PM",
+    "location": "The workshop",
+    "slug": "soldering-for-beginners"
+  },
+  {
+    "id": "evt-009",
+    "title": "Sewing machine basics",
+    "date": "2027-02-06",
+    "time": "10:00 AM",
+    "location": "Front room",
+    "slug": "sewing-machine-basics"
+  },
+  {
+    "id": "evt-010",
+    "title": "Repair café",
+    "date": "2027-02-24",
+    "time": "6:30 PM",
+    "location": "Front room",
+    "slug": "repair-cafe-february"
+  },
+  {
+    "id": "evt-011",
+    "title": "Raised bed build",
+    "date": "2027-03-13",
+    "time": "9:30 AM",
+    "location": "Community garden",
+    "slug": "raised-bed-build"
+  },
+  {
+    "id": "evt-012",
+    "title": "Ladder safety class",
+    "date": "2027-03-25",
+    "time": "6:00 PM",
+    "location": "The workshop",
+    "slug": "ladder-safety-class"
+  },
+  {
+    "id": "evt-013",
+    "title": "Spring seed and tool swap",
+    "date": "2027-04-10",
+    "time": "10:00 AM",
+    "location": "Back lot",
+    "slug": "spring-seed-and-tool-swap"
+  },
+  {
+    "id": "evt-014",
+    "title": "Paint and finish basics",
+    "date": "2027-04-22",
+    "time": "6:30 PM",
+    "location": "The workshop",
+    "slug": "paint-and-finish-basics"
+  },
+  {
+    "id": "evt-015",
+    "title": "Bike-to-work day prep",
+    "date": "2027-05-08",
+    "time": "10:00 AM",
+    "location": "Back lot",
+    "slug": "bike-to-work-day-prep"
+  },
+  {
+    "id": "evt-016",
+    "title": "Kids' birdhouse build",
+    "date": "2027-05-22",
+    "time": "1:00 PM",
+    "location": "Front room",
+    "slug": "kids-birdhouse-build"
+  },
+  {
+    "id": "evt-017",
+    "title": "Cordless drill basics",
+    "date": "2027-06-05",
+    "time": "10:00 AM",
+    "location": "The workshop",
+    "slug": "cordless-drill-basics"
+  },
+  {
+    "id": "evt-018",
+    "title": "Repair café",
+    "date": "2027-06-23",
+    "time": "6:30 PM",
+    "location": "Front room",
+    "slug": "repair-cafe-june"
+  },
+  {
+    "id": "evt-019",
+    "title": "Kayak patching day",
+    "date": "2027-07-10",
+    "time": "9:00 AM",
+    "location": "Riverside Park pavilion",
+    "slug": "kayak-patching-day"
+  },
+  {
+    "id": "evt-020",
+    "title": "Pallet planter workshop",
+    "date": "2027-07-24",
+    "time": "10:00 AM",
+    "location": "Community garden",
+    "slug": "pallet-planter-workshop"
+  },
+  {
+    "id": "evt-021",
+    "title": "Woodworking 101",
+    "date": "2027-08-07",
+    "time": "10:00 AM",
+    "location": "The workshop",
+    "slug": "woodworking-101"
+  },
+  {
+    "id": "evt-022",
+    "title": "Back-to-school fix-it night",
+    "date": "2027-08-25",
+    "time": "6:30 PM",
+    "location": "Front room",
+    "slug": "back-to-school-fix-it-night"
+  },
+  {
+    "id": "evt-023",
+    "title": "Annual members' meeting",
+    "date": "2027-09-11",
+    "time": "11:00 AM",
+    "location": "Front room",
+    "slug": "annual-members-meeting"
+  },
+  {
+    "id": "evt-024",
+    "title": "Repair café",
+    "date": "2027-09-29",
+    "time": "6:30 PM",
+    "location": "Front room",
+    "slug": "repair-cafe-september"
+  }
+]

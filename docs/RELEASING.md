@@ -8,8 +8,8 @@ from every push to `main` (`.github/workflows/demo.yml`).
 1. A pull request that changes `packages/core` or `packages/react` adds a changeset
    (`npx changeset`): which packages, the bump, and the line users will read in the changelog.
 2. When it merges, the **Release** workflow (`.github/workflows/release.yml`) opens or updates a
-   **Version packages** pull request. It bumps the versions and writes each package's
-   `CHANGELOG.md` from the changesets waiting on `main`.
+   **Version packages** pull request. It bumps the versions, writes each package's `CHANGELOG.md`
+   from the changesets waiting on `main`, and moves the examples' version ranges to match.
 3. Merging that pull request publishes the new versions to npm with a provenance attestation, pushes
    the version tags and creates a GitHub release for each package.
 

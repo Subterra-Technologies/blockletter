@@ -47,3 +47,45 @@ jobs:
           name: playwright-report
           path: apps/playground/playwright-report
           retention-days: 7
+
+  examples:
+    name: Examples against the packed packages
+    runs-on: ubuntu-latest
+    env:
+      NEXT_TELEMETRY_DISABLED: 1
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+          # The examples keep no lockfile; their manifests key the cache of what they download.
+          cache-dependency-path: |
+            package-lock.json
+            examples/*/package.json
+      - run: npm ci
+      - name: Build the packages and pack them as npm would publish them
+        run: npm run examples:pack
+      # From here on an example can resolve nothing from the repository's own installs, only what
+      # the tarballs and the registry give it, as in a user's app.
+      - name: Remove the repository's node_modules
+        run: rm -rf node_modules packages/*/node_modules apps/*/node_modules
+      - name: Install each example against the tarballs
+        run: npm run examples:install
+      - name: 'Node: typecheck, then a dry run writes the email'
+        working-directory: examples/node
+        run: |
+          npm run typecheck
+          npm start
+          grep -q '</html>' out/issue.html
+          test -s out/issue.txt
+      - name: 'Next.js: production build'
+        working-directory: examples/nextjs
+        run: npm run build
+      - name: 'Convex: typecheck, then build the client'
+        working-directory: examples/convex
+        run: npm run build
+        env:
+          # A client is built for one deployment. Without an address, the build would leave out
+          # everything but the "connect a deployment" notice, the editor included.
+          VITE_CONVEX_URL: https://deployment.example
