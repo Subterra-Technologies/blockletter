@@ -1,5 +1,6 @@
 import { defineBlock } from '../definition';
 import { splitParagraphs } from '../html';
+import { issuesFrom } from '../issues';
 import { LIMITS } from '../limits';
 import type { ColumnsBlock } from '../types';
 import { blockValidator } from '../validate';
@@ -38,15 +39,21 @@ export const columnsBlock = defineBlock<ColumnsBlock>({
           .string('linkUrl', { optional: true, label: 'link' });
       },
     ).issues,
-  issues: (block) => [
+  issues: issuesFrom((block) => [
     ...(block.columns.length < MIN_COLUMNS || block.columns.length > MAX_COLUMNS
-      ? [`Use ${MIN_COLUMNS} or ${MAX_COLUMNS} columns.`]
+      ? [
+          {
+            code: 'column_count',
+            message: `Use ${MIN_COLUMNS} or ${MAX_COLUMNS} columns.`,
+            values: { min: MIN_COLUMNS, max: MAX_COLUMNS },
+          },
+        ]
       : []),
-    ...block.columns.flatMap((column) => tooLong('column text', column.body)),
+    ...block.columns.flatMap((column) => tooLong('column_text', column.body)),
     ...(block.columns.some((column) => missingAlt(column.image, column.alt))
       ? [ALT_TEXT_ISSUE]
       : []),
-  ],
+  ]),
   summary: (block) => plural(block.columns.length, 'column'),
   render(block, ctx) {
     const columns = block.columns.slice(0, MAX_COLUMNS);

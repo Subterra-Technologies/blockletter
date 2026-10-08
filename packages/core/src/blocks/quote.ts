@@ -1,4 +1,5 @@
 import { defineBlock } from '../definition';
+import { issuesFrom } from '../issues';
 import type { QuoteBlock } from '../types';
 import { blockValidator } from '../validate';
 import { TABLE, tooLong } from './shared';
@@ -13,7 +14,7 @@ export const quoteBlock = defineBlock<QuoteBlock>({
   validate: (block, path) =>
     blockValidator(block, path, 'quote').string('quote').string('attribution', { optional: true })
       .issues,
-  issues: (block) => tooLong('quote', block.quote),
+  issues: issuesFrom((block) => tooLong('quote', block.quote)),
   summary: (block) => block.quote,
   render(block, ctx) {
     const quote = block.quote.trim();

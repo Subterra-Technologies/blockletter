@@ -1,4 +1,5 @@
 import { defineBlock } from '../definition';
+import { issuesFrom } from '../issues';
 import { LIMITS } from '../limits';
 import type { PhotoGridBlock } from '../types';
 import { blockValidator } from '../validate';
@@ -34,14 +35,20 @@ export const photoGridBlock = defineBlock<PhotoGridBlock>({
           .string('caption', { optional: true });
       },
     ).issues,
-  issues: (block) => [
+  issues: issuesFrom((block) => [
     ...(block.photos.length < MIN_PHOTOS || block.photos.length > MAX_PHOTOS
-      ? [`Use between ${MIN_PHOTOS} and ${MAX_PHOTOS} photos.`]
+      ? [
+          {
+            code: 'photo_count',
+            message: `Use between ${MIN_PHOTOS} and ${MAX_PHOTOS} photos.`,
+            values: { min: MIN_PHOTOS, max: MAX_PHOTOS },
+          },
+        ]
       : []),
     ...(block.photos.some((photo) => missingAlt(photo.image, photo.alt))
-      ? ['Add alt text to every photo.']
+      ? [{ code: 'missing_photo_alt', message: 'Add alt text to every photo.' }]
       : []),
-  ],
+  ]),
   summary: (block) => plural(block.photos.length, 'photo'),
   render(block, ctx) {
     const photos = block.photos.slice(0, MAX_PHOTOS);

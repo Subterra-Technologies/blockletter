@@ -1,5 +1,6 @@
 import { defineBlock } from '../definition';
 import { missingAltText } from '../html';
+import { issuesFrom } from '../issues';
 import type { BannerBlock } from '../types';
 import { blockValidator } from '../validate';
 import { ALT_TEXT_ISSUE, missingAlt } from './shared';
@@ -22,7 +23,7 @@ export const bannerBlock = defineBlock<BannerBlock>({
       .string('ctaLabel', { optional: true, label: 'button label' })
       .string('ctaUrl', { optional: true, label: 'button link' })
       .boolean('overlay', { label: 'text over the image' }).issues,
-  issues: (block) => (missingAlt(block.image, block.alt) ? [ALT_TEXT_ISSUE] : []),
+  issues: issuesFrom((block) => (missingAlt(block.image, block.alt) ? [ALT_TEXT_ISSUE] : [])),
   summary: (block) => block.heading?.trim() || block.alt,
   render(block, ctx) {
     const url = ctx.image(block.image);

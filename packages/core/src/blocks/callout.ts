@@ -1,8 +1,9 @@
 import { defineBlock } from '../definition';
 import { splitParagraphs } from '../html';
+import { issuesFrom } from '../issues';
 import type { CalloutBlock } from '../types';
 import { blockValidator } from '../validate';
-import { firstWords } from './shared';
+import { MISSING_BUTTON_LABEL, firstWords } from './shared';
 
 /** A short heading, a paragraph and a button: "Have news to share?". */
 export const calloutBlock = defineBlock<CalloutBlock>({
@@ -23,13 +24,15 @@ export const calloutBlock = defineBlock<CalloutBlock>({
       .string('body')
       .string('ctaLabel', { label: 'button label' })
       .string('ctaUrl', { label: 'button link' }).issues,
-  issues: (block) => {
+  issues: issuesFrom((block) => {
     const label = block.ctaLabel.trim();
     const url = block.ctaUrl.trim();
-    if (label && !url) return ['Add a link so the button appears.'];
-    if (url && !label) return ['Give the button a label.'];
+    if (label && !url) {
+      return [{ code: 'missing_callout_link', message: 'Add a link so the button appears.' }];
+    }
+    if (url && !label) return [MISSING_BUTTON_LABEL];
     return [];
-  },
+  }),
   summary: (block) => block.heading.trim() || firstWords(block.body),
   render(block, ctx) {
     const heading = block.heading.trim();

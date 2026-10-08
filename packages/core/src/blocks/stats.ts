@@ -1,4 +1,5 @@
 import { defineBlock } from '../definition';
+import { issuesFrom } from '../issues';
 import { LIMITS } from '../limits';
 import type { StatsBlock } from '../types';
 import { blockValidator } from '../validate';
@@ -32,10 +33,17 @@ export const statsBlock = defineBlock<StatsBlock>({
         item.string('value', { label: 'number' }).string('label');
       },
     ).issues,
-  issues: (block) =>
+  issues: issuesFrom((block) =>
     block.items.length < MIN_STATS || block.items.length > MAX_STATS
-      ? [`Use between ${MIN_STATS} and ${MAX_STATS} numbers.`]
+      ? [
+          {
+            code: 'number_count',
+            message: `Use between ${MIN_STATS} and ${MAX_STATS} numbers.`,
+            values: { min: MIN_STATS, max: MAX_STATS },
+          },
+        ]
       : [],
+  ),
   summary: (block) =>
     block.items
       .map((item) => item.value.trim())

@@ -212,6 +212,31 @@ export interface PeriodErrors {
   lookaheadEnd?: string;
 }
 
+/**
+ * What is wrong with one of a period's dates, as a code that stays the same whatever words a form
+ * puts it in. `PERIOD_ERROR_MESSAGES` holds the English that `periodErrors` writes for each.
+ */
+export type PeriodErrorCode =
+  | 'missing_start'
+  | 'start_after_end'
+  | 'missing_end'
+  | 'end_after_today'
+  | 'missing_lookahead'
+  | 'lookahead_before_end';
+
+/** The problems with a period, by field, as codes. */
+export type PeriodErrorCodes = { [K in keyof PeriodErrors]?: PeriodErrorCode };
+
+/** The English for each problem, as `periodErrors` writes it. */
+export const PERIOD_ERROR_MESSAGES: Readonly<Record<PeriodErrorCode, string>> = Object.freeze({
+  missing_start: 'Choose the date this issue starts from.',
+  start_after_end: 'The start date is after the end date.',
+  missing_end: 'Choose the date this issue covers up to.',
+  end_after_today: 'An issue can only cover up to today — there is no news from the future yet.',
+  missing_lookahead: 'Choose how far ahead to look for events.',
+  lookahead_before_end: 'Look ahead to a date after the period this issue covers.',
+});
+
 export interface PeriodRules {
   /**
    * The last day an issue may cover. For hosts whose issues report on what has happened, there
@@ -220,25 +245,38 @@ export interface PeriodRules {
   today?: string;
 }
 
-/** The problems with a period, by field. Empty when it is fine. */
-export function periodErrors(period: IssuePeriod, rules: PeriodRules = {}): PeriodErrors {
-  const errors: PeriodErrors = {};
+/**
+ * The problems with a period, by field, as codes: what `periodErrors` reports, for a form that
+ * words them in a language of its own. Empty when it is fine.
+ */
+export function periodErrorCodes(period: IssuePeriod, rules: PeriodRules = {}): PeriodErrorCodes {
+  const codes: PeriodErrorCodes = {};
   const { today } = rules;
-  if (!isIsoDate(period.start)) errors.start = 'Choose the date this issue starts from.';
+  if (!isIsoDate(period.start)) codes.start = 'missing_start';
   if (!isIsoDate(period.end)) {
-    errors.end = 'Choose the date this issue covers up to.';
+    codes.end = 'missing_end';
   } else if (today && period.end > today) {
-    errors.end = 'An issue can only cover up to today — there is no news from the future yet.';
+    codes.end = 'end_after_today';
   } else if (isIsoDate(period.start) && period.start > period.end) {
-    errors.start = 'The start date is after the end date.';
+    codes.start = 'start_after_end';
   }
   if (period.lookaheadEnd !== undefined) {
     if (!isIsoDate(period.lookaheadEnd)) {
-      errors.lookaheadEnd = 'Choose how far ahead to look for events.';
+      codes.lookaheadEnd = 'missing_lookahead';
     } else if (isIsoDate(period.end) && period.lookaheadEnd < period.end) {
-      errors.lookaheadEnd = 'Look ahead to a date after the period this issue covers.';
+      codes.lookaheadEnd = 'lookahead_before_end';
     }
   }
+  return codes;
+}
+
+/** The problems with a period, by field. Empty when it is fine. */
+export function periodErrors(period: IssuePeriod, rules: PeriodRules = {}): PeriodErrors {
+  const codes = periodErrorCodes(period, rules);
+  const errors: PeriodErrors = {};
+  if (codes.start) errors.start = PERIOD_ERROR_MESSAGES[codes.start];
+  if (codes.end) errors.end = PERIOD_ERROR_MESSAGES[codes.end];
+  if (codes.lookaheadEnd) errors.lookaheadEnd = PERIOD_ERROR_MESSAGES[codes.lookaheadEnd];
   return errors;
 }
 

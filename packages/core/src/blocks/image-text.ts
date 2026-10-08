@@ -1,5 +1,6 @@
 import { defineBlock } from '../definition';
 import { splitParagraphs } from '../html';
+import { issuesFrom } from '../issues';
 import type { ImageTextBlock } from '../types';
 import { blockValidator } from '../validate';
 import { ALT_TEXT_ISSUE, TABLE, firstWords, gapCell, missingAlt, tooLong } from './shared';
@@ -27,10 +28,10 @@ export const imageTextBlock = defineBlock<ImageTextBlock>({
       .oneOf('imageSide', ['left', 'right'], { label: 'image side' })
       .string('linkLabel', { optional: true, label: 'link text' })
       .string('linkUrl', { optional: true, label: 'link' }).issues,
-  issues: (block) => [
+  issues: issuesFrom((block) => [
     ...tooLong('text', block.body),
     ...(missingAlt(block.image, block.alt) ? [ALT_TEXT_ISSUE] : []),
-  ],
+  ]),
   summary: (block) => block.heading.trim() || firstWords(block.body) || block.alt,
   render(block, ctx) {
     const image = ctx.imageOrPlaceholder(block.image, block.alt, IMAGE_WIDTH, 160, { fill: true });

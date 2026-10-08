@@ -1,5 +1,6 @@
 import { builtInBlocks } from './blocks';
 import { BLOCK_GROUPS, type BlockDefinition, type BlockGroup } from './definition';
+import { codedIssues, type BlockIssue } from './issues';
 import type { BlockBase, BlockStyle } from './types';
 
 /**
@@ -49,6 +50,21 @@ export const blockIssues = (
   block: BlockBase,
   definitions: readonly BlockDefinition[] = builtInBlocks,
 ): string[] => getDefinition(block.type, definitions)?.issues?.(block) ?? [];
+
+/**
+ * `blockIssues`, each with the stable code and values a built-in block gives it, for an editor
+ * that words them in another language. An issue a definition gives only in words (a host's own
+ * block, or a built-in whose `issues` a host replaced) has its message and no code.
+ */
+export function blockIssueDetails(
+  block: BlockBase,
+  definitions: readonly BlockDefinition[] = builtInBlocks,
+): BlockIssue[] {
+  const definition = getDefinition(block.type, definitions);
+  if (!definition?.issues) return [];
+  const coded = codedIssues(definition.issues);
+  return coded ? coded(block) : definition.issues(block).map((message) => ({ message }));
+}
 
 /** Header and footer: at most one each, and the editor will not delete them. */
 export const isStructural = (

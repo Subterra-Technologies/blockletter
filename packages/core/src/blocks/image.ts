@@ -1,4 +1,5 @@
 import { defineBlock } from '../definition';
+import { issuesFrom } from '../issues';
 import type { ImageBlock } from '../types';
 import { blockValidator } from '../validate';
 import { ALT_TEXT_ISSUE, TABLE, missingAlt } from './shared';
@@ -16,7 +17,7 @@ export const imageBlock = defineBlock<ImageBlock>({
       .string('alt', { label: 'alt text' })
       .string('caption', { optional: true })
       .string('linkUrl', { optional: true, label: 'link' }).issues,
-  issues: (block) => (missingAlt(block.image, block.alt) ? [ALT_TEXT_ISSUE] : []),
+  issues: issuesFrom((block) => (missingAlt(block.image, block.alt) ? [ALT_TEXT_ISSUE] : [])),
   summary: (block) => block.caption?.trim() || block.alt,
   render(block, ctx) {
     const url = ctx.image(block.image);

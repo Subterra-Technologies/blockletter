@@ -27,6 +27,8 @@ const { html, text, warnings } = renderEmail(issue, {
 - `DataSource`s fill list blocks from your own records.
 - Brand kits with a contrast-checked palette, templates with `{{monthYear}}`-style tokens, issue
   periods, and runtime validation for untrusted documents.
+- Every sentence it writes for a person (a warning, a validation error) comes with a stable code
+  and its values, so a UI in another language can word it itself.
 - JSON Schemas for documents, templates and brand kits
   (`@subterra-technologies/blockletter/schema/newsletter-document.json` and siblings), so programs
   in other languages and LLM structured output can produce them. A document that matches must

@@ -1,5 +1,6 @@
 import { defineBlock } from '../definition';
 import { splitParagraphs } from '../html';
+import { issuesFrom } from '../issues';
 import { htmlToText, inlineRichTextStyles, sanitizeHtml } from '../rich-text';
 import type { TextBlock } from '../types';
 import { blockValidator } from '../validate';
@@ -20,7 +21,7 @@ export const textBlock = defineBlock<TextBlock>({
       .string('heading', { optional: true })
       .string('body', { label: 'text' })
       .oneOf('format', ['plain', 'html'], { optional: true }).issues,
-  issues: (block) => tooLong('text', block.body),
+  issues: issuesFrom((block) => tooLong('text', block.body)),
   summary: (block) => block.heading?.trim() || firstWords(words(block)),
   render(block, ctx) {
     const heading = block.heading?.trim() ?? '';

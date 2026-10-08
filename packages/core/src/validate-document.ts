@@ -57,6 +57,7 @@ export function validateDocument(
       'too_many_blocks',
       `Keep the newsletter to ${LIMITS.maxBlocks} blocks or fewer.`,
       'blocks',
+      { max: LIMITS.maxBlocks },
     );
   }
   const ids = new Set<string>();

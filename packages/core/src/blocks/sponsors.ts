@@ -1,5 +1,6 @@
 import { labelOn } from '../brand';
 import { defineBlock, type RenderContext } from '../definition';
+import { issuesFrom } from '../issues';
 import type { SponsorsBlock } from '../types';
 import { blockValidator } from '../validate';
 import { TABLE, joinNames, missingAlt } from './shared';
@@ -42,10 +43,16 @@ export const sponsorsBlock = defineBlock<SponsorsBlock>({
           .string('url', { optional: true, label: 'link' })
           .string('ref', { optional: true, label: 'source reference' });
       }).issues,
-  issues: (block) =>
+  issues: issuesFrom((block) =>
     block.items.some((item) => missingAlt(item.logo, item.name))
-      ? ['Name every sponsor: the name describes their logo for screen readers.']
+      ? [
+          {
+            code: 'missing_sponsor_name',
+            message: 'Name every sponsor: the name describes their logo for screen readers.',
+          },
+        ]
       : [],
+  ),
   summary: (block) => joinNames(block.items.map((item) => item.name)) || block.heading,
   render(block, ctx) {
     if (block.items.length === 0) return '';
