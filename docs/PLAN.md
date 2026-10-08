@@ -1,9 +1,9 @@
 # Blockletter plan
 
 Blockletter is the newsletter builder from Subterra's chamber-of-commerce platform, extracted
-into a standalone, reusable project. One repository holds the source, the demo and the docs. It
-stays private while the launch checklist below is worked through, then goes public under the MIT
-licence for the open-source community.
+into a standalone, reusable project. One repository holds the source, the demo and the docs, public
+under the MIT licence since 2026-10-07. The checklist below tracks what remains before 1.0. Smaller
+items live as [GitHub issues](https://github.com/Subterra-Technologies/blockletter/issues).
 
 The builder earned extraction because of what it already does well — a visual drag-and-drop
 canvas with a full keyboard path, an email renderer that survives Outlook and Gmail, saved
@@ -15,17 +15,17 @@ See [ARCHITECTURE.md](./ARCHITECTURE.md) for the package design and public API.
 
 ## Status
 
-| Phase | Scope                                                                                          | State   |
-| ----- | ---------------------------------------------------------------------------------------------- | ------- |
-| 0     | Private repo, monorepo scaffold, CI, denylist guard, architecture                              | Done    |
-| 1     | Core: document model, 21 blocks, renderer, brand, templates, periods, data sources, validation | Done    |
-| 2     | React editor: canvas, palette, inspector, appearance, brand kit, templates, preview            | Done    |
-| 3     | Demo site (live docs) + quality gates (Playwright + axe at four widths)                        | Done    |
-| 4     | Releases: Changesets, npm publishing at launch                                                 | Planned |
-| 5     | Convex adapter                                                                                 | Planned |
-| 6     | Subterra's own products adopt Blockletter                                                      | Planned |
-| 7     | Product gaps to close before going public                                                      | Planned |
-| 8     | Open-source launch                                                                             | Planned |
+| Phase | Scope                                                                                          | State       |
+| ----- | ---------------------------------------------------------------------------------------------- | ----------- |
+| 0     | Private repo, monorepo scaffold, CI, denylist guard, architecture                              | Done        |
+| 1     | Core: document model, 21 blocks, renderer, brand, templates, periods, data sources, validation | Done        |
+| 2     | React editor: canvas, palette, inspector, appearance, brand kit, templates, preview            | Done        |
+| 3     | Demo site (live docs) + quality gates (Playwright + axe at four widths)                        | Done        |
+| 4     | Releases: Changesets, npm publishing at launch                                                 | In progress |
+| 5     | Convex adapter                                                                                 | Planned     |
+| 6     | Subterra's own products adopt Blockletter                                                      | Planned     |
+| 7     | Product gaps to close before 1.0                                                               | In progress |
+| 8     | Open-source launch                                                                             | In progress |
 
 ## Phases
 
@@ -85,14 +85,16 @@ Port the editor into `packages/react`, decoupled from Convex, Next.js and the ho
 
 ### 4 — Releases
 
-- Changesets for versioning and changelogs.
-- At launch, publish `@subterra-technologies/blockletter` and `-react` to npm (or rename first;
-  see open questions). Until then, Subterra's own projects can install from a git checkout or a
-  GitHub Packages build if they need it early.
+- Changesets for versioning and changelogs: the two packages release together, at one version.
+- A release workflow opens a **Version packages** pull request from the changesets on `main`;
+  merging it publishes to npm with provenance, through npm trusted publishing once the first
+  release exists. [RELEASING.md](./RELEASING.md) has the one-time setup.
+- First release: `0.1.0`, waiting on the npm organisation (or a rename to unscoped names).
 
 ### 5 — Convex adapter (`packages/convex`)
 
-Most of Subterra's own projects run on Convex, so this is the first backend adapter.
+Most of Subterra's own projects run on Convex, so this is the first backend adapter
+([#7](https://github.com/Subterra-Technologies/blockletter/issues/7)).
 
 - Convex validators for the document, brand kit and template (built-in blocks), composable with
   host block validators.
@@ -108,14 +110,15 @@ Dogfooding proves the API in real products.
 - Stored newsletters are migrated to Blockletter documents, with rendering parity tests against
   the old output before switching over; issues already sent stay as they were.
 
-### 7 — Gaps to close before going public
+### 7 — Gaps to close before 1.0
 
 - Rich text in text blocks (bold, italic, links, lists) — the source only rendered rich HTML.
 - Undo / redo.
-- Click-to-select from the preview.
-- Outlook VML for background images, optional dark-mode email styles. (Mobile-responsive
-  email is done.)
-- Social icons (hosted PNGs), merge tags / personalisation helpers.
+- Click-to-select from the preview ([#2](https://github.com/Subterra-Technologies/blockletter/issues/2)).
+- Outlook VML for background images ([#3](https://github.com/Subterra-Technologies/blockletter/issues/3)), optional dark-mode email styles
+  ([#4](https://github.com/Subterra-Technologies/blockletter/issues/4)). (Mobile-responsive email is done.)
+- Social icons ([#5](https://github.com/Subterra-Technologies/blockletter/issues/5)), merge tags and personalisation ([#6](https://github.com/Subterra-Technologies/blockletter/issues/6)).
+- Two panes between 768 and 1023px of editor width ([#9](https://github.com/Subterra-Technologies/blockletter/issues/9)).
 - i18n: editor labels and render labels.
 - Recipes: Next.js with a hosted database, a serverless send route, plain Node rendering.
 
@@ -126,9 +129,11 @@ Dogfooding proves the API in real products.
 - [x] Demo built into this repository, with a Pages workflow ready to publish it.
 - [ ] Public name and npm scope decided (`blockletter` is unclaimed on npm as of 2026-10-07).
 - [x] Denylist and secret scan pass across the full history (2026-10-07).
-- [ ] 1.0 API review: everything exported is intended to be supported.
-- [ ] Delete the retired `Subterra-Technologies/blockletter-demo` repository (now private and
-      empty apart from a README).
+- [ ] 1.0 API review: everything exported is intended to be supported ([#8](https://github.com/Subterra-Technologies/blockletter/issues/8)).
+- [x] Delete the retired `Subterra-Technologies/blockletter-demo` repository (2026-10-07).
+- [x] Release workflow (Changesets, npm trusted publishing) and [RELEASING.md](./RELEASING.md).
+- [x] Dependabot, CodeQL, Discussions, and the roadmap's smaller items as issues.
+- [x] [Email client compatibility](./COMPATIBILITY.md) documented; real-client checks still to fill in.
 - [x] Repository public and the demo live at https://subterra-technologies.github.io/blockletter/
       (2026-10-07).
 - [ ] Publish the packages and remove the README's pre-release note.
