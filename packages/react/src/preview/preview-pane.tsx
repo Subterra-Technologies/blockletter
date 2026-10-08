@@ -33,9 +33,10 @@ const WIDTHS: Readonly<Record<PreviewWidth, number>> = { desktop: 600, phone: 37
 function inertCopy(html: string): string {
   const policy =
     '<meta http-equiv="Content-Security-Policy" content="script-src \'none\'; object-src \'none\'">';
-  return /<head[^>]*>/i.test(html)
-    ? html.replace(/<head[^>]*>/i, (head) => `${head}${policy}`)
-    : `${policy}${html}`;
+  // `[^<>]` ends each attempt at the next tag, so a document of unclosed tags cannot make the
+  // search quadratic; `\b` keeps `<header>` from passing for `<head>`.
+  const head = /<head\b[^<>]*>/i;
+  return head.test(html) ? html.replace(head, (tag) => `${tag}${policy}`) : `${policy}${html}`;
 }
 
 export interface PreviewPaneProps {

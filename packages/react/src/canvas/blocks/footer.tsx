@@ -10,7 +10,14 @@ function hostOf(url: string): string {
   const match = /^[a-z][a-z0-9+.-]*:\/\/([^/?#]+)/i.exec(url);
   return match?.[1]
     ? match[1].replace(/^www\./i, '')
-    : url.replace(/^https?:\/\//i, '').replace(/\/+$/, '');
+    : withoutTrailingSlashes(url.replace(/^https?:\/\//i, ''));
+}
+
+/** `text` without the slashes at its end: a loop, as `/\/+$/` is quadratic on a long run of them. */
+function withoutTrailingSlashes(text: string): string {
+  let end = text.length;
+  while (end > 0 && text.charAt(end - 1) === '/') end -= 1;
+  return text.slice(0, end);
 }
 
 const UNDERLINE: CSSProperties = { textDecoration: 'underline' };
