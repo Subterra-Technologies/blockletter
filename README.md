@@ -72,6 +72,9 @@ The rule it was built on: _if I entered it once, I shouldn't have to enter it ag
   enough for mail apps to clip.
 - **An accessible editor.** Built to WCAG 2.2 AA and audited automatically at 1440, 768, 390 and
   320px. Every drag-and-drop gesture has a keyboard path, and changes are announced.
+- **Undo for every change.** Adding, moving, deleting, editing or refreshing a block, and changing
+  the issue's settings, can all be undone and redone from the top bar or with Ctrl+Z (⌘Z), typing
+  a burst at a time. Deleting a block asks nothing first: its toast offers Undo.
 - **Your backend, your workflow.** `NewsletterEditor` is a controlled React component. You store
   the documents, images and brand kits, and you decide who approves an issue and how it is sent.
 - **Brand kits and templates.** Logo, colours, fonts and contact details restyle every block, and
@@ -233,6 +236,10 @@ With `fill`, the editor fits whatever height its container has (`calc(100dvh - 4
 4rem header, say, or a flex item's share): its top bar stays put and each pane scrolls on its own,
 as in the demo. Where it is narrower than 64rem it shows one pane at a time, switched from its top
 bar. Leave `fill` out and the editor grows with the issue instead, scrolling with your page.
+
+The editor keeps its own undo history of the documents it hands to `onChange`, so pass them back as
+`value` (a copy read back from your database is fine). A document it did not hand out, such as
+another issue or a reload, starts the history afresh.
 
 The stylesheet is compiled and scoped to the editor, so your app needs no CSS framework or setup
 of its own. Every part (canvas, palette, inspector, preview, brand kit, template picker, dialogs)
@@ -458,9 +465,12 @@ at four widths on every change, and nothing scrolls sideways at 320px.
 | Toolbar: _Insert above / below_                                | Set an insertion point, then pick a block in the palette |
 | <kbd>Esc</kbd>                                                 | Cancel the insertion point                               |
 
-Insertions, moves and refreshes are announced to screen readers, focus follows the work (to the
-inspector when a block is picked, back to the canvas when a dialog closes), and the brand kit
-warns when a colour pair is too faint to read.
+Anywhere in the editor, <kbd>Ctrl</kbd> + <kbd>Z</kbd> undoes and <kbd>Ctrl</kbd> +
+<kbd>Shift</kbd> + <kbd>Z</kbd> or <kbd>Ctrl</kbd> + <kbd>Y</kbd> redoes; on a Mac, <kbd>⌘</kbd> +
+<kbd>Z</kbd> and <kbd>⌘</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd>. Insertions, moves, refreshes,
+undos and redos are announced to screen readers, focus follows the work (to the inspector when a
+block is picked, back to the canvas when a dialog closes), and the brand kit warns when a colour
+pair is too faint to read.
 
 ## Development
 
