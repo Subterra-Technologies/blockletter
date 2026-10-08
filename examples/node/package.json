@@ -1,0 +1,21 @@
+{
+  "name": "blockletter-example-node",
+  "private": true,
+  "description": "Assemble a newsletter issue from a template and your own data, render it, and send it through Resend, from a plain Node script.",
+  "type": "module",
+  "scripts": {
+    "start": "node --env-file-if-exists=.env src/newsletter.ts",
+    "send": "node --env-file-if-exists=.env src/newsletter.ts --send",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@subterra-technologies/blockletter": "^0.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.4",
+    "typescript": "^5.9.3"
+  },
+  "engines": {
+    "node": ">=22.18"
+  }
+}

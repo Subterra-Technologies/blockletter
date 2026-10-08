@@ -13,6 +13,10 @@ export default defineConfig([
       '**/coverage/**',
       '**/playwright-report/**',
       '**/test-results/**',
+      // Generated in the examples: Next.js's build and type references, Convex's codegen.
+      '**/.next/**',
+      '**/next-env.d.ts',
+      '**/convex/_generated/**',
     ],
   },
   {
@@ -27,7 +31,7 @@ export default defineConfig([
     },
   },
   {
-    files: ['packages/react/**/*.tsx', 'apps/**/*.tsx'],
+    files: ['packages/react/**/*.tsx', 'apps/**/*.tsx', 'examples/**/*.tsx'],
     extends: [reactHooks.configs.flat['recommended-latest'], jsxA11y.flatConfigs.recommended],
     rules: {
       // A labelled scroll region must take focus so it can be scrolled from the keyboard

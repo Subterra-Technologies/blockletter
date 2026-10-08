@@ -10,6 +10,8 @@
   ],
   "scripts": {
     "build": "npm run build -w packages/core && npm run build -w packages/react --if-present && npm run build -w apps/playground --if-present",
+    "examples:pack": "node scripts/examples.mjs pack",
+    "examples:install": "node scripts/examples.mjs install",
     "dev": "npm run dev -w apps/playground",
     "test": "vitest run",
     "test:watch": "vitest",

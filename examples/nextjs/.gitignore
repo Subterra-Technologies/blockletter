@@ -1,0 +1,11 @@
+node_modules/
+.next/
+next-env.d.ts
+*.tsbuildinfo
+
+# Drafts the example saves (lib/issues.ts)
+data/
+
+# Keys for sending tests: copy .env.example to .env.local
+.env*
+!.env.example

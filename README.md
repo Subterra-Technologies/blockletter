@@ -49,6 +49,7 @@ The rule it was built on: _if I entered it once, I shouldn't have to enter it ag
 - [A tour](#a-tour)
 - [How it works](#how-it-works)
 - [Getting started](#getting-started)
+- [Examples](#examples)
 - [Translating the editor](#translating-the-editor)
 - [Documents from other languages and LLMs](#documents-from-other-languages-and-llms)
 - [The blocks](#the-blocks)
@@ -214,6 +215,9 @@ Once the packages are published:
 npm install @subterra-technologies/blockletter @subterra-technologies/blockletter-react
 ```
 
+To see every piece below working together in an app, start from one of the
+[examples](#examples): a Node script, a Next.js app, and a Convex backend with a React client.
+
 ### Embed the editor
 
 ```tsx
@@ -373,6 +377,33 @@ const jobEditorBlock = defineEditorBlock<JobBlock>({
 ```
 
 A block without a canvas drawing of its own is drawn on the canvas from its email HTML.
+
+## Examples
+
+Three small apps in [`examples/`](examples) use Blockletter the way yours would, each with its own
+README:
+
+- **[Node script](examples/node)**: this month's issue assembled from a built-in template and a
+  JSON file of events, rendered to HTML and plain text, and sent through Resend's REST API with
+  `fetch`.
+- **[Next.js](examples/nextjs)**: the App Router with a drafts list, the editor filling the
+  screen, drafts saved by Server Actions, a data source served by a route handler, and a _Send a
+  test_ action that renders on the server.
+- **[Convex](examples/convex)**: issues assembled inside a mutation and validated before they are
+  saved, the editor's data source as a query, and an action that renders and sends, with a small
+  Vite + React client.
+
+Each is its own npm project that depends on the published packages. Until they are published,
+install an example against tarballs packed from this repository, which are exactly what npm users
+will get:
+
+```sh
+npm run examples:pack      # build both packages and pack them into examples/.packs
+npm run examples:install   # install every example against them
+```
+
+[Installing an example](examples/README.md#installing-an-example) explains how, and why the
+examples keep their published version ranges throughout.
 
 ## Translating the editor
 

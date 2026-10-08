@@ -60,10 +60,13 @@ const SKIP_DIRS = new Set([
   'playwright-report',
   'test-results',
   '.vite',
+  // Build output of the examples: Next.js's, and the email the Node example writes.
+  '.next',
+  'out',
 ]);
 const SKIP_FILES = new Set(['package-lock.json', self]);
 const TEXT = /\.(ts|tsx|js|mjs|cjs|jsx|json|md|mdx|css|scss|html|yml|yaml|txt|svg)$/i;
-const CODE_DIRS = ['packages/', 'apps/'];
+const CODE_DIRS = ['packages/', 'apps/', 'examples/'];
 
 const findings = [];
 

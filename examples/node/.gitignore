@@ -1,0 +1,7 @@
+node_modules/
+
+# What `npm start` writes
+out/
+
+# Keys for sending: copy .env.example to .env
+.env

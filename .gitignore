@@ -22,3 +22,8 @@ blob-report/
 
 # Impeccable review captures (regenerated on demand)
 apps/playground/.impeccable/review/
+
+# Packed packages the examples install from (npm run examples:pack). The examples install with
+# --no-save, and keep no lockfile in the repository: see examples/README.md.
+examples/.packs/
+examples/*/package-lock.json

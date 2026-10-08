@@ -4,3 +4,10 @@ coverage
 playwright-report
 test-results
 package-lock.json
+
+# Generated in the examples: build output, Convex's codegen and Next.js's type references
+.next
+next-env.d.ts
+examples/node/out
+examples/nextjs/data
+examples/convex/convex/_generated
