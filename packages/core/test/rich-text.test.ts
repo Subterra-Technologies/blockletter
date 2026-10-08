@@ -134,4 +134,21 @@ describe('plainTextToHtml', () => {
       '<p>Hi &lt;all&gt;,</p><p>Line one<br>Line two</p>',
     );
   });
+
+  it('makes HTML the sanitiser leaves as it is', () => {
+    // The rich-text field converts a plain body with this the first time it is edited.
+    for (const text of ['Plain.', 'Hi <all>,\n\nLine one\nLine two', 'Fish & "chips"\n\n\nMore']) {
+      const html = plainTextToHtml(text);
+      expect(sanitizeHtml(html)).toBe(html);
+    }
+  });
+});
+
+describe('the rich-text field’s tags', () => {
+  it('pass through sanitizeHtml unchanged, links written the way it writes them', () => {
+    // What the editor's rich-text field stores; it relies on this to round-trip.
+    const html =
+      '<p>A <strong>bold</strong>, <em>slanted</em> and <a href="https://example.test/a?x=1&amp;y=2" rel="noopener" target="_blank"><strong>linked</strong></a> line<br>and another.</p><p><br></p><ul><li>One</li></ul><ol><li><a href="mailto:office@example.test" rel="noopener" target="_blank">Two</a></li></ol><p>&lt;b&gt; &amp; &quot;quotes&quot;</p>';
+    expect(sanitizeHtml(html)).toBe(html);
+  });
 });

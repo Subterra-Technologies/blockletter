@@ -10,6 +10,15 @@ import {
 } from '@subterra-technologies/blockletter';
 import type { EditorBlockDefinition } from './types';
 
+/** The document's undo history, as the fields inside the editor see it. */
+export interface EditorHistoryHandle {
+  /**
+   * Closes the newest step, so the next change is a step of its own: a field calls it around a
+   * command of its own (bold, a list) that should undo apart from the typing either side of it.
+   */
+  endStep: () => void;
+}
+
 /**
  * What every part of the editor may need from the host, provided once by `NewsletterEditor`
  * (or by a host composing the parts itself). Each part reads only what it uses; a part rendered
@@ -28,6 +37,15 @@ export interface EditorContextValue {
   readOnly: boolean;
   /** Passed to the core renderer for the preview and for blocks drawn from their HTML. */
   renderOptions: RenderOptions;
+  /**
+   * Set where the document's undo history answers undo and redo for every field: inside
+   * `NewsletterEditor`, which takes their keys, the browser's own Undo and Redo, and its top
+   * bar's buttons. A field with an undo of its own (`RichTextField`) leaves all of that to the
+   * document's history while this is set, and keeps its own without it. A host laying out the
+   * parts itself sets it (`{ endStep }` from `useNewsletterEditor`) once it sends those keys to
+   * the document's `undo` and `redo` too.
+   */
+  history?: EditorHistoryHandle;
 }
 
 const DEFAULTS: EditorContextValue = {

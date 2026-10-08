@@ -30,6 +30,8 @@ export function TextCanvas(canvas: BlockCanvasProps<TextBlock>) {
           {block.format === 'html' ? (
             <div
               inert
+              // The editor's reset takes list markers off; the email's lists keep theirs.
+              className="bl:[&_ol]:list-decimal bl:[&_ul]:list-disc"
               style={{
                 fontFamily: fonts.body,
                 fontSize: px(15),

@@ -1,4 +1,4 @@
-import { screen, waitFor, within } from '@testing-library/react';
+import { act, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 import { CalloutEditor, FooterEditor, HeaderEditor, TextEditor } from '../../src/inspector/editors';
@@ -49,12 +49,13 @@ describe('CalloutEditor', () => {
 });
 
 describe('TextEditor', () => {
-  it('labels the heading optional and describes the body with the paragraph helper', () => {
+  const body = () => screen.getByRole('textbox', { name: 'Text' });
+
+  it('labels the heading optional and gives the body a formatting toolbar', () => {
     renderEditor(TextEditor, testBlock('text'));
     expect(screen.getByLabelText('Heading (optional)')).toHaveValue('');
-    expect(screen.getByLabelText('Text')).toHaveAccessibleDescription(
-      'Leave a blank line between paragraphs.',
-    );
+    expect(body()).toHaveAttribute('aria-multiline', 'true');
+    expect(screen.getByRole('toolbar', { name: 'Text formatting' })).toBeInTheDocument();
   });
 
   it('keeps a typed heading and drops it again when it is cleared', async () => {
@@ -63,56 +64,58 @@ describe('TextEditor', () => {
     expect(latest()).not.toHaveProperty('heading');
   });
 
-  it('shows formatted text as it reads, cleaned, rather than as markup to edit', () => {
-    renderEditor(
+  it('shows a plain body as its paragraphs, and leaves it plain while it is only looked at', async () => {
+    const user = userEvent.setup();
+    const { onChange } = renderEditor(
       TextEditor,
-      testBlock('text', {
-        format: 'html',
-        body: '<p>Hello <strong>readers</strong></p><script>alert(1)</script><a href="javascript:alert(1)">x</a>',
-      }),
+      testBlock('text', { body: 'Use <b> for bold.\n\nSecond paragraph.' }),
     );
-    expect(screen.queryByRole('textbox', { name: 'Text' })).toBeNull();
-    const preview = screen.getByRole('group', { name: 'Text' });
-    expect(within(preview).getByText('readers').tagName).toBe('STRONG');
-    expect(preview.querySelector('script')).toBeNull();
-    expect(preview.innerHTML).not.toContain('javascript:');
-    expect(preview).toHaveAccessibleDescription(
-      'This text has formatting this editor can’t change. Convert it to plain text to edit it here.',
-    );
+    const paragraphs = body().querySelectorAll('p');
+    expect([...paragraphs].map((paragraph) => paragraph.textContent)).toEqual([
+      'Use <b> for bold.',
+      'Second paragraph.',
+    ]);
+    expect(body().querySelector('b')).toBeNull();
+    await user.click(body());
+    await user.click(screen.getByRole('button', { name: 'Bold' }));
+    expect(onChange).not.toHaveBeenCalled();
   });
 
-  it('converts formatted text to plain text once asked, and puts focus in it', async () => {
+  it('turns a plain body into HTML the first time it is edited', async () => {
+    const user = userEvent.setup();
+    const block = testBlock('text', { body: 'Doors open at eight.\n\nBring a friend.' });
+    const { latest } = renderEditor(TextEditor, block);
+    act(() => body().focus());
+    const second = body().querySelectorAll('p')[1]?.firstChild;
+    if (!second) throw new Error('The second paragraph has text');
+    act(() => {
+      document.getSelection()?.setBaseAndExtent(second, 0, second, 5);
+    });
+    await user.click(screen.getByRole('button', { name: 'Bold' }));
+    expect(latest()).toEqual({
+      ...block,
+      format: 'html',
+      body: '<p>Doors open at eight.</p><p><strong>Bring</strong> a friend.</p>',
+    });
+  });
+
+  it('edits a body stored as HTML in place, cleaned the way the renderer cleans it', async () => {
     const user = userEvent.setup();
     const { latest } = renderEditor(
       TextEditor,
       testBlock('text', {
         format: 'html',
-        body: '<p>Hello <strong>readers</strong>.</p><p>See you soon.</p>',
+        body: '<p>Hello <strong>readers</strong></p><script>alert(1)</script><p><a href="javascript:alert(1)">x</a></p>',
       }),
     );
-    await user.click(screen.getByRole('button', { name: 'Convert to plain text' }));
-    const dialog = await screen.findByRole('alertdialog', {
-      name: 'Convert this text to plain text?',
-    });
-    await user.click(within(dialog).getByRole('button', { name: 'Convert to plain text' }));
-
-    expect(latest()).not.toHaveProperty('format');
-    expect(latest().body).toBe('Hello readers.\n\nSee you soon.');
-    const body = await screen.findByRole('textbox', { name: 'Text' });
-    await waitFor(() => expect(body).toHaveFocus());
-  });
-
-  it('leaves formatted text alone when the conversion is cancelled', async () => {
-    const user = userEvent.setup();
-    const { onChange } = renderEditor(
-      TextEditor,
-      testBlock('text', { format: 'html', body: '<p>Hi</p>' }),
-    );
-    await user.click(screen.getByRole('button', { name: 'Convert to plain text' }));
-    await user.click(
-      within(await screen.findByRole('alertdialog')).getByRole('button', { name: 'Cancel' }),
-    );
-    expect(onChange).not.toHaveBeenCalled();
+    expect(within(body()).getByText('readers').tagName).toBe('STRONG');
+    expect(body().querySelector('script')).toBeNull();
+    expect(body().innerHTML).not.toContain('javascript:');
+    await user.click(body());
+    await user.keyboard('!');
+    expect(latest().format).toBe('html');
+    expect(latest().body).toContain('<strong>readers</strong>');
+    expect(latest().body).not.toContain('script');
   });
 });
 

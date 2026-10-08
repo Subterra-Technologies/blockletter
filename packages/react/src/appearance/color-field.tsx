@@ -124,11 +124,13 @@ export function ColorField({
           onChange={(event) => pick(event.target.value)}
           className="bl:h-9 bl:w-10 bl:shrink-0 bl:cursor-pointer bl:rounded-md bl:border bl:border-input bl:bg-transparent bl:p-1 bl:outline-none bl:focus-visible:ring-[3px] bl:focus-visible:ring-ring/50 bl:disabled:cursor-not-allowed bl:disabled:opacity-50"
         />
+        {/* A draft until it commits, so undo while typing it is the browser's. */}
         <Input
           type="text"
           spellCheck={false}
           id={`${controlId}-hex`}
           value={hexDraft}
+          data-bl-draft=""
           disabled={disabled}
           aria-label={`${label} hex value`}
           aria-describedby={`${controlId}-help`}

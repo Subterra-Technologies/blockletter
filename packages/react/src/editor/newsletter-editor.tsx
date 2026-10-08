@@ -1,6 +1,7 @@
 import {
   useCallback,
   useEffect,
+  useEffectEvent,
   useId,
   useLayoutEffect,
   useMemo,
@@ -43,12 +44,15 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu';
 import { Field, FieldLabel } from '../ui/field';
 import { Input } from '../ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { EditorProvider, type EditorContextValue } from './context';
+import { HistoryButtons, HistoryMenuItems } from './history-controls';
+import { historyShortcut, keepsNativeUndo, type HistoryAction } from './history-shortcuts';
 import type { EditorBlockDefinition } from './types';
 import {
   useNewsletterEditor,
@@ -57,7 +61,11 @@ import {
 } from './use-newsletter-editor';
 
 export interface NewsletterEditorProps<B extends BlockBase = BuiltInBlock> {
-  /** The document, controlled: every edit comes back through `onChange`. */
+  /**
+   * The document, controlled: every edit comes back through `onChange`. Pass back what it hands
+   * you (or a copy of it): a document it did not hand out, such as another issue, starts its undo
+   * history over.
+   */
   value: NewsletterDocument<B>;
   onChange: (value: NewsletterDocument<B>) => void;
   /** The brand kit the email is painted with. */
@@ -93,7 +101,7 @@ export interface NewsletterEditorProps<B extends BlockBase = BuiltInBlock> {
    * stays put, each pane scrolls on its own, and the page does not. Give the container a height
    * (`calc(100dvh - 4rem)`, say, or a flex item's share). Below 64rem of its own width it shows one
    * pane at a time, switched from the top bar: Blocks, Canvas, Edit (the chosen block's form) and
-   * Preview.
+   * Preview, with Undo and Redo in its More menu, since a phone's top bar has no room for them.
    */
   fill?: boolean;
 }
@@ -115,6 +123,10 @@ const NO_OPTIONS: RenderOptions = {};
  * inspector staying in view as the page scrolls (set `--bl-sticky-top` on it for a fixed header
  * above); narrower, they stack, with nothing wider than the screen down to 320px. With `fill`, it
  * fits its container instead: see `fill`.
+ *
+ * Every change it makes to the document can be undone and redone, from Undo and Redo in its top
+ * bar, or with Ctrl+Z (⌘Z) and Ctrl+Shift+Z (⇧⌘Z) or Ctrl+Y while the focus is anywhere in it.
+ * The brand kit and templates live outside the document, and outside its history.
  */
 export function NewsletterEditor<B extends BlockBase = BuiltInBlock>({
   value,
@@ -214,6 +226,9 @@ const PANE_LABELS: Readonly<Record<PaneTab, string>> = {
  */
 type Layout = 'flow' | 'columns' | 'single';
 
+/** Where an undo or redo began (`elsewhere`: the top bar, the palette…), for the focus after it. */
+type HistoryOrigin = 'canvas' | 'inspector' | 'elsewhere';
+
 interface WorkspaceProps<B extends BlockBase> {
   value: NewsletterDocument<B>;
   onChange: (value: NewsletterDocument<B>) => void;
@@ -258,7 +273,13 @@ function Workspace<B extends BlockBase>({
     defaultMode,
     defaultSelectedId,
   });
-  const { document, selected, insertTarget, mode, canvasRef } = editor;
+  const { document, selected, insertTarget, mode, canvasRef, canUndo, canRedo, endStep } = editor;
+  // The keys and the browser's own Undo are answered here (`onHistoryKey`, `onBrowserHistory`),
+  // so the fields inside are told to leave them alone: see `EditorContextValue.history`.
+  const historyContext = useMemo<Partial<EditorContextValue>>(
+    () => (readOnly ? {} : { history: { endStep } }),
+    [readOnly, endStep],
+  );
   const ids = useId();
   const paletteHeadingId = `${ids}-palette`;
   const inspectorId = `${ids}-inspector`;
@@ -270,14 +291,20 @@ function Workspace<B extends BlockBase>({
   const [savingTemplate, setSavingTemplate] = useState(false);
   const [previewWidth, setPreviewWidth] = useState<PreviewWidth>('desktop');
   const inspectorRef = useRef<BlockInspectorHandle | null>(null);
+  /** Everything the editor draws (overlays aside), where undo and redo are asked for. */
+  const workspace = useRef<HTMLDivElement>(null);
   const body = useRef<HTMLDivElement>(null);
   const canvasColumn = useRef<HTMLDivElement>(null);
   const inspectorColumn = useRef<HTMLElement>(null);
+  /** Undo in the top bar, or the More menu that holds it: the last place focus can go after one. */
+  const historyControl = useRef<HTMLButtonElement>(null);
   /**
    * Focus to move once the render it waits for is done: the inspector, the palette, or the chosen
    * block on the canvas.
    */
   const pendingFocus = useRef<'inspector' | 'palette' | 'block' | null>(null);
+  /** An undo or redo waiting to render, and where it began, which says where the focus goes. */
+  const historyFocus = useRef<HistoryOrigin | null>(null);
 
   const narrow = useNarrow(body, fill);
   const layout: Layout = !fill ? 'flow' : narrow ? 'single' : 'columns';
@@ -312,6 +339,45 @@ function Workspace<B extends BlockBase>({
           hidden: pane !== which,
         }
       : {};
+
+  /**
+   * Where the focus goes once an undo or redo has rendered. Begun on the canvas, it follows the
+   * block the change was made to, as it follows a block moved with Alt and an arrow. Begun
+   * anywhere else, it stays put, unless the change took away the element that had it (a block it
+   * deleted, a form it swapped for another block's): then it goes to the chosen block's form or
+   * the block itself, whichever is nearer where it was and on show, and failing both, to Undo.
+   */
+  function focusAfterHistory(origin: HistoryOrigin): void {
+    const active = window.document.activeElement;
+    const lost = !active || active === window.document.body;
+    if (origin !== 'canvas' && !lost) return;
+    const toCanvas = (): boolean => {
+      const canvas = canvasRef.current;
+      const id = editor.selectedId ?? document.blocks[0]?.id;
+      if (!canvas || !id || (single && pane !== 'canvas')) return false;
+      canvas.focusBlock(id);
+      return true;
+    };
+    const toForm = (): boolean => {
+      if (!selected || !BLOCK_TABS.includes(tab) || (single && pane !== 'edit')) return false;
+      if (tab === 'appearance') {
+        window.document.getElementById(appearanceHeadingId)?.focus({ preventScroll: true });
+      } else {
+        inspectorRef.current?.focusHeading();
+      }
+      return true;
+    };
+    const placed = origin === 'inspector' ? toForm() || toCanvas() : toCanvas() || toForm();
+    if (!placed) historyControl.current?.focus();
+  }
+
+  useEffect(() => {
+    const origin = historyFocus.current;
+    if (origin) {
+      historyFocus.current = null;
+      focusAfterHistory(origin);
+    }
+  });
 
   useEffect(() => {
     const target = pendingFocus.current;
@@ -456,24 +522,117 @@ function Workspace<B extends BlockBase>({
     if (single) setPane('canvas');
   }
 
+  /** Undo or redo from the top bar or the keyboard; `from` is the element it began in. */
+  function runHistory(action: HistoryAction, from: Element | null): void {
+    if (!(action === 'undo' ? canUndo : canRedo)) return;
+    historyFocus.current =
+      from && mode === 'canvas' && canvasColumn.current?.contains(from)
+        ? 'canvas'
+        : from && inspectorColumn.current?.contains(from)
+          ? 'inspector'
+          : 'elsewhere';
+    if (action === 'undo') editor.undo();
+    else editor.redo();
+  }
+
+  /**
+   * The element an undo or redo was asked for in, when it is the editor's to answer. Only its own
+   * UI's: the page around it never reaches here, and the host's toolbar and the editor's overlays
+   * (dialogs, menus) keep theirs, as does a field holding a draft (`keepsNativeUndo`), where the
+   * browser undoes the typing. Anywhere else, a text field included, it is the editor's: the same
+   * Undo as the button, so the keys never mean two different things.
+   */
+  function historyTarget(target: EventTarget | null): Element | null {
+    if (readOnly || !(target instanceof Element)) return null;
+    if (target.closest('[data-bl-toolbar], [data-bl-portal]') || keepsNativeUndo(target)) {
+      return null;
+    }
+    return target;
+  }
+
+  /** Ctrl+Z (⌘Z) undoes; Ctrl+Shift+Z (⇧⌘Z) and Ctrl+Y redo. */
+  function onHistoryKey(event: KeyboardEvent<HTMLDivElement>): void {
+    const action = historyShortcut(event.nativeEvent);
+    const target = historyTarget(event.target);
+    if (!action || !target || event.nativeEvent.defaultPrevented) return;
+    event.preventDefault();
+    runHistory(action, target);
+  }
+
+  /**
+   * The browser's own Undo and Redo, chosen from a context menu or the Edit menu, or a phone's
+   * undo gesture, rather than typed: they reach a field as `beforeinput`, and in the editor's
+   * fields they are its history's too. A browser that will not let it be stopped keeps it.
+   */
+  const onBrowserHistory = useEffectEvent((event: InputEvent) => {
+    const action =
+      event.inputType === 'historyUndo'
+        ? 'undo'
+        : event.inputType === 'historyRedo'
+          ? 'redo'
+          : null;
+    const target = historyTarget(event.target);
+    if (!action || !target || !event.cancelable || event.defaultPrevented) return;
+    event.preventDefault();
+    runHistory(action, target);
+  });
+  useEffect(() => {
+    const element = workspace.current;
+    if (!element) return;
+    const listener = (event: InputEvent) => onBrowserHistory(event);
+    element.addEventListener('beforeinput', listener);
+    return () => element.removeEventListener('beforeinput', listener);
+  }, []);
+
   const count = document.blocks.length;
   const selectedRefreshing = selected && editor.refreshing.has(selected.id) ? selected.id : null;
   const modeSwitch = <ModeSwitch mode={mode} onChange={changeMode} />;
-  const moreMenu = onSaveAsTemplate ? (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button type="button" variant="outline" size="icon-sm" aria-label="More">
-          <MoreHorizontalIcon aria-hidden="true" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="bl:w-52">
-        <DropdownMenuItem onSelect={() => setSavingTemplate(true)}>
-          <BookmarkIcon aria-hidden="true" />
-          Save as template…
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  ) : null;
+  // One pane at a time, the top bar has no room for Undo and Redo beside the pane tabs and More
+  // (a 336px editor on a 360px phone leaves 30px), so they are the first items in More.
+  const historyInMenu = single && !readOnly;
+  const historyButtons =
+    readOnly || single ? null : (
+      <HistoryButtons
+        canUndo={canUndo}
+        canRedo={canRedo}
+        onUndo={() => runHistory('undo', null)}
+        onRedo={() => runHistory('redo', null)}
+        undoRef={historyControl}
+      />
+    );
+  const moreMenu =
+    historyInMenu || onSaveAsTemplate ? (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            ref={historyInMenu ? historyControl : undefined}
+            type="button"
+            variant="outline"
+            size="icon-sm"
+            aria-label="More"
+          >
+            <MoreHorizontalIcon aria-hidden="true" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="bl:w-52">
+          {historyInMenu ? (
+            <HistoryMenuItems
+              canUndo={canUndo}
+              canRedo={canRedo}
+              onUndo={editor.undo}
+              onRedo={editor.redo}
+            />
+          ) : null}
+          {historyInMenu && onSaveAsTemplate ? <DropdownMenuSeparator /> : null}
+          {onSaveAsTemplate ? (
+            <DropdownMenuItem onSelect={() => setSavingTemplate(true)}>
+              <BookmarkIcon aria-hidden="true" />
+              Save as template…
+            </DropdownMenuItem>
+          ) : null}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    ) : null;
 
   const canvas = (
     <NewsletterCanvas
@@ -492,7 +651,7 @@ function Workspace<B extends BlockBase>({
       onCancelInsert={cancelInsert}
       onToggleHidden={editor.toggleHidden}
       onRefresh={(id) => void editor.refresh(id)}
-      onRemove={(id) => void editor.remove(id)}
+      onRemove={editor.remove}
       onDuplicate={editor.duplicate}
       {...(single ? { onEdit: edit } : {})}
     />
@@ -558,12 +717,16 @@ function Workspace<B extends BlockBase>({
     </Tabs>
   );
 
-  return (
-    <>
+  const workspaceContent = (
+    // Undo and redo's keys, from anywhere inside the editor (`onHistoryKey`): the controls inside
+    // are the interactive elements, and this only listens to keys bubbling up from them. Laid out
+    // as if it were not there, so the editor's root lays out the bar and the panes itself.
+    // eslint-disable-next-line jsx-a11y/no-static-element-interactions
+    <div ref={workspace} className="bl:contents" onKeyDown={onHistoryKey}>
       <div className="bl:flex bl:shrink-0 bl:flex-wrap bl:items-center bl:gap-x-3 bl:gap-y-2 bl:border-b bl:px-3 bl:py-2">
         {/* One pane at a time, the top bar switches panes, Preview among them, and the editor's
-            own menu comes straight after the switch: the host's actions wrap after it, rather
-            than leaving it behind. */}
+            own menu (Undo and Redo first) comes straight after the switch: the host's actions
+            wrap after it, rather than leaving it behind. */}
         {single ? (
           <>
             <PaneSwitch
@@ -576,10 +739,19 @@ function Workspace<B extends BlockBase>({
             {moreMenu}
           </>
         ) : (
-          modeSwitch
+          <>
+            {modeSwitch}
+            {historyButtons}
+          </>
         )}
         <div className="bl:ml-auto bl:flex bl:min-w-0 bl:flex-wrap bl:items-center bl:gap-2">
-          {toolbar}
+          {/* The host's own controls, which keep their own keys: an undo typed in a host's field
+              is the host's. */}
+          {toolbar ? (
+            <div data-bl-toolbar="" className="bl:contents">
+              {toolbar}
+            </div>
+          ) : null}
           {single ? null : moreMenu}
         </div>
       </div>
@@ -729,8 +901,10 @@ function Workspace<B extends BlockBase>({
           onSave={onSaveAsTemplate}
         />
       ) : null}
-    </>
+    </div>
   );
+
+  return <EditorProvider value={historyContext}>{workspaceContent}</EditorProvider>;
 }
 
 /**

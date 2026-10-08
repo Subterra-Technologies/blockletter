@@ -1,4 +1,4 @@
-import { act, screen, within } from '@testing-library/react';
+import { act, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   DIVIDER,
@@ -178,7 +178,10 @@ describe('NewsletterEditor fill', () => {
     const body = screen.getByRole('textbox', { name: 'Text' });
     await user.clear(body);
     await user.type(body, 'Doors open at eight.');
-    expect(latest().blocks[1]).toMatchObject({ body: 'Doors open at eight.' });
+    expect(latest().blocks[1]).toMatchObject({
+      body: '<p>Doors open at eight.</p>',
+      format: 'html',
+    });
 
     await user.click(screen.getByRole('button', { name: 'Back to canvas' }));
     expect(panel('Canvas')).toBeVisible();
@@ -301,6 +304,68 @@ describe('NewsletterEditor fill', () => {
     await user.click(more);
     await user.click(await screen.findByRole('menuitem', { name: 'Save as template…' }));
     expect(await screen.findByRole('dialog', { name: 'Save as template' })).toBeInTheDocument();
+  });
+
+  it('puts Undo and Redo first in the More menu when narrow, with or without templates', async () => {
+    measureAt(360);
+    const { user, types } = renderEditor(issue([HEADER, TEXT, FOOTER]), { fill: true });
+    // A 336px top bar has no room for two more buttons beside the pane tabs.
+    expect(screen.queryByRole('button', { name: 'Undo' })).not.toBeInTheDocument();
+    const more = screen.getByRole('button', { name: 'More' });
+    expect(switcher().nextElementSibling).toBe(more);
+
+    await user.click(more);
+    expect(await screen.findByRole('menuitem', { name: 'Undo' })).toHaveAttribute(
+      'aria-disabled',
+      'true',
+    );
+    expect(screen.getByRole('menuitem', { name: 'Redo' })).toHaveAttribute('aria-disabled', 'true');
+    await user.keyboard('{Escape}');
+
+    await user.click(paneTab('Blocks'));
+    await user.click(within(panel('Blocks')).getByRole('button', { name: 'Divider' }));
+    expect(types()).toEqual(['header', 'text', 'divider', 'footer']);
+
+    await user.click(more);
+    const undo = await screen.findByRole('menuitem', { name: 'Undo' });
+    expect(undo).toHaveAttribute('aria-keyshortcuts', 'Control+Z');
+    await user.click(undo);
+    expect(types()).toEqual(['header', 'text', 'footer']);
+    // The menu closes and hands the focus back to More.
+    await waitFor(() => expect(more).toHaveFocus());
+
+    await user.click(more);
+    await user.click(await screen.findByRole('menuitem', { name: 'Redo' }));
+    expect(types()).toEqual(['header', 'text', 'divider', 'footer']);
+  });
+
+  it('lists Undo and Redo above Save as template in the narrow More menu', async () => {
+    measureAt(360);
+    const { user } = renderEditor(issue([HEADER, TEXT, FOOTER]), {
+      fill: true,
+      onSaveAsTemplate: vi.fn(),
+    });
+    await user.click(screen.getByRole('button', { name: 'More' }));
+    const items = within(await screen.findByRole('menu')).getAllByRole('menuitem');
+    expect(items.map((item) => item.textContent)).toEqual([
+      'UndoCtrl+Z',
+      'RedoCtrl+Shift+Z',
+      'Save as template…',
+    ]);
+    expect(items.map((item) => item.getAttribute('aria-keyshortcuts'))).toEqual([
+      'Control+Z',
+      'Control+Shift+Z Control+Y',
+      null,
+    ]);
+  });
+
+  it('keeps Undo and Redo in the top bar when wide', async () => {
+    measureAt(1280);
+    const { user, types } = renderEditor(issue([HEADER, TEXT, FOOTER]), { fill: true });
+    await user.click(screen.getByRole('button', { name: 'Divider' }));
+    await user.click(screen.getByRole('button', { name: 'Undo' }));
+    expect(types()).toEqual(['header', 'text', 'footer']);
+    expect(screen.queryByRole('button', { name: 'More' })).not.toBeInTheDocument();
   });
 
   it('offers no Blocks pane while read-only', () => {

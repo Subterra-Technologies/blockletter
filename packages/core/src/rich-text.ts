@@ -11,12 +11,20 @@ import { DEFAULT_PALETTE, type Palette } from './brand';
  * trying to recognise everything dangerous.
  */
 
+/*
+ * Every pattern here runs on text a stranger may have written, so none may fail after a long scan
+ * and be retried from each later position: that is how a crafted paste makes a regular expression
+ * take quadratic time. Where a construct can be left open, its pattern also accepts the end of the
+ * input, so the first attempt succeeds; where a search could still run on in vain, a plain scan or
+ * a bound on the input does the job instead.
+ */
+
 /** Removed together with everything inside them. */
 const BLOCKED =
   'script|style|iframe|object|embed|form|meta|link|template|noscript|textarea|select|svg|math|frameset|frame|applet|base|title|head|xmp|noembed|noframes';
-const BLOCKED_ELEMENTS = new RegExp(`<(${BLOCKED})\\b[^>]*>[\\s\\S]*?<\\/\\1\\s*>`, 'gi');
-const BLOCKED_VOID_ELEMENTS = new RegExp(`<(${BLOCKED})\\b[^>]*\\/?>`, 'gi');
-const COMMENTS = /<!--[\s\S]*?-->|<![^>]*>|<\?[^>]*>/g;
+const BLOCKED_OPENING = new RegExp(`<(${BLOCKED})\\b`, 'gi');
+/** A comment, declaration or processing instruction; one left open runs to the end, as in a browser. */
+const COMMENTS = /<!--[\s\S]*?(?:-->|$)|<![^>]*(?:>|$)|<\?[^>]*(?:>|$)/g;
 
 const ALLOWED_TAGS = new Set([
   'a',
@@ -82,10 +90,13 @@ const ALLOWED_ATTRIBUTES = new Set([
   'width',
 ]);
 
-const TAG = /<(\/?)([a-zA-Z][a-zA-Z0-9]*)\b([^>]*)>/g;
+/** A tag left open at the end of the input runs to the end, as a browser reads it. */
+const TAG = /<(\/?)([a-zA-Z][a-zA-Z0-9]*)\b([^>]*)(?:>|$)/g;
 const ATTRIBUTE = /([^\s"'>/=]+)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]+)))?/g;
-const ANCHORS = /<a\b([^>]*)>([\s\S]*?)<\/a\s*>/gi;
-const HREF_ATTRIBUTE = /\s+href\s*=\s*("([^"]*)"|'([^']*)'|([^\s>]+))/i;
+/** Runs on rebuilt HTML, where no tag holds a `<` (attribute values escape it). */
+const ANCHORS = /<a\b([^<>]*)>([\s\S]*?)<\/a\s*>/gi;
+/** `(?<!\s)` starts the match at the beginning of a run of spaces, never inside it. */
+const HREF_ATTRIBUTE = /(?<!\s)\s+href\s*=\s*("([^"]*)"|'([^']*)'|([^\s>]+))/i;
 const SAFE_LINK = /^(https?:\/\/|mailto:)/i;
 const SAFE_IMAGE = /^https?:\/\//i;
 
@@ -131,12 +142,87 @@ function cleanAttributes(raw: string): string {
  * text survives without an address.
  */
 function sanitizeAnchors(html: string): string {
-  return html.replace(ANCHORS, (_, rawAttrs: string, inner: string) => {
+  return replaceBefore(html, '</a>', ANCHORS, (_, rawAttrs: string, inner: string) => {
     const match = HREF_ATTRIBUTE.exec(rawAttrs);
     const href = (match?.[2] ?? match?.[3] ?? match?.[4] ?? '').trim();
     if (!href || !isSafeLinkHref(href)) return inner;
     return `<a href="${escapeAttribute(href)}" rel="noopener" target="_blank">${inner}</a>`;
   });
+}
+
+/**
+ * `html.replace(pattern, replacer)`, run only on the text up to the end of the last `closing`
+ * (compared without case). After it, an opening tag can have no closing tag, and a pattern that
+ * pairs the two would scan to the end in vain from every such opening.
+ */
+function replaceBefore(
+  html: string,
+  closing: string,
+  pattern: RegExp,
+  replacer: (match: string, ...groups: string[]) => string,
+): string {
+  const last = html.toLowerCase().lastIndexOf(closing);
+  if (last === -1) return html;
+  const end = last + closing.length;
+  return html.slice(0, end).replace(pattern, replacer) + html.slice(end);
+}
+
+/**
+ * Where the closing tag `</name>` that pairs with an opening ends: the first one at or after
+ * `from`, allowing spaces before its `>`, or -1. `lower` is the input in lower case.
+ */
+function closingTagEnd(lower: string, name: string, from: number): number {
+  const prefix = `</${name}`;
+  for (let at = lower.indexOf(prefix, from); at !== -1; at = lower.indexOf(prefix, at + 1)) {
+    let end = at + prefix.length;
+    while (end < lower.length && /\s/.test(lower.charAt(end))) end += 1;
+    if (lower.charAt(end) === '>') return end + 1;
+  }
+  return -1;
+}
+
+/**
+ * Removes blocked elements: with everything inside them when their closing tag follows, or just
+ * the opening tag when none does, so the text after a stray `<embed>` survives. One pass from left
+ * to right; whether any closing tag of a name follows is looked up once per name, so an opening tag
+ * with no closing tag after it never sends a search to the end of the input.
+ */
+function removeBlockedElements(html: string): string {
+  const lower = html.toLowerCase();
+  const lastClosing = new Map<string, number>();
+  let out = '';
+  let cursor = 0;
+  BLOCKED_OPENING.lastIndex = 0;
+  for (let match = BLOCKED_OPENING.exec(html); match; match = BLOCKED_OPENING.exec(html)) {
+    const name = (match[1] ?? '').toLowerCase();
+    const tagEnd = html.indexOf('>', match.index);
+    out += html.slice(cursor, match.index);
+    // An opening tag left open runs to the end of the input, as a browser reads it.
+    if (tagEnd === -1) return out;
+    let end = tagEnd + 1;
+    if (!lastClosing.has(name)) lastClosing.set(name, lastClosingTagEnd(lower, name));
+    // A closing tag that ends after this opening tag also starts after it: a closing tag has
+    // one `>`, at its end, so it cannot straddle the `>` that ended the opening tag.
+    if ((lastClosing.get(name) ?? -1) > end) {
+      const close = closingTagEnd(lower, name, end);
+      if (close !== -1) end = close;
+    }
+    cursor = end;
+    BLOCKED_OPENING.lastIndex = end;
+  }
+  return out + html.slice(cursor);
+}
+
+/** Where the last closing tag `</name>` in the input ends, or -1 when there is none. */
+function lastClosingTagEnd(lower: string, name: string): number {
+  const prefix = `</${name}`;
+  for (let at = lower.lastIndexOf(prefix); at !== -1; at = lower.lastIndexOf(prefix, at - 1)) {
+    let end = at + prefix.length;
+    while (end < lower.length && /\s/.test(lower.charAt(end))) end += 1;
+    if (lower.charAt(end) === '>') return end + 1;
+    if (at === 0) break;
+  }
+  return -1;
 }
 
 /**
@@ -146,7 +232,7 @@ function sanitizeAnchors(html: string): string {
  */
 export function sanitizeHtml(html: string): string {
   const withoutBlocked = untilStable(html, (value) =>
-    value.replace(COMMENTS, '').replace(BLOCKED_ELEMENTS, '').replace(BLOCKED_VOID_ELEMENTS, ''),
+    removeBlockedElements(value.replace(COMMENTS, '')),
   );
   const rebuilt = withoutBlocked.replace(
     TAG,
@@ -193,12 +279,12 @@ const classStyle = (className: string): string | undefined => {
 export function inlineRichTextStyles(html: string, palette: Palette = DEFAULT_PALETTE): string {
   const defaults = elementStyles(palette);
   return html.replace(
-    /<([a-z][a-z0-9]*)(\s[^>]*)?>/gi,
+    /<([a-z][a-z0-9]*)(\s[^<>]*)?>/gi,
     (tag: string, rawName: string, rawAttrs: string | undefined) => {
       const name = rawName.toLowerCase();
       let attrs = rawAttrs ?? '';
       const extra: string[] = [];
-      const classMatch = /\s+class\s*=\s*("([^"]*)"|'([^']*)')/i.exec(attrs);
+      const classMatch = /(?<!\s)\s+class\s*=\s*("([^"]*)"|'([^']*)')/i.exec(attrs);
       if (classMatch) {
         for (const className of (classMatch[2] ?? classMatch[3] ?? '').split(/\s+/)) {
           const style = classStyle(className);
@@ -208,7 +294,7 @@ export function inlineRichTextStyles(html: string, palette: Palette = DEFAULT_PA
       }
       const base = defaults[name];
       if (!base && extra.length === 0) return classMatch ? `<${rawName}${attrs}>` : tag;
-      const styleMatch = /\s+style\s*=\s*("([^"]*)"|'([^']*)')/i.exec(attrs);
+      const styleMatch = /(?<!\s)\s+style\s*=\s*("([^"]*)"|'([^']*)')/i.exec(attrs);
       const own = (styleMatch?.[2] ?? styleMatch?.[3] ?? '').trim().replace(/;$/, '');
       if (styleMatch) attrs = attrs.replace(styleMatch[0], '');
       const style = [base, ...extra, own].filter(Boolean).join(';');
@@ -232,6 +318,21 @@ const decodeEntities = (value: string): string =>
     .replace(/&amp;/g, '&');
 
 /**
+ * Removes tags as `/<[^>]+>/g` does: each `<` takes everything up to the next `>`, so taking one
+ * tag out can never join the text around it into a new tag (`<scr<b>ipt>` must not become
+ * `<script>`). Only the text up to the last `>` can hold a tag, and keeping the pattern to it means
+ * no attempt scans to the end of the input in vain.
+ */
+const stripTags = (html: string): string => replaceBefore(html, '>', /<[^>]+>/g, () => '');
+
+/** A line without the spaces and tabs at its end: a loop, as `/[ \t]+$/` is quadratic on long runs. */
+function trimTrailingSpaces(line: string): string {
+  let end = line.length;
+  while (end > 0 && (line.charAt(end - 1) === ' ' || line.charAt(end - 1) === '\t')) end -= 1;
+  return line.slice(0, end);
+}
+
+/**
  * The plain-text twin of rich text: paragraphs and headings become lines, list items get "- " or
  * "1. " markers, and links keep their address in parentheses.
  */
@@ -239,16 +340,22 @@ export function htmlToText(html: string): string {
   let text = sanitizeHtml(html);
   text = text.replace(/<br\s*\/?>/gi, '\n');
   // Numbered lists: number the items of each <ol> in order (nested lists are flattened).
-  text = text.replace(/<ol\b[^>]*>([\s\S]*?)<\/ol>/gi, (_, items: string) => {
+  // The tags here are sanitizeHtml's own, which hold no `<`, so `[^<>]` ends every scan early.
+  text = replaceBefore(text, '</ol>', /<ol\b[^<>]*>([\s\S]*?)<\/ol>/gi, (_, items = '') => {
     let index = 0;
-    return `\n${items.replace(/<li\b[^>]*>/gi, () => `\n${++index}. `)}\n`;
+    return `\n${items.replace(/<li\b[^<>]*>/gi, () => `\n${++index}. `)}\n`;
   });
-  text = text.replace(/<li\b[^>]*>/gi, '\n- ');
-  text = text.replace(
-    /<a\b[^>]*href\s*=\s*("([^"]*)"|'([^']*)')[^>]*>([\s\S]*?)<\/a>/gi,
-    (_, __, doubleQuoted: string | undefined, singleQuoted: string | undefined, label: string) => {
-      const href = decodeEntities((doubleQuoted ?? singleQuoted ?? '').trim());
-      const plainLabel = label.replace(/<[^>]+>/g, '').trim();
+  text = text.replace(/<li\b[^<>]*>/gi, '\n- ');
+  text = replaceBefore(
+    text,
+    '</a>',
+    /<a\b([^<>]*)>([\s\S]*?)<\/a>/gi,
+    (whole, attrs = '', label = '') => {
+      const match = /(?<!\s)\s+href\s*=\s*("([^"]*)"|'([^']*)')/i.exec(attrs);
+      // A link with no address is left for the tag stripping below, which keeps its text.
+      if (!match) return whole;
+      const href = decodeEntities((match[2] ?? match[3] ?? '').trim());
+      const plainLabel = stripTags(label).trim();
       if (!href || href === '#' || href === plainLabel) return plainLabel;
       return `${plainLabel} (${href})`;
     },
@@ -256,11 +363,11 @@ export function htmlToText(html: string): string {
   // Blocks that are visually separated in the email get a blank line; list items one line.
   text = text.replace(/<\/(p|div|h[1-6]|blockquote|pre)\s*>/gi, '\n\n');
   text = text.replace(/<\/(ol|ul|tr)\s*>/gi, '\n');
-  text = text.replace(/<[^>]+>/g, '');
+  text = stripTags(text);
   text = decodeEntities(text);
   return text
     .split('\n')
-    .map((line) => line.replace(/[ \t]+$/g, ''))
+    .map(trimTrailingSpaces)
     .join('\n')
     .replace(/\n{3,}/g, '\n\n')
     .trim();

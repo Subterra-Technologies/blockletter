@@ -262,6 +262,7 @@ export function ImageField({
             <FieldLabel htmlFor={urlId} className="bl:font-normal">
               Image URL
             </FieldLabel>
+            {/* A draft until it commits, so undo while typing it is the browser's. */}
             <Input
               id={urlId}
               type="url"
@@ -270,6 +271,7 @@ export function ImageField({
               spellCheck={false}
               placeholder="https://"
               value={draft}
+              data-bl-draft=""
               disabled={disabled}
               aria-invalid={urlError || error ? true : undefined}
               aria-describedby={describedBy(

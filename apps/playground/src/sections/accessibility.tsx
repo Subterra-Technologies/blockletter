@@ -11,6 +11,23 @@ const KEYS = [
     action: 'Move the focused block: the keyboard path for dragging',
   },
   { keys: [['Esc']], action: 'Cancel an insertion point set from a block’s toolbar' },
+  {
+    keys: [
+      ['Ctrl', 'B'],
+      ['⌘', 'B'],
+    ],
+    action: 'Bold in a text block’s text; with I, italics, and with K, a link',
+  },
+  {
+    keys: [
+      ['Ctrl', 'Z'],
+      ['⌘', 'Z'],
+    ],
+    action: 'Undo the last change to the issue, from anywhere in the editor',
+  },
+  // The three-key chords are in words: as keys, they would widen this column until every
+  // description on a 320px phone wrapped a word to a line.
+  { keys: [['Ctrl', 'Y']], action: 'Redo it, as Ctrl + Shift + Z and ⌘ + Shift + Z do' },
 ] as const;
 
 export function Accessibility() {
@@ -21,8 +38,8 @@ export function Accessibility() {
           <h2 id="accessibility-heading">Accessibility</h2>
           <p>
             The editor is built to WCAG 2.2 AA. Every drag-and-drop gesture has a keyboard path,
-            insertions and moves are announced to screen readers, and focus follows the work: to the
-            inspector when a block is picked, back to the canvas when a dialog closes.
+            insertions, moves and undos are announced to screen readers, and focus follows the work:
+            to the inspector when a block is picked, back to the canvas when a dialog closes.
           </p>
           <p>
             This page goes through an automated accessibility audit at 1440, 768, 390 and 320 pixels
@@ -32,7 +49,7 @@ export function Accessibility() {
 
         <div className="pg-panel" role="group" aria-labelledby="keys-heading">
           <div className="pg-panel__head">
-            <h3 id="keys-heading">On the canvas</h3>
+            <h3 id="keys-heading">Keys in the editor</h3>
           </div>
           <table className="pg-keys">
             <thead>

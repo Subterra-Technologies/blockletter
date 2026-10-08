@@ -344,7 +344,8 @@ function contextFor(state: RenderState, block: BlockBase): RenderContext {
   };
 }
 
-const IMAGE_TAG = /<img\b[^>]*>/gi;
+/** An image tag; one left open at the end runs to the end, so no attempt fails after a long scan. */
+const IMAGE_TAG = /<img\b[^>]*(?:>|$)/gi;
 const ALT_ATTRIBUTE = /\salt\s*=\s*(?:"([^"]*)"|'([^']*)')/i;
 
 /** The email itself is checked, so a host's own block is held to the same rule. */

@@ -24,12 +24,19 @@ const urlKind = (url: string): UrlKind => {
   return 'relative';
 };
 
+/** `text` without the slashes at its end: a loop, as `/\/+$/` is quadratic on a long run of them. */
+function withoutTrailingSlashes(text: string): string {
+  let end = text.length;
+  while (end > 0 && text.charAt(end - 1) === '/') end -= 1;
+  return text.slice(0, end);
+}
+
 /**
  * The base a relative link resolves against: an absolute http(s) URL without a trailing slash
  * (a bare host gets https). Anything else is no base at all.
  */
 export function normalizeBaseUrl(baseUrl: string | undefined): string {
-  const trimmed = (baseUrl ?? '').trim().replace(/\/+$/, '');
+  const trimmed = withoutTrailingSlashes((baseUrl ?? '').trim());
   switch (urlKind(trimmed)) {
     case 'web':
       return trimmed;
@@ -74,7 +81,7 @@ export const isRelativeUrl = (url: string | undefined): boolean =>
 
 /** "example.org/news" for `https://example.org/news/`: an address as a reader would say it. */
 export const displayUrl = (url: string): string =>
-  url.replace(/^https?:\/\//i, '').replace(/\/+$/, '');
+  withoutTrailingSlashes(url.replace(/^https?:\/\//i, ''));
 
 /** "example.org" for `https://www.example.org/about`. */
 export function hostOf(url: string): string {

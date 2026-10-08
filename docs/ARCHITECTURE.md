@@ -256,7 +256,8 @@ import '@subterra-technologies/blockletter-react/styles.css';
 Composable parts for custom layouts: `NewsletterCanvas`, `BlockPalette`, `BlockInspector`,
 `AppearancePanel`, `BrandKitEditor`, `TemplatePicker`, `SaveTemplateDialog`, `PreviewPane`,
 `IssuePeriodFields`, `ColorField`, and `useNewsletterEditor()` (selection, insert, move,
-duplicate, hide, remove, refresh — built on the core list operations).
+duplicate, hide, remove, refresh — built on the core list operations — and an undo history over
+them: `undo()`, `redo()`, `canUndo`, `canRedo`).
 
 Editor block definitions extend core ones with UI: `{ ...coreDefinition, icon, Editor, Canvas? }`.
 A custom block with no `Canvas` is drawn on the canvas from its email HTML.

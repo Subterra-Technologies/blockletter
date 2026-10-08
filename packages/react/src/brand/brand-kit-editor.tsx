@@ -189,9 +189,12 @@ export function BrandKitEditor({
   );
 
   return (
+    // A draft until it is saved, and no part of the document: undo while typing here is the
+    // browser's, not the editor's.
     <form
       ref={formRef}
       noValidate
+      data-bl-draft=""
       onSubmit={(event) => void save(event)}
       className="bl:@container/inspector bl:flex bl:min-w-0 bl:flex-col bl:gap-6"
     >
