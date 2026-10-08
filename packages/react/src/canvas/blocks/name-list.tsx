@@ -1,10 +1,12 @@
 import { readable, type NameListBlock } from '@subterra-technologies/blockletter';
 import type { BlockCanvasProps } from '../../editor/types';
+import { useEditorMessages } from '../../i18n/context';
 import { blockBackground } from '../canvas-theme';
 import { CanvasSection, CanvasNote, bodyStyle, headingStyle, smallStyle } from './shared';
 
 /** A numbered list of names, each with an optional second line, on the soft background. */
 export function NameListCanvas(canvas: BlockCanvasProps<NameListBlock>) {
+  const words = useEditorMessages().blocks.name_list;
   const { block, palette, fonts, px } = canvas;
   const background = blockBackground(block, palette.soft);
   const heading = block.heading.trim();
@@ -14,7 +16,7 @@ export function NameListCanvas(canvas: BlockCanvasProps<NameListBlock>) {
       {block.intro.trim() ? <p style={bodyStyle(canvas)}>{block.intro}</p> : null}
       {block.items.length === 0 ? (
         <CanvasNote canvas={canvas} background={background}>
-          No names yet. The block stays out of the email until it has one.
+          {words.emptyCanvas}
         </CanvasNote>
       ) : (
         block.items.map((item, index) => (

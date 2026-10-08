@@ -8,6 +8,8 @@ import {
   RemoveFormattingIcon,
   type LucideIcon,
 } from 'lucide-react';
+import { useEditorMessages } from '../i18n/context';
+import type { BoundMessages } from '../i18n/resolve';
 import { cn } from '../lib/cn';
 import { Separator } from '../ui/separator';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
@@ -17,7 +19,11 @@ export type FormattingCommand = Mark | ListKind | 'link' | 'clear';
 
 interface Tool {
   command: FormattingCommand;
-  label: string;
+  /** Its name among the messages' `formatting`. */
+  label: keyof Pick<
+    BoundMessages['formatting'],
+    'bold' | 'italic' | 'link' | 'bulletedList' | 'numberedList' | 'clear'
+  >;
   Icon: LucideIcon;
   /** The letter of its shortcut, with Control (Command on Apple's systems). */
   key?: string;
@@ -26,17 +32,17 @@ interface Tool {
 }
 
 const TOOLS: readonly Tool[] = [
-  { command: 'bold', label: 'Bold', Icon: BoldIcon, key: 'B' },
-  { command: 'italic', label: 'Italic', Icon: ItalicIcon, key: 'I' },
-  { command: 'link', label: 'Link', Icon: LinkIcon, key: 'K' },
-  { command: 'ul', label: 'Bulleted list', Icon: ListIcon, group: true },
-  { command: 'ol', label: 'Numbered list', Icon: ListOrderedIcon },
-  { command: 'clear', label: 'Clear formatting', Icon: RemoveFormattingIcon, group: true },
+  { command: 'bold', label: 'bold', Icon: BoldIcon, key: 'B' },
+  { command: 'italic', label: 'italic', Icon: ItalicIcon, key: 'I' },
+  { command: 'link', label: 'link', Icon: LinkIcon, key: 'K' },
+  { command: 'ul', label: 'bulletedList', Icon: ListIcon, group: true },
+  { command: 'ol', label: 'numberedList', Icon: ListOrderedIcon },
+  { command: 'clear', label: 'clear', Icon: RemoveFormattingIcon, group: true },
 ];
 
 export interface FormattingToolbarProps {
-  /** The field's label, which the toolbar's name starts with: "Text formatting". */
-  labelId: string;
+  /** The field's label as text, which the toolbar's name is made from: "Text formatting". */
+  field: string;
   /** The editable text the buttons act on. */
   controls: string;
   formatting: ActiveFormatting;
@@ -57,7 +63,7 @@ export interface FormattingToolbarProps {
  * then announces its new state; the selection is put back when the text has focus again.
  */
 export function FormattingToolbar({
-  labelId,
+  field,
   controls,
   formatting,
   linkOpen,
@@ -65,6 +71,7 @@ export function FormattingToolbar({
   commandKey,
   onCommand,
 }: FormattingToolbarProps) {
+  const { formatting: words, common } = useEditorMessages();
   const buttons = useRef<(HTMLButtonElement | null)[]>([]);
   const [stop, setStop] = useState(0);
   const nameId = `${controls}-tools`;
@@ -102,16 +109,19 @@ export function FormattingToolbar({
     <TooltipProvider delayDuration={300}>
       <div
         role="toolbar"
-        aria-labelledby={`${labelId} ${nameId}`}
+        aria-labelledby={nameId}
         aria-controls={controls}
         className="bl:flex bl:flex-wrap bl:items-center bl:gap-0.5"
       >
         <span id={nameId} hidden>
-          formatting
+          {words.toolbar(field)}
         </span>
         {TOOLS.map((tool, index) => {
-          const label = tool.command === 'link' && formatting.link ? 'Edit link' : tool.label;
-          const shortcut = tool.key ? `${commandKey ? '⌘' : 'Ctrl+'}${tool.key}` : undefined;
+          const label =
+            tool.command === 'link' && formatting.link ? words.editLink : words[tool.label];
+          const shortcut = tool.key
+            ? common.shortcut({ key: tool.key, apple: commandKey })
+            : undefined;
           const link = tool.command === 'link';
           return (
             <Fragment key={tool.command}>
@@ -157,7 +167,7 @@ export function FormattingToolbar({
                   </button>
                 </TooltipTrigger>
                 <TooltipContent side="top" sideOffset={6}>
-                  {shortcut ? `${label} (${shortcut})` : label}
+                  {shortcut ? words.tip(label, shortcut) : label}
                 </TooltipContent>
               </Tooltip>
             </Fragment>

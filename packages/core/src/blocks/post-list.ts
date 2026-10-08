@@ -1,4 +1,5 @@
 import { defineBlock } from '../definition';
+import { issuesFrom } from '../issues';
 import { LIMITS } from '../limits';
 import type { PostListBlock } from '../types';
 import { blockValidator } from '../validate';
@@ -26,8 +27,17 @@ export const postListBlock = defineBlock<PostListBlock>({
             .string('ref', { optional: true, label: 'source reference' });
         },
       ).issues,
-  issues: (block) =>
-    block.items.length > LIMITS.posts ? [`Choose at most ${LIMITS.posts} posts.`] : [],
+  issues: issuesFrom((block) =>
+    block.items.length > LIMITS.posts
+      ? [
+          {
+            code: 'too_many_posts',
+            message: `Choose at most ${LIMITS.posts} posts.`,
+            values: { max: LIMITS.posts },
+          },
+        ]
+      : [],
+  ),
   summary: (block) => joinNames(block.items.map((item) => item.title)) || block.heading,
   render(block, ctx) {
     const posts = block.items.slice(0, LIMITS.posts);

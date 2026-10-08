@@ -12,14 +12,10 @@ import {
   type Ref,
 } from 'react';
 import { EyeOffIcon } from 'lucide-react';
-import {
-  LIMITS,
-  blockLabel,
-  blockSummary,
-  sourceFor,
-  type BlockBase,
-} from '@subterra-technologies/blockletter';
+import { LIMITS, sourceFor, type BlockBase } from '@subterra-technologies/blockletter';
 import { editorDefinition, useEditorContext } from '../editor/context';
+import { blockName, blockTitle } from '../i18n/blocks';
+import { useEditorMessages } from '../i18n/context';
 import { cn } from '../lib/cn';
 import { revealInScroller } from '../lib/scroll';
 import { LiveRegion } from '../ui/live-region';
@@ -127,6 +123,7 @@ export function NewsletterCanvas({
 }: NewsletterCanvasProps) {
   const editor = useEditorContext();
   const { definitions, sources, brand, renderOptions } = editor;
+  const m = useEditorMessages();
   const locked = readOnly ?? editor.readOnly;
   const theme = useMemo(() => canvasTheme(brand, renderOptions), [brand, renderOptions]);
   const ids = useId();
@@ -149,7 +146,7 @@ export function NewsletterCanvas({
   const lastSlot = footerIndex < 0 ? count : footerIndex;
   const bodyEnd = lastSlot - 1;
   const full = count >= maxBlocks;
-  const label = useCallback((type: string) => blockLabel(type, definitions), [definitions]);
+  const label = useCallback((type: string) => blockName(type, definitions, m), [definitions, m]);
 
   const selectedIndex = blocks.findIndex((block) => block.id === selectedId);
   const selectedBlock = selectedIndex >= 0 ? blocks[selectedIndex] : undefined;
@@ -205,9 +202,9 @@ export function NewsletterCanvas({
       if (locked || full) return;
       const index = Math.max(0, Math.min(slot, lastSlot));
       onInsert?.({ type, index });
-      setAnnouncement(`${label(type)} inserted at position ${index + 1} of ${count + 1}.`);
+      setAnnouncement(m.canvas.inserted(label(type), index + 1, count + 1));
     },
-    [count, full, label, lastSlot, locked, onInsert],
+    [count, full, label, lastSlot, locked, m, onInsert],
   );
 
   /** Asks for the move and announces it; false when there is nowhere to move to. */
@@ -218,11 +215,11 @@ export function NewsletterCanvas({
       const destination = Math.min(to, bodyEnd);
       if (destination === from || destination < 0) return false;
       onReorder?.({ from, to: destination });
-      setAnnouncement(`${label(block.type)} moved to position ${destination + 1} of ${count}.`);
+      setAnnouncement(m.canvas.moved(label(block.type), destination + 1, count));
       onPick?.(block.id, { reveal: false });
       return true;
     },
-    [blocks, bodyEnd, count, label, onPick, onReorder],
+    [blocks, bodyEnd, count, label, m, onPick, onReorder],
   );
 
   /** Moves the block at `index` by `delta` positions and announces the result. */
@@ -331,7 +328,7 @@ export function NewsletterCanvas({
 
   function requestInsert(index: number, where: string): void {
     onRequestInsert?.({ index, label: where });
-    setAnnouncement(`Insertion point set ${where}. Choose a block to insert.`);
+    setAnnouncement(m.canvas.insertionPoint(where));
   }
 
   function onKeyDown(event: KeyboardEvent<HTMLDivElement>, index: number, id: string): void {
@@ -372,7 +369,7 @@ export function NewsletterCanvas({
       {labelled ? (
         // Above the line at the left, clear of the selected block's toolbar on the right.
         <span className="bl:absolute bl:bottom-1.5 bl:left-3 bl:z-[5] bl:rounded-full bl:bg-primary bl:px-2.5 bl:py-0.5 bl:font-sans bl:text-xs bl:font-medium bl:whitespace-nowrap bl:text-primary-foreground bl:ring-2 bl:ring-white">
-          New block goes here
+          {m.canvas.newBlockHere}
         </span>
       ) : null}
     </li>
@@ -381,12 +378,10 @@ export function NewsletterCanvas({
   return (
     <div className="bl:flex bl:flex-1 bl:flex-col" style={{ backgroundColor: theme.palette.page }}>
       <h2 id={headingId} className="bl:sr-only">
-        Canvas
+        {m.canvas.heading}
       </h2>
       <p className="bl:sr-only" id={hintId}>
-        Choose a block to edit it. Drag a block to move it, or use its toolbar: the arrows move it,
-        and Insert above or below adds a new block next to it. Alt with the up or down arrow moves
-        the focused block too.
+        {m.canvas.instructions}
       </p>
       <LiveRegion>{announcement}</LiveRegion>
 
@@ -396,8 +391,7 @@ export function NewsletterCanvas({
             role="alert"
             className="bl:mx-auto bl:mb-3 bl:max-w-[600px] bl:rounded-md bl:border bl:bg-background bl:px-3 bl:py-2 bl:font-sans bl:text-[0.8125rem] bl:text-foreground"
           >
-            This issue has {maxBlocks} blocks, the most an issue can hold. Delete one before adding
-            another.
+            {m.canvas.full(maxBlocks)}
           </p>
         ) : null}
         <ol
@@ -422,9 +416,9 @@ export function NewsletterCanvas({
               className="bl:px-6 bl:py-12 bl:text-center bl:font-sans bl:text-sm bl:text-muted-foreground"
             >
               <span className="bl:block bl:font-medium bl:text-foreground">
-                This issue has no blocks yet
+                {m.canvas.emptyHeading}
               </span>
-              Add one from the block palette to start the layout.
+              {m.canvas.emptyHint}
             </li>
           ) : (
             blocks.map((block, index) => {
@@ -450,7 +444,12 @@ export function NewsletterCanvas({
                         is its tab; what it says is in the inspector's fields and the preview. */}
                     <div aria-hidden="true">
                       {block.hidden ? (
-                        <HiddenBlock nameId={nameId} statusId={statusId} name={name} />
+                        <HiddenBlock
+                          nameId={nameId}
+                          statusId={statusId}
+                          name={name}
+                          status={m.common.hidden}
+                        />
                       ) : (
                         <CanvasBlock
                           block={block}
@@ -473,7 +472,7 @@ export function NewsletterCanvas({
                       aria-labelledby={block.hidden || sourced ? `${nameId} ${statusId}` : nameId}
                       // One tab stop: the selected block, else the first.
                       tabIndex={selected || (selectedIndex < 0 && index === 0) ? 0 : -1}
-                      title={blockSummary(block, definitions)}
+                      title={blockTitle(block, definitions, m)}
                       data-hidden={block.hidden || undefined}
                       onClick={() => onPick?.(block.id)}
                       onKeyDown={(event) => onKeyDown(event, index, block.id)}
@@ -505,7 +504,7 @@ export function NewsletterCanvas({
                           {sourced ? (
                             <span className="bl:shrink-0 bl:font-normal bl:whitespace-nowrap">
                               <span aria-hidden="true">· </span>
-                              <span id={statusId}>Auto-filled</span>
+                              <span id={statusId}>{m.canvas.autoFilled}</span>
                             </span>
                           ) : null}
                         </span>
@@ -533,10 +532,10 @@ export function NewsletterCanvas({
               onMoveUp={() => move(selectedIndex, -1)}
               onMoveDown={() => move(selectedIndex, 1)}
               onInsertAbove={() =>
-                requestInsert(selectedIndex, `above ${label(selectedBlock.type)}`)
+                requestInsert(selectedIndex, m.canvas.above(label(selectedBlock.type)))
               }
               onInsertBelow={() =>
-                requestInsert(selectedIndex + 1, `below ${label(selectedBlock.type)}`)
+                requestInsert(selectedIndex + 1, m.canvas.below(label(selectedBlock.type)))
               }
               onToggleHidden={() => onToggleHidden?.(selectedBlock.id)}
               onDuplicate={() => onDuplicate?.(selectedBlock.id)}
@@ -556,10 +555,12 @@ function HiddenBlock({
   nameId,
   statusId,
   name,
+  status,
 }: {
   nameId: string;
   statusId: string;
   name: string;
+  status: string;
 }) {
   return (
     <div className="bl:flex bl:min-h-11 bl:min-w-0 bl:items-center bl:gap-2 bl:border bl:border-dashed bl:border-muted-foreground/60 bl:bg-muted bl:px-4 bl:py-2 bl:font-sans bl:text-[0.8125rem] bl:text-muted-foreground">
@@ -568,7 +569,7 @@ function HiddenBlock({
         {name}
       </span>
       <StatusBadge id={statusId} tone="neutral" className="bl:ml-auto">
-        Hidden from email
+        {status}
       </StatusBadge>
     </div>
   );

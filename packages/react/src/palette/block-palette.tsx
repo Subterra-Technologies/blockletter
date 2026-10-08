@@ -3,6 +3,9 @@ import { GripVerticalIcon, XIcon } from 'lucide-react';
 import { paletteGroups, type BlockBase } from '@subterra-technologies/blockletter';
 import { useEditorContext } from '../editor/context';
 import type { EditorBlockDefinition } from '../editor/types';
+import { definitionText } from '../i18n/blocks';
+import { useEditorMessages } from '../i18n/context';
+import type { BoundMessages } from '../i18n/resolve';
 import { cn } from '../lib/cn';
 import { Button } from '../ui/button';
 
@@ -13,7 +16,7 @@ export interface BlockPaletteProps {
   showHeading?: boolean;
   /** Every item off: the issue is full, or nothing may change. The editor's `readOnly` is too. */
   disabled?: boolean;
-  /** "12 of 30 blocks", beside the heading. */
+  /** "12 of 30 blocks", beside the heading, in the host's words. */
   countLabel?: string;
   /** Set while Insert above / below waits for a choice ("above Event tiles"). */
   insertLabel?: string | null;
@@ -34,13 +37,15 @@ export interface BlockPaletteProps {
   onDragEnd?: () => void;
 }
 
+type BuiltInGroup = keyof BoundMessages['palette']['groups'];
+
 /** A piece of an element id: nothing an id list (`aria-labelledby`) would split on. */
 const slug = (value: string): string => value.trim().replace(/\s+/g, '-');
 
 /**
  * The blocks an issue can add, in the editor's definitions' groups (Content, Layout, Graphics,
  * then any group of a host's own), each item named by its label and described by its definition's
- * description. Every item is a button (choosing it adds the block at the end, or at the insertion
+ * description (a built-in block's, and a built-in group's, in the editor's language). Every item is a button (choosing it adds the block at the end, or at the insertion
  * point the canvas set) and, where the canvas is beside it, a drag source that drops anywhere on
  * the canvas.
  */
@@ -59,6 +64,7 @@ export function BlockPalette({
   onDragEnd,
 }: BlockPaletteProps) {
   const { definitions, readOnly } = useEditorContext();
+  const m = useEditorMessages();
   const generated = useId();
   const id = headingId ?? `${generated}-palette`;
   const off = disabled || readOnly;
@@ -68,6 +74,10 @@ export function BlockPalette({
   const groups = paletteGroups(definitions)
     .map((group) => ({
       ...group,
+      // A host's own group keeps the name core gave it from its id.
+      label: Object.hasOwn(m.palette.groups, group.id)
+        ? m.palette.groups[group.id as BuiltInGroup]
+        : group.label,
       items: (group.items as EditorBlockDefinition[]).filter(
         (definition) => !(definition.structural && present.has(definition.type)),
       ),
@@ -109,14 +119,14 @@ export function BlockPalette({
             tabIndex={-1}
             className="bl:text-sm bl:font-semibold bl:text-foreground bl:outline-none"
           >
-            {inserting ? `Insert ${insertLabel}` : 'Blocks'}
+            {inserting && insertLabel ? m.palette.insertHeading(insertLabel) : m.palette.heading}
           </h2>
           {inserting ? (
             <Button
               type="button"
               variant="ghost"
               size="icon-xs"
-              aria-label="Cancel insert"
+              aria-label={m.palette.cancelInsert}
               onClick={onCancelInsert}
             >
               <XIcon aria-hidden="true" />
@@ -128,11 +138,7 @@ export function BlockPalette({
           ) : null}
         </div>
         <p className="bl:text-xs bl:text-muted-foreground">
-          {inserting
-            ? 'The block goes exactly where the line on the canvas is.'
-            : draggable
-              ? 'Choose a block to add it at the end, or drag it onto the canvas.'
-              : 'Choose a block to add it at the end of the issue.'}
+          {inserting ? m.palette.insertHint : draggable ? m.palette.dragHint : m.palette.hint}
         </p>
       </div>
       {groups.map((group) => {
@@ -159,6 +165,7 @@ export function BlockPalette({
             >
               {group.items.map((definition) => {
                 const Icon = definition.icon;
+                const text = definitionText(definition, m);
                 const hintId = `${id}-hint-${slug(definition.type)}`;
                 const labelId = `${id}-label-${slug(definition.type)}`;
                 return (
@@ -169,7 +176,7 @@ export function BlockPalette({
                       disabled={off}
                       aria-labelledby={labelId}
                       aria-describedby={hintId}
-                      title={showHints ? undefined : definition.description}
+                      title={showHints ? undefined : text.description}
                       onDragStart={(event) => handleDragStart(event, definition.type)}
                       onDragEnd={() => onDragEnd?.()}
                       onClick={() => onAdd?.(definition.type)}
@@ -190,7 +197,7 @@ export function BlockPalette({
                           id={labelId}
                           className="bl:text-[0.8125rem] bl:font-medium bl:break-words bl:text-foreground"
                         >
-                          {definition.label}
+                          {text.label}
                         </span>
                         <span
                           id={hintId}
@@ -200,7 +207,7 @@ export function BlockPalette({
                               : 'bl:sr-only'
                           }
                         >
-                          {definition.description}
+                          {text.description}
                         </span>
                       </span>
                       {dragging ? (

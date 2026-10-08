@@ -1,10 +1,12 @@
 import type { LetterBlock } from '@subterra-technologies/blockletter';
 import type { BlockCanvasProps } from '../../editor/types';
+import { useEditorMessages } from '../../i18n/context';
 import { blockBackground } from '../canvas-theme';
 import { CanvasSection, CanvasNote, EmailParagraphs, bodyStyle, headingStyle } from './shared';
 
 /** A personal note: heading, a round portrait beside the paragraphs, and an italic signature. */
 export function LetterCanvas(canvas: BlockCanvasProps<LetterBlock>) {
+  const words = useEditorMessages().blocks.letter;
   const { block, palette, image } = canvas;
   const heading = block.heading.trim();
   const signature = block.signature.trim();
@@ -37,7 +39,7 @@ export function LetterCanvas(canvas: BlockCanvasProps<LetterBlock>) {
         </div>
       ) : (
         <CanvasNote canvas={canvas} background={blockBackground(block, palette.card)}>
-          No letter written yet. It stays out of the email until it has text.
+          {words.emptyCanvas}
         </CanvasNote>
       )}
     </CanvasSection>

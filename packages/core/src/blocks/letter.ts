@@ -1,5 +1,6 @@
 import { defineBlock } from '../definition';
 import { splitParagraphs } from '../html';
+import { issuesFrom } from '../issues';
 import type { LetterBlock } from '../types';
 import { blockValidator } from '../validate';
 import { TABLE, firstWords, missingAlt, tooLong } from './shared';
@@ -18,12 +19,17 @@ export const letterBlock = defineBlock<LetterBlock>({
       .string('body', { label: 'letter' })
       .string('signature')
       .image('photo', { optional: true }).issues,
-  issues: (block) => [
+  issues: issuesFrom((block) => [
     ...tooLong('letter', block.body),
     ...(missingAlt(block.photo, block.signature)
-      ? ['Add a signature: it describes the photo for screen readers.']
+      ? [
+          {
+            code: 'missing_signature',
+            message: 'Add a signature: it describes the photo for screen readers.',
+          },
+        ]
       : []),
-  ],
+  ]),
   summary: (block) => block.heading.trim() || firstWords(block.body),
   render(block, ctx) {
     if (!block.body.trim()) return '';

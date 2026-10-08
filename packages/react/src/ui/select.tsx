@@ -1,6 +1,7 @@
 import type { ComponentProps } from 'react';
 import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from 'lucide-react';
 import { Select as SelectPrimitive } from 'radix-ui';
+import { useEditorMessages } from '../i18n/context';
 import { cn } from '../lib/cn';
 import { usePortalContainer } from './portal-container';
 
@@ -49,11 +50,12 @@ function SelectContent({
   align = 'center',
   ...props
 }: ComponentProps<typeof SelectPrimitive.Content>) {
+  const { common } = useEditorMessages();
   return (
     <SelectPrimitive.Portal container={usePortalContainer()}>
       <SelectPrimitive.Content
         data-slot="select-content"
-        aria-label="Options"
+        aria-label={common.options}
         className={cn(
           'bl:relative bl:z-50 bl:max-h-(--radix-select-content-available-height) bl:min-w-[8rem] bl:origin-(--radix-select-content-transform-origin) bl:overflow-x-hidden bl:overflow-y-auto bl:rounded-md bl:border bl:bg-popover bl:text-popover-foreground bl:shadow-md bl:data-[side=bottom]:slide-in-from-top-2 bl:data-[side=left]:slide-in-from-right-2 bl:data-[side=right]:slide-in-from-left-2 bl:data-[side=top]:slide-in-from-bottom-2 bl:data-[state=open]:animate-in bl:data-[state=open]:fade-in-0 bl:data-[state=open]:zoom-in-95',
           position === 'popper' &&

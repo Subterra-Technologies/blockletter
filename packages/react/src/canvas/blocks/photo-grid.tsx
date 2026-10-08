@@ -1,10 +1,12 @@
 import { LIMITS, type PhotoGridBlock } from '@subterra-technologies/blockletter';
 import type { BlockCanvasProps } from '../../editor/types';
+import { useEditorMessages } from '../../i18n/context';
 import { blockBackground } from '../canvas-theme';
 import { CanvasSection, EmailImage, CanvasNote, smallStyle } from './shared';
 
 /** Two to six captioned photos, three to a row when they divide by three, else two. */
 export function PhotoGridCanvas(canvas: BlockCanvasProps<PhotoGridBlock>) {
+  const words = useEditorMessages().blocks.photo_grid;
   const { block, palette, image } = canvas;
   const photos = block.photos.slice(0, LIMITS.photos[1]);
   const perRow = photos.length % 3 === 0 ? 3 : 2;
@@ -12,7 +14,7 @@ export function PhotoGridCanvas(canvas: BlockCanvasProps<PhotoGridBlock>) {
     <CanvasSection canvas={canvas} background={palette.card} padding="16px 32px">
       {photos.length === 0 ? (
         <CanvasNote canvas={canvas} background={blockBackground(block, palette.card)}>
-          No photos yet. The block stays out of the email until it has one.
+          {words.emptyCanvas}
         </CanvasNote>
       ) : (
         <div

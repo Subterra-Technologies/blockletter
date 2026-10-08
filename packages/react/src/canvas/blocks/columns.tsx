@@ -1,5 +1,6 @@
 import { LIMITS, type ColumnsBlock } from '@subterra-technologies/blockletter';
 import type { BlockCanvasProps } from '../../editor/types';
+import { useEditorMessages } from '../../i18n/context';
 import { blockBackground } from '../canvas-theme';
 import {
   CanvasSection,
@@ -12,13 +13,14 @@ import {
 
 /** Two or three cards side by side (stacked on a narrow canvas), each with an optional picture. */
 export function ColumnsCanvas(canvas: BlockCanvasProps<ColumnsBlock>) {
+  const words = useEditorMessages().blocks.columns;
   const { block, palette, fonts, px, image } = canvas;
   const columns = block.columns.slice(0, LIMITS.columns[1]);
   return (
     <CanvasSection canvas={canvas} background={palette.card}>
       {columns.length === 0 ? (
         <CanvasNote canvas={canvas} background={blockBackground(block, palette.card)}>
-          No columns yet. The block stays out of the email until it has one.
+          {words.emptyCanvas}
         </CanvasNote>
       ) : (
         <div className="bl:flex bl:gap-4 bl:@max-[28rem]/sheet:flex-col">

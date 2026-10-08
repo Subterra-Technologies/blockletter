@@ -1,6 +1,8 @@
 import { defineBlock } from '../definition';
+import { issuesFrom } from '../issues';
 import type { ButtonBlock } from '../types';
 import { blockValidator } from '../validate';
+import { MISSING_BUTTON_LABEL } from './shared';
 
 /** One centred button, solid or outlined. */
 export const buttonBlock = defineBlock<ButtonBlock>({
@@ -14,10 +16,12 @@ export const buttonBlock = defineBlock<ButtonBlock>({
       .string('label', { required: 'Give the button a label.' })
       .string('url', { required: 'Give the button a link.', label: 'link' })
       .oneOf('variant', ['solid', 'outline'], { label: 'button style' }).issues,
-  issues: (block) => [
-    ...(block.label.trim() ? [] : ['Give the button a label.']),
-    ...(block.url.trim() ? [] : ['Give the button a link.']),
-  ],
+  issues: issuesFrom((block) => [
+    ...(block.label.trim() ? [] : [MISSING_BUTTON_LABEL]),
+    ...(block.url.trim()
+      ? []
+      : [{ code: 'missing_button_link', message: 'Give the button a link.' }]),
+  ]),
   summary: (block) => block.label,
   render(block, ctx) {
     if (!block.label.trim()) return '';

@@ -1,12 +1,16 @@
 import { useId, type Ref } from 'react';
 import type { IssuePeriod, PeriodErrors } from '@subterra-technologies/blockletter';
+import { useEditorMessages } from '../i18n/context';
 import { describedBy } from '../inspector/editor-fields';
 import { Field, FieldError, FieldLabel } from '../ui/field';
 import { Input } from '../ui/input';
 
 export interface IssuePeriodFieldsProps {
   value: IssuePeriod;
-  /** From core `periodErrors`; pass `{}` until the form has been submitted once. */
+  /**
+   * From core `periodErrors`, or worded from its `periodErrorCodes`; pass `{}` until the form has
+   * been submitted once.
+   */
   errors?: PeriodErrors;
   /** The last date an issue may cover (`todayIn(timeZone)`). Absent: any date. */
   today?: string;
@@ -33,6 +37,7 @@ export function IssuePeriodFields({
   startRef,
   onChange,
 }: IssuePeriodFieldsProps) {
+  const words = useEditorMessages().period;
   const id = useId();
   const startId = `${id}-start`;
   const endId = `${id}-end`;
@@ -47,11 +52,11 @@ export function IssuePeriodFields({
         aria-describedby={coversHelpId}
         className="bl:flex bl:min-w-0 bl:flex-col bl:gap-3"
       >
-        <legend className="bl:mb-3 bl:text-sm bl:font-medium">What this issue covers</legend>
+        <legend className="bl:mb-3 bl:text-sm bl:font-medium">{words.legend}</legend>
         <div className="bl:grid bl:gap-3 bl:sm:grid-cols-2">
           <Field className="bl:gap-2" data-invalid={errors.start ? 'true' : undefined}>
             <FieldLabel htmlFor={startId} className="bl:font-normal">
-              From
+              {words.from}
             </FieldLabel>
             <Input
               ref={startRef}
@@ -67,7 +72,7 @@ export function IssuePeriodFields({
           </Field>
           <Field className="bl:gap-2" data-invalid={errors.end ? 'true' : undefined}>
             <FieldLabel htmlFor={endId} className="bl:font-normal">
-              Up to
+              {words.upTo}
             </FieldLabel>
             <Input
               id={endId}
@@ -82,13 +87,12 @@ export function IssuePeriodFields({
           </Field>
         </div>
         <p id={coversHelpId} className="bl:text-[0.8125rem] bl:text-muted-foreground">
-          News, new members and other updates come from these dates.
-          {today ? ' An issue can only cover up to today.' : ''}
+          {words.coversHelp(Boolean(today))}
         </p>
       </fieldset>
 
       <Field className="bl:gap-2" data-invalid={errors.lookaheadEnd ? 'true' : undefined}>
-        <FieldLabel htmlFor={lookaheadId}>Look ahead for events until</FieldLabel>
+        <FieldLabel htmlFor={lookaheadId}>{words.lookahead}</FieldLabel>
         <Input
           id={lookaheadId}
           type="date"
@@ -110,7 +114,7 @@ export function IssuePeriodFields({
           }}
         />
         <p id={lookaheadHelpId} className="bl:text-[0.8125rem] bl:text-muted-foreground">
-          What is still to come, for lists of upcoming events.
+          {words.lookaheadHelp}
         </p>
         {errors.lookaheadEnd ? (
           <FieldError id={`${lookaheadId}-error`}>{errors.lookaheadEnd}</FieldError>

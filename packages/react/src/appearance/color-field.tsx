@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { CheckIcon, XIcon } from 'lucide-react';
 import { isHexColor, labelOn } from '@subterra-technologies/blockletter';
+import { useEditorMessages } from '../i18n/context';
 import { cn } from '../lib/cn';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -20,7 +21,7 @@ export interface ColorFieldProps {
   value?: string;
   /** The colour in effect while nothing is overridden; seeds the picker. */
   fallback?: string;
-  /** What the default is, for "Uses …" ("the brand kit's text colour"). */
+  /** What the default is, for "Uses …" ("the brand kit's text colour"); default "the default". */
   fallbackLabel?: string;
   /** Replaces the override / default sentence, for a caller editing a value rather than an override. */
   help?: string;
@@ -42,12 +43,13 @@ export function ColorField({
   controlId,
   value,
   fallback = '#ffffff',
-  fallbackLabel = 'the default',
+  fallbackLabel,
   help = '',
   swatches = [],
   disabled = false,
   onValueChange,
 }: ColorFieldProps) {
+  const words = useEditorMessages().colors;
   const [hexDraft, setHexDraft] = useState(value ?? '');
   const [seen, setSeen] = useState(value);
   if (value !== seen) {
@@ -90,7 +92,7 @@ export function ColorField({
                 type="button"
                 aria-pressed={chosen}
                 disabled={disabled}
-                title={`${swatch.label} ${swatch.value}`}
+                title={words.swatch(swatch.label, swatch.value)}
                 onClick={() => pick(swatch.value)}
                 className={cn(
                   'bl:flex bl:size-6 bl:items-center bl:justify-center bl:rounded-md bl:shadow-[inset_0_0_0_1px_rgba(0,0,0,0.15)] bl:outline-none bl:transition-shadow',
@@ -99,9 +101,7 @@ export function ColorField({
                 )}
                 style={{ backgroundColor: swatch.value }}
               >
-                <span className="bl:sr-only">
-                  {swatch.label} {swatch.value}
-                </span>
+                <span className="bl:sr-only">{words.swatch(swatch.label, swatch.value)}</span>
                 {chosen ? (
                   <CheckIcon
                     aria-hidden="true"
@@ -120,7 +120,7 @@ export function ColorField({
           type="color"
           value={value ?? fallback}
           disabled={disabled}
-          aria-label={`${label} colour picker`}
+          aria-label={words.picker(label)}
           onChange={(event) => pick(event.target.value)}
           className="bl:h-9 bl:w-10 bl:shrink-0 bl:cursor-pointer bl:rounded-md bl:border bl:border-input bl:bg-transparent bl:p-1 bl:outline-none bl:focus-visible:ring-[3px] bl:focus-visible:ring-ring/50 bl:disabled:cursor-not-allowed bl:disabled:opacity-50"
         />
@@ -132,9 +132,9 @@ export function ColorField({
           value={hexDraft}
           data-bl-draft=""
           disabled={disabled}
-          aria-label={`${label} hex value`}
+          aria-label={words.hex(label)}
           aria-describedby={`${controlId}-help`}
-          placeholder="Default"
+          placeholder={words.hexPlaceholder}
           onChange={(event) => setHexDraft(event.target.value)}
           onBlur={commitHex}
           className="bl:min-w-0 bl:font-mono bl:text-[0.8125rem]"
@@ -145,7 +145,7 @@ export function ColorField({
             variant="ghost"
             size="icon-sm"
             disabled={disabled}
-            aria-label={`Reset ${label.toLowerCase()} to the default`}
+            aria-label={words.reset(label)}
             onClick={() => onValueChange(undefined)}
             className="bl:shrink-0"
           >
@@ -154,11 +154,7 @@ export function ColorField({
         ) : null}
       </div>
       <Hint id={`${controlId}-help`}>
-        {help
-          ? help
-          : value
-            ? 'Overrides the default. Six-digit hex, like #1f2937.'
-            : `Uses ${fallbackLabel}.`}
+        {help ? help : value ? words.overrides : words.uses(fallbackLabel ?? words.defaultFallback)}
       </Hint>
     </div>
   );

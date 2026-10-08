@@ -1,12 +1,10 @@
 import { useId, useImperativeHandle, useRef, type ReactNode, type Ref } from 'react';
 import { CircleAlertIcon, LockIcon } from 'lucide-react';
-import {
-  blockIssues,
-  blockLabel,
-  sourceFor,
-  type BlockBase,
-} from '@subterra-technologies/blockletter';
+import { blockIssueDetails, sourceFor, type BlockBase } from '@subterra-technologies/blockletter';
 import { useEditorContext, useEditorDefinition } from '../editor/context';
+import { blockName, definitionText } from '../i18n/blocks';
+import { useEditorMessages } from '../i18n/context';
+import { blockIssueText } from '../i18n/core-words';
 import { StatusBadge } from '../ui/status-badge';
 
 /** What the editor calls once a block is picked, so keyboard users land in its fields. */
@@ -50,12 +48,16 @@ export function BlockInspector({
 }: BlockInspectorProps) {
   const context = useEditorContext();
   const definition = useEditorDefinition(block.type);
+  const m = useEditorMessages();
   const heading = useRef<HTMLHeadingElement>(null);
   const autoId = useId();
   const locked = readOnly ?? context.readOnly;
   // Name, warnings and form all come from the one definition the editor resolved, so a host
-  // that overrides a built-in type never sees one block's form under another's name.
-  const issues = definition ? blockIssues(block, [definition]) : [];
+  // that overrides a built-in type never sees one block's form under another's name. A built-in
+  // block's warnings come with codes, which word them in the editor's language.
+  const issues = definition
+    ? blockIssueDetails(block, [definition]).map((issue) => blockIssueText(issue, m))
+    : [];
   const source = sourceFor(block, context.sources);
 
   // `preventScroll`: the canvas has already brought the chosen block into view, and focusing a
@@ -77,12 +79,16 @@ export function BlockInspector({
           tabIndex={-1}
           className="bl:text-[0.9375rem] bl:font-semibold bl:text-foreground bl:outline-none bl:focus-visible:underline bl:focus-visible:underline-offset-4"
         >
-          {definition?.label ?? blockLabel(block.type, context.definitions)}
+          {definition
+            ? definitionText(definition, m).label
+            : blockName(block.type, context.definitions, m)}
         </h2>
         {block.hidden || source ? (
           <div className="bl:flex bl:flex-wrap bl:gap-1.5">
-            {block.hidden ? <StatusBadge tone="neutral">Hidden from email</StatusBadge> : null}
-            {source ? <StatusBadge tone="info">Filled from {source.label}</StatusBadge> : null}
+            {block.hidden ? <StatusBadge tone="neutral">{m.common.hidden}</StatusBadge> : null}
+            {source ? (
+              <StatusBadge tone="info">{m.inspector.filledFrom(source.label)}</StatusBadge>
+            ) : null}
           </div>
         ) : null}
       </div>
@@ -92,9 +98,7 @@ export function BlockInspector({
           className="bl:flex bl:items-start bl:gap-2 bl:rounded-md bl:bg-muted bl:px-3 bl:py-2 bl:text-[0.8125rem] bl:text-muted-foreground"
         >
           <LockIcon aria-hidden="true" className="bl:mt-0.5 bl:size-4 bl:shrink-0" />
-          <span>
-            {readOnlyReason ?? 'This issue is read-only, so its content can’t be changed.'}
-          </span>
+          <span>{readOnlyReason ?? m.inspector.readOnly}</span>
         </p>
       ) : null}
       {issues.length ? (
@@ -127,8 +131,7 @@ export function BlockInspector({
           role="note"
           className="bl:rounded-md bl:border bl:border-dashed bl:px-3 bl:py-2 bl:text-[0.8125rem] bl:text-muted-foreground"
         >
-          There is no editor for “{block.type}” blocks, so this block’s content can’t be changed
-          here. It is kept as it is.
+          {m.inspector.noEditor(block.type)}
         </p>
       )}
     </div>

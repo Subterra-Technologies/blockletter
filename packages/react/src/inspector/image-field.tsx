@@ -10,6 +10,8 @@ import {
 import { ImageIcon, Trash2Icon } from 'lucide-react';
 import type { ImageRef } from '@subterra-technologies/blockletter';
 import { useEditorContext } from '../editor/context';
+import { englishMessages, useEditorMessages } from '../i18n/context';
+import type { BoundMessages } from '../i18n/resolve';
 import { cn } from '../lib/cn';
 import { errorMessage } from '../lib/errors';
 import { Button } from '../ui/button';
@@ -24,12 +26,17 @@ export const IMAGE_TYPES: readonly string[] = ['image/jpeg', 'image/png', 'image
 /** The largest image an upload accepts. Email images are downloaded by every reader. */
 export const MAX_IMAGE_BYTES = 2 * 1024 * 1024;
 
+/** A size in bytes as megabytes, to a tenth. */
+const megabytes = (bytes: number): number => Math.round((bytes / (1024 * 1024)) * 10) / 10;
+
 /** What is wrong with a file picked for an image, or undefined when it may be uploaded. */
-export function imageError(file: File, maxBytes: number = MAX_IMAGE_BYTES): string | undefined {
-  if (!IMAGE_TYPES.includes(file.type)) return 'Use a JPEG, PNG, or WebP image.';
-  if (file.size > maxBytes) {
-    return `Images must be ${Math.round((maxBytes / (1024 * 1024)) * 10) / 10} MB or smaller.`;
-  }
+export function imageError(
+  file: File,
+  maxBytes: number = MAX_IMAGE_BYTES,
+  messages: BoundMessages = englishMessages,
+): string | undefined {
+  if (!IMAGE_TYPES.includes(file.type)) return messages.images.wrongType;
+  if (file.size > maxBytes) return messages.images.tooLarge(megabytes(maxBytes));
   return undefined;
 }
 
@@ -47,10 +54,8 @@ export function isHttpsUrl(value: string): boolean {
 const isWebUrl = (value: string | undefined): value is string =>
   typeof value === 'string' && /^https?:\/\//i.test(value.trim());
 
-const URL_ERROR = 'Enter an image address that starts with https://.';
-
 export interface ImageFieldProps {
-  /** The field's name, e.g. "Photo" or "Logo". */
+  /** The field's name, e.g. "Photo" or "Logo". Default: the messages' "Image". */
   label?: string;
   value: ImageRef | undefined;
   /** The new image, or `undefined` when it was removed. */
@@ -77,7 +82,7 @@ export interface ImageFieldProps {
  * `onChange` knows only the issue as it was, and would put back whatever changed since.
  */
 export function ImageField({
-  label = 'Image',
+  label,
   value,
   onChange,
   disabled = false,
@@ -86,6 +91,8 @@ export function ImageField({
   fit = 'cover',
 }: ImageFieldProps) {
   const { uploadImage } = useEditorContext();
+  const m = useEditorMessages();
+  const words = m.images;
   const id = useId();
   const labelId = `${id}-label`;
   const fileId = `${id}-file`;
@@ -134,22 +141,22 @@ export function ImageField({
     // Cleared at once, so choosing the same file again still counts as a choice.
     input.value = '';
     if (!file || !uploadImage) return;
-    const problem = imageError(file);
+    const problem = imageError(file, MAX_IMAGE_BYTES, m);
     if (problem) {
       setUploadError(problem);
       return;
     }
     setUploadError('');
     setUploading(true);
-    setStatus('Uploading the image…');
+    setStatus(words.uploadingImage);
     try {
       const image = await uploadImage(file);
       if (!mounted.current) return;
       latestOnChange.current(image);
-      setStatus('Image uploaded.');
+      setStatus(words.uploaded);
     } catch (cause: unknown) {
       if (!mounted.current) return;
-      setUploadError(errorMessage(cause, 'The image could not be uploaded. Try again.'));
+      setUploadError(errorMessage(cause, words.uploadFailed));
       setStatus('');
     } finally {
       if (mounted.current) setUploading(false);
@@ -169,7 +176,7 @@ export function ImageField({
       return;
     }
     if (!isHttpsUrl(text)) {
-      setUrlError(URL_ERROR);
+      setUrlError(words.notHttps);
       return;
     }
     setUrlError('');
@@ -187,7 +194,7 @@ export function ImageField({
   function remove(): void {
     setUploadError('');
     setUrlError('');
-    setStatus('Image removed.');
+    setStatus(words.removed);
     onChange(undefined);
   }
 
@@ -201,7 +208,7 @@ export function ImageField({
         className="bl:text-muted-foreground bl:hover:text-danger"
       >
         <Trash2Icon aria-hidden="true" />
-        Remove image
+        {words.remove}
       </Button>
     ) : null;
 
@@ -213,7 +220,7 @@ export function ImageField({
       className="bl:flex bl:min-w-0 bl:flex-col bl:gap-2"
     >
       <FieldLabel id={labelId} htmlFor={uploadImage ? fileId : urlId}>
-        {label}
+        {label ?? words.label}
       </FieldLabel>
       <div className="bl:flex bl:min-w-0 bl:items-start bl:gap-3">
         {value?.url && !broken ? (
@@ -235,7 +242,7 @@ export function ImageField({
             className="bl:flex bl:h-[3.75rem] bl:w-20 bl:shrink-0 bl:flex-col bl:items-center bl:justify-center bl:gap-0.5 bl:rounded-md bl:border bl:border-dashed bl:bg-muted bl:text-xs bl:text-muted-foreground"
           >
             <ImageIcon className="bl:size-4" />
-            {broken ? 'Can’t load' : value ? 'Saved' : 'None'}
+            {broken ? words.cannotLoad : value ? words.saved : words.none}
           </span>
         )}
         <div className="bl:flex bl:min-w-0 bl:flex-1 bl:flex-col bl:gap-3">
@@ -244,7 +251,7 @@ export function ImageField({
               <div className="bl:flex bl:flex-wrap bl:items-center bl:gap-1">
                 <ImageFileInput
                   id={fileId}
-                  label={value ? 'Replace image' : 'Choose image'}
+                  label={value ? words.replace : words.choose}
                   accept={IMAGE_TYPES.join(',')}
                   disabled={disabled || uploading}
                   invalid={Boolean(uploadError)}
@@ -254,13 +261,13 @@ export function ImageField({
                 {removeButton}
               </div>
               <Hint id={uploadHintId}>
-                {uploading ? 'Uploading…' : 'JPEG, PNG or WebP up to 2 MB.'}
+                {uploading ? words.uploading : words.uploadHint(megabytes(MAX_IMAGE_BYTES))}
               </Hint>
             </div>
           ) : null}
           <div className="bl:flex bl:min-w-0 bl:flex-col bl:gap-1.5">
             <FieldLabel htmlFor={urlId} className="bl:font-normal">
-              Image URL
+              {words.address}
             </FieldLabel>
             {/* A draft until it commits, so undo while typing it is the browser's. */}
             <Input
@@ -269,7 +276,7 @@ export function ImageField({
               inputMode="url"
               autoComplete="off"
               spellCheck={false}
-              placeholder="https://"
+              placeholder={m.common.webAddress}
               value={draft}
               data-bl-draft=""
               disabled={disabled}
@@ -287,7 +294,7 @@ export function ImageField({
             {error && !urlError ? <FieldError id={errorId}>{error}</FieldError> : null}
             {broken ? (
               <p id={brokenId} className="bl:text-[0.8125rem] bl:text-warning">
-                The image at this address could not be loaded. Check the address.
+                {words.broken}
               </p>
             ) : null}
           </div>

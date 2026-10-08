@@ -8,6 +8,7 @@ import {
 } from 'react';
 import { PencilIcon, Trash2Icon } from 'lucide-react';
 import type { BlockBase, NewsletterTemplate } from '@subterra-technologies/blockletter';
+import { useEditorMessages } from '../i18n/context';
 import { cn } from '../lib/cn';
 import { errorMessage } from '../lib/errors';
 import { focusAfterConfirm } from '../lib/focus';
@@ -40,7 +41,7 @@ export interface TemplatePickerProps {
   /** Adds a "Blank" card, chosen as `null`. */
   allowBlank?: boolean;
   disabled?: boolean;
-  /** The group's name. */
+  /** The group's name. Default: the messages' "Layout". */
   legend?: string;
 }
 
@@ -57,9 +58,11 @@ export function TemplatePicker({
   onDelete,
   allowBlank = false,
   disabled = false,
-  legend = 'Layout',
+  legend,
 }: TemplatePickerProps) {
   const { toast } = useToasts();
+  const m = useEditorMessages();
+  const words = m.templates;
   const confirm = useConfirm();
   const id = useId();
   const legendId = `${id}-legend`;
@@ -110,7 +113,7 @@ export function TemplatePicker({
       await work();
       return true;
     } catch (cause: unknown) {
-      setError(errorMessage(cause, 'That did not go through. Try again.'));
+      setError(errorMessage(cause, words.failed));
       return false;
     } finally {
       setBusyId(null);
@@ -121,13 +124,13 @@ export function TemplatePicker({
     if (!onRename) return;
     const name = draftName.trim();
     if (!name) {
-      setError('Give the template a name.');
+      setError(words.nameRequired);
       control(template.id, 'name')?.focus();
       return;
     }
     const done = await run(template.id, async () => {
       await onRename(template.id, name, draftDescription.trim());
-      toast(`Template renamed to “${name}”.`);
+      toast(m.toasts.templateRenamed(name));
     });
     if (done) stopRename(template.id);
   }
@@ -145,16 +148,16 @@ export function TemplatePicker({
   async function remove(template: NewsletterTemplate<BlockBase>): Promise<void> {
     if (!onDelete) return;
     const ok = await confirm({
-      title: `Delete the template “${template.name}”?`,
-      description: 'Issues already started from it keep their layout. This can’t be undone.',
-      confirmLabel: 'Delete template',
+      title: words.confirmDeleteTitle(template.name),
+      description: words.confirmDeleteDescription,
+      confirmLabel: words.confirmDelete,
       destructive: true,
     });
     if (!ok) return;
     const done = await run(template.id, async () => {
       await onDelete(template.id);
       if (value === template.id) onChange(null);
-      toast(`Template “${template.name}” deleted.`);
+      toast(m.toasts.templateDeleted(template.name));
     });
     // The card has gone with its Delete button; the choice it belonged to takes focus.
     if (done) {
@@ -172,12 +175,12 @@ export function TemplatePicker({
   return (
     <fieldset disabled={disabled} className="bl:flex bl:min-w-0 bl:flex-col">
       <legend id={legendId} className="bl:mb-2 bl:text-sm bl:font-medium">
-        {legend}
+        {legend ?? words.legend}
       </legend>
       {templates === null ? (
         <div className="bl:flex bl:flex-col bl:gap-3">
           <p role="status" className="bl:text-[0.8125rem] bl:text-muted-foreground">
-            Loading templates…
+            {words.loading}
           </p>
           <div aria-hidden="true" className="bl:grid bl:gap-3 bl:sm:grid-cols-2">
             <Skeleton className="bl:h-24 bl:rounded-lg" />
@@ -196,9 +199,10 @@ export function TemplatePicker({
               <TemplateCard
                 id={cardId(BLANK)}
                 value={BLANK}
-                name="Blank"
-                description="Start from nothing and add the blocks you need."
-                meta="No blocks"
+                name={words.blank}
+                description={words.blankDescription}
+                meta={words.noBlocks}
+                builtInLabel={words.builtIn}
               />
             ) : null}
             {list.map((template) => {
@@ -212,15 +216,16 @@ export function TemplatePicker({
                   value={template.id}
                   name={template.name}
                   description={template.description}
-                  meta={`${count} block${count === 1 ? '' : 's'}`}
+                  meta={words.blocks(count)}
                   builtIn={template.builtIn}
+                  builtInLabel={words.builtIn}
                   busy={busy}
                 >
                   {editable && renamingId === template.id ? (
                     <div className="bl:relative bl:z-10 bl:flex bl:flex-col bl:gap-3 bl:border-t bl:pt-3">
                       <Field className="bl:gap-1.5">
                         <FieldLabel htmlFor={`${cardId(template.id)}-rename-name`}>
-                          Template name
+                          {words.name}
                         </FieldLabel>
                         <Input
                           id={`${cardId(template.id)}-rename-name`}
@@ -238,7 +243,7 @@ export function TemplatePicker({
                       </Field>
                       <Field className="bl:gap-1.5">
                         <FieldLabel htmlFor={`${cardId(template.id)}-rename-description`}>
-                          Description
+                          {words.description}
                         </FieldLabel>
                         <Input
                           id={`${cardId(template.id)}-rename-description`}
@@ -264,7 +269,7 @@ export function TemplatePicker({
                           size="sm"
                           onClick={() => stopRename(template.id)}
                         >
-                          Cancel
+                          {m.common.cancel}
                         </Button>
                         <Button
                           type="button"
@@ -273,7 +278,7 @@ export function TemplatePicker({
                           aria-busy={busy || undefined}
                           onClick={() => void confirmRename(template)}
                         >
-                          {busy ? 'Saving…' : 'Save'}
+                          {busy ? m.common.saving : m.common.save}
                         </Button>
                       </div>
                     </div>
@@ -285,12 +290,12 @@ export function TemplatePicker({
                           variant="ghost"
                           size="xs"
                           data-template-control="rename"
-                          aria-label={`Rename ${template.name}`}
+                          aria-label={words.renameNamed(template.name)}
                           disabled={busy}
                           onClick={() => startRename(template)}
                         >
                           <PencilIcon aria-hidden="true" />
-                          Rename
+                          {words.rename}
                         </Button>
                       ) : null}
                       {onDelete ? (
@@ -300,12 +305,12 @@ export function TemplatePicker({
                           size="xs"
                           data-template-control="delete"
                           className="bl:text-destructive bl:hover:bg-destructive/10 bl:hover:text-destructive"
-                          aria-label={`Delete ${template.name}`}
+                          aria-label={words.deleteNamed(template.name)}
                           disabled={busy}
                           onClick={() => void remove(template)}
                         >
                           <Trash2Icon aria-hidden="true" />
-                          Delete
+                          {words.delete}
                         </Button>
                       ) : null}
                     </div>
@@ -315,9 +320,7 @@ export function TemplatePicker({
             })}
           </RadioGroup>
           {list.length === 0 ? (
-            <p className="bl:text-[0.8125rem] bl:text-muted-foreground">
-              No saved templates yet — save one from any issue you like.
-            </p>
+            <p className="bl:text-[0.8125rem] bl:text-muted-foreground">{words.none}</p>
           ) : null}
           {error && !renamingId ? (
             <p role="alert" className="bl:text-[0.8125rem] bl:text-destructive">
@@ -337,6 +340,7 @@ function TemplateCard({
   description,
   meta,
   builtIn = false,
+  builtInLabel,
   busy = false,
   children,
 }: {
@@ -346,6 +350,8 @@ function TemplateCard({
   description: string;
   meta: string;
   builtIn?: boolean;
+  /** The badge a built-in template carries. */
+  builtInLabel: string;
   busy?: boolean;
   children?: ReactNode;
 }) {
@@ -375,7 +381,7 @@ function TemplateCard({
             >
               {name}
             </Label>
-            {builtIn ? <StatusBadge tone="neutral">Built in</StatusBadge> : null}
+            {builtIn ? <StatusBadge tone="neutral">{builtInLabel}</StatusBadge> : null}
           </div>
           <p id={`${id}-description`} className="bl:flex bl:flex-col bl:gap-1">
             {description ? (

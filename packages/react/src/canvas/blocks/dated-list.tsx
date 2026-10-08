@@ -1,10 +1,12 @@
 import { sortDatedItems, type DatedListBlock } from '@subterra-technologies/blockletter';
 import type { BlockCanvasProps } from '../../editor/types';
+import { useEditorMessages } from '../../i18n/context';
 import { blockBackground } from '../canvas-theme';
 import { CanvasSection, CanvasNote, headingStyle } from './shared';
 
 /** "Sept. 5 · Farmers market" lines in calendar order (`sortDatedItems`), on the soft background. */
 export function DatedListCanvas(canvas: BlockCanvasProps<DatedListBlock>) {
+  const words = useEditorMessages().blocks.dated_list;
   const { block, palette, fonts, px } = canvas;
   const background = blockBackground(block, palette.soft);
   const heading = block.heading.trim();
@@ -29,7 +31,7 @@ export function DatedListCanvas(canvas: BlockCanvasProps<DatedListBlock>) {
       ) : null}
       {entries.length === 0 ? (
         <CanvasNote canvas={canvas} background={background}>
-          No dates listed yet. The block stays out of the email until it has one.
+          {words.emptyCanvas}
         </CanvasNote>
       ) : (
         entries.map((entry, index) => (

@@ -9,8 +9,10 @@ import {
   type ReactNode,
 } from 'react';
 import { useEditorContext } from '../editor/context';
+import { useEditorMessages } from '../i18n/context';
 import { describedBy, GroupLabel, Hint, useFieldsReadOnly } from '../inspector/editor-fields';
 import { cn } from '../lib/cn';
+import { textOf } from '../lib/text-of';
 import { Field, FieldError } from '../ui/field';
 import {
   domMarksAt,
@@ -165,6 +167,7 @@ export function RichTextField({
   const locked = useFieldsReadOnly() || disabled;
   /** The document's history, which answers undo and redo instead, inside `NewsletterEditor`. */
   const { history: documentHistory } = useEditorContext();
+  const messages = useEditorMessages();
   const autoId = useId();
   const fieldId = id ?? autoId;
   const labelId = `${fieldId}-label`;
@@ -632,7 +635,7 @@ export function RichTextField({
       <GroupLabel id={labelId}>{label}</GroupLabel>
       {locked ? null : (
         <FormattingToolbar
-          labelId={labelId}
+          field={textOf(label)}
           controls={fieldId}
           formatting={formatting}
           linkOpen={draft !== null}
@@ -724,12 +727,7 @@ export function RichTextField({
         )}
         style={{ minHeight: `${Math.max(2, rows) * 1.5 + 1}rem` }}
       />
-      {unsupported ? (
-        <Hint id={noteId}>
-          This text has formatting the editor can’t keep, such as headings, images or colours.
-          Editing it removes that; bold, italics, links and lists stay.
-        </Hint>
-      ) : null}
+      {unsupported ? <Hint id={noteId}>{messages.formatting.unsupported}</Hint> : null}
       {help ? <Hint id={helpId}>{help}</Hint> : null}
       {error ? <FieldError id={errorId}>{error}</FieldError> : null}
     </Field>

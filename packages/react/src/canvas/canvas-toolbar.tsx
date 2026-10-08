@@ -11,13 +11,10 @@ import {
   RefreshCwIcon,
   Trash2Icon,
 } from 'lucide-react';
-import {
-  blockLabel,
-  isStructural,
-  sourceFor,
-  type BlockBase,
-} from '@subterra-technologies/blockletter';
+import { isStructural, sourceFor, type BlockBase } from '@subterra-technologies/blockletter';
 import { useEditorContext } from '../editor/context';
+import { blockName } from '../i18n/blocks';
+import { useEditorMessages } from '../i18n/context';
 import { cn } from '../lib/cn';
 import { Separator } from '../ui/separator';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
@@ -66,7 +63,9 @@ export function CanvasToolbar({
   onEdit,
 }: CanvasToolbarProps) {
   const { definitions, sources } = useEditorContext();
-  const name = blockLabel(block.type, definitions);
+  const m = useEditorMessages();
+  const words = m.blockToolbar;
+  const name = blockName(block.type, definitions, m);
   const footer = block.type === 'footer';
   const structural = isStructural(block, definitions);
   const source = sourceFor(block, sources);
@@ -75,12 +74,12 @@ export function CanvasToolbar({
     <TooltipProvider delayDuration={300}>
       <div
         role="toolbar"
-        aria-label={`${name} block`}
+        aria-label={words.label(name)}
         className="bl:flex bl:items-center bl:gap-0.5 bl:rounded-lg bl:border bl:bg-background bl:p-0.5 bl:text-foreground bl:shadow-md"
       >
         {onEdit ? (
           <>
-            <ToolButton label={`Edit ${name}`} tip="Edit block" onClick={onEdit}>
+            <ToolButton label={words.edit(name)} tip={words.editTip} onClick={onEdit}>
               <PencilIcon />
             </ToolButton>
             <Separator
@@ -90,16 +89,16 @@ export function CanvasToolbar({
           </>
         ) : null}
         <ToolButton
-          label={`Move ${name} up`}
-          tip="Move up"
+          label={words.moveUp(name)}
+          tip={words.moveUpTip}
           disabled={footer || index === 0}
           onClick={onMoveUp}
         >
           <ArrowUpIcon />
         </ToolButton>
         <ToolButton
-          label={`Move ${name} down`}
-          tip="Move down"
+          label={words.moveDown(name)}
+          tip={words.moveDownTip}
           disabled={footer || index >= count - 1}
           onClick={onMoveDown}
         >
@@ -110,16 +109,16 @@ export function CanvasToolbar({
           className="bl:mx-0.5 bl:data-[orientation=vertical]:h-4"
         />
         <ToolButton
-          label={`Insert a block above ${name}`}
-          tip="Insert a block above"
+          label={words.insertAbove(name)}
+          tip={words.insertAboveTip}
           onClick={onInsertAbove}
         >
           <BetweenHorizontalStartIcon />
         </ToolButton>
         {footer ? null : (
           <ToolButton
-            label={`Insert a block below ${name}`}
-            tip="Insert a block below"
+            label={words.insertBelow(name)}
+            tip={words.insertBelowTip}
             onClick={onInsertBelow}
           >
             <BetweenHorizontalEndIcon />
@@ -131,8 +130,8 @@ export function CanvasToolbar({
         />
         {!footer || block.hidden ? (
           <ToolButton
-            label={`${block.hidden ? 'Show' : 'Hide'} ${name}`}
-            tip={block.hidden ? 'Show in the email' : 'Hide from the email'}
+            label={block.hidden ? words.show(name) : words.hide(name)}
+            tip={block.hidden ? words.showTip : words.hideTip}
             pressed={block.hidden}
             onClick={onToggleHidden}
           >
@@ -140,14 +139,14 @@ export function CanvasToolbar({
           </ToolButton>
         ) : null}
         {structural ? null : (
-          <ToolButton label={`Duplicate ${name}`} tip="Duplicate block" onClick={onDuplicate}>
+          <ToolButton label={words.duplicate(name)} tip={words.duplicateTip} onClick={onDuplicate}>
             <CopyIcon />
           </ToolButton>
         )}
         {source ? (
           <ToolButton
-            label={`Refresh ${name} from ${source.label}`}
-            tip={`Refresh from ${source.label}`}
+            label={words.refresh(name, source.label)}
+            tip={words.refreshTip(source.label)}
             disabled={refreshing}
             busy={refreshing}
             onClick={onRefresh}
@@ -156,7 +155,7 @@ export function CanvasToolbar({
           </ToolButton>
         ) : null}
         {structural ? null : (
-          <ToolButton label={`Delete ${name}`} tip="Delete block" danger onClick={onRemove}>
+          <ToolButton label={words.delete(name)} tip={words.deleteTip} danger onClick={onRemove}>
             <Trash2Icon />
           </ToolButton>
         )}

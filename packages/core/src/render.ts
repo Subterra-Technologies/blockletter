@@ -114,6 +114,26 @@ export interface RenderedEmail {
   text: string;
   /** Problems for the host to act on. They never stop the email rendering. */
   warnings: string[];
+  /** `warnings` again, in order, each with a stable code to word it in another language. */
+  warningDetails: RenderWarning[];
+}
+
+/**
+ * One of `RenderedEmail.warnings`, with what it was made from:
+ *
+ * - `no_unsubscribe_url`: no `unsubscribeUrl` was given.
+ * - `local_image`: an image is a `blob:` or `data:` address no inbox can load.
+ * - `relative_link`: a relative link with no `baseUrl` to resolve it against.
+ * - `missing_alt`: an image without alt text; `values.type` and `values.label` name its block.
+ * - `unknown_block`: a block nothing defines, left out; `values.type` is its type.
+ * - `gmail_clip`: HTML past Gmail's clipping size; `values.kilobytes` is its size.
+ *
+ * A warning a block's own `render` gives with `ctx.warn` has its message and no code.
+ */
+export interface RenderWarning {
+  code?: string;
+  message: string;
+  values?: Readonly<Record<string, string | number>>;
 }
 
 /** One block's rows (`html` is `<tr>` elements for a 600px table), its text and its warnings. */
@@ -156,7 +176,7 @@ interface RenderState {
   readonly baseUrl: string;
   readonly definitions: readonly BlockDefinition[];
   readonly lines: string[];
-  readonly warnings: string[];
+  readonly warnings: RenderWarning[];
 }
 
 function resolveLabels(labels: Partial<RenderLabels> | undefined): RenderLabels {
@@ -184,19 +204,26 @@ function createState(options: RenderOptions): RenderState {
   };
 }
 
-const warn = (state: RenderState, message: string): void => {
-  if (!state.warnings.includes(message)) state.warnings.push(message);
+/** Adds a warning once: a second with the same words is the same warning. */
+const warn = (state: RenderState, warning: RenderWarning): void => {
+  if (!state.warnings.some((known) => known.message === warning.message)) {
+    state.warnings.push(warning);
+  }
 };
+
+const UNSUBSCRIBE: RenderWarning = { code: 'no_unsubscribe_url', message: UNSUBSCRIBE_WARNING };
+const LOCAL_IMAGE: RenderWarning = { code: 'local_image', message: LOCAL_IMAGE_WARNING };
+const RELATIVE_LINK: RenderWarning = { code: 'relative_link', message: RELATIVE_LINK_WARNING };
 
 /** An absolute link, noting (once) any relative link there is no base to resolve against. */
 function resolveUrl(state: RenderState, href: string | undefined): string {
-  if (!state.baseUrl && isRelativeUrl(href)) warn(state, RELATIVE_LINK_WARNING);
+  if (!state.baseUrl && isRelativeUrl(href)) warn(state, RELATIVE_LINK);
   return absoluteUrl(href, state.baseUrl);
 }
 
 const WEB_IMAGE = /^https?:\/\//i;
 /** An upload an editor shows before it is stored: a blob, or a base64 raster image. Never SVG. */
-const LOCAL_IMAGE = /^(?:blob:|data:image\/(?:png|jpeg|gif|webp);base64,)/i;
+const LOCAL_IMAGE_ADDRESS = /^(?:blob:|data:image\/(?:png|jpeg|gif|webp);base64,)/i;
 
 /**
  * An image's address: http(s), or — so an editor can preview an upload before it is stored — a
@@ -207,8 +234,8 @@ function resolveImage(state: RenderState, ref: ImageRef | undefined): string | u
   if (!ref) return undefined;
   const address = (state.options.resolveImageUrl?.(ref) ?? ref.url ?? '').trim();
   if (WEB_IMAGE.test(address)) return address;
-  if (LOCAL_IMAGE.test(address)) {
-    warn(state, LOCAL_IMAGE_WARNING);
+  if (LOCAL_IMAGE_ADDRESS.test(address)) {
+    warn(state, LOCAL_IMAGE);
     return address;
   }
   return undefined;
@@ -339,7 +366,7 @@ function contextFor(state: RenderState, block: BlockBase): RenderContext {
       state.lines.push(...lines);
     },
     warn(message: string): void {
-      warn(state, message);
+      warn(state, { message });
     },
   };
 }
@@ -349,11 +376,15 @@ const IMAGE_TAG = /<img\b[^>]*(?:>|$)/gi;
 const ALT_ATTRIBUTE = /\salt\s*=\s*(?:"([^"]*)"|'([^']*)')/i;
 
 /** The email itself is checked, so a host's own block is held to the same rule. */
-function checkAltText(state: RenderState, html: string, label: string): void {
+function checkAltText(state: RenderState, html: string, block: BlockBase, label: string): void {
   for (const tag of html.match(IMAGE_TAG) ?? []) {
     const alt = ALT_ATTRIBUTE.exec(tag);
     if (!(alt?.[1] ?? alt?.[2] ?? '').trim()) {
-      warn(state, missingAltText(label));
+      warn(state, {
+        code: 'missing_alt',
+        message: missingAltText(label),
+        values: { type: block.type, label },
+      });
       return;
     }
   }
@@ -362,11 +393,15 @@ function checkAltText(state: RenderState, html: string, label: string): void {
 function renderOne(state: RenderState, block: BlockBase): string {
   const definition = getDefinition(block.type, state.definitions);
   if (!definition) {
-    warn(state, `There is no definition for the "${block.type}" block, so it was left out.`);
+    warn(state, {
+      code: 'unknown_block',
+      message: `There is no definition for the "${block.type}" block, so it was left out.`,
+      values: { type: block.type },
+    });
     return '';
   }
   const html = definition.render(block, contextFor(state, block));
-  checkAltText(state, html, definition.label);
+  checkAltText(state, html, block, definition.label);
   return html;
 }
 
@@ -375,6 +410,14 @@ const plainText = (state: RenderState): string =>
     .join('\n')
     .replace(/\n{3,}/g, '\n\n')
     .trim();
+
+/** What a render hands back: the warnings in words, and with their codes. */
+const finished = (state: RenderState, html: string): RenderedEmail => ({
+  html,
+  text: plainText(state),
+  warnings: state.warnings.map((warning) => warning.message),
+  warningDetails: [...state.warnings],
+});
 
 /** The small line under the card: issue, the organisation's site, and a credit, as there are. */
 function belowCard(state: RenderState): { html: string; text: string } {
@@ -413,7 +456,7 @@ export function renderEmail<B extends BlockBase = BuiltInBlock>(
 ): RenderedEmail {
   const state = createState(options);
   const { palette } = state;
-  if (!options.unsubscribeUrl?.trim()) warn(state, UNSUBSCRIBE_WARNING);
+  if (!options.unsubscribeUrl?.trim()) warn(state, UNSUBSCRIBE);
   state.lines.push(doc.subject, '');
   if (doc.preheader.trim()) state.lines.push(doc.preheader, '');
 
@@ -463,12 +506,14 @@ export function renderEmail<B extends BlockBase = BuiltInBlock>(
   if (below.text) state.lines.push('', below.text);
   const bytes = utf8Length(html);
   if (bytes > GMAIL_CLIP_BYTES) {
-    warn(
-      state,
-      `Gmail clips messages larger than about 102 KB, and this one is ${Math.ceil(bytes / 1024)} KB: shorten or remove blocks so the end, with the unsubscribe link, is not cut off.`,
-    );
+    const kilobytes = Math.ceil(bytes / 1024);
+    warn(state, {
+      code: 'gmail_clip',
+      message: `Gmail clips messages larger than about 102 KB, and this one is ${kilobytes} KB: shorten or remove blocks so the end, with the unsubscribe link, is not cut off.`,
+      values: { kilobytes },
+    });
   }
-  return { html, text: plainText(state), warnings: [...state.warnings] };
+  return finished(state, html);
 }
 
 /**
@@ -477,6 +522,5 @@ export function renderEmail<B extends BlockBase = BuiltInBlock>(
  */
 export function renderBlock(block: BlockBase, options: RenderOptions = {}): RenderedBlock {
   const state = createState(options);
-  const html = renderOne(state, block);
-  return { html, text: plainText(state), warnings: [...state.warnings] };
+  return finished(state, renderOne(state, block));
 }

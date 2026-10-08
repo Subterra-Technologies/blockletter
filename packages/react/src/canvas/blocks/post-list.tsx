@@ -1,5 +1,6 @@
 import { LIMITS, type PostListBlock } from '@subterra-technologies/blockletter';
 import type { BlockCanvasProps } from '../../editor/types';
+import { useEditorMessages } from '../../i18n/context';
 import { blockBackground } from '../canvas-theme';
 import {
   CanvasSection,
@@ -12,6 +13,7 @@ import {
 
 /** Up to three posts: a kicker, the title, the excerpt and the renderer's "Read more". */
 export function PostListCanvas(canvas: BlockCanvasProps<PostListBlock>) {
+  const words = useEditorMessages().blocks.post_list;
   const { block, palette, fonts, px, labels } = canvas;
   const background = blockBackground(block, palette.card);
   const posts = block.items.slice(0, LIMITS.posts);
@@ -21,7 +23,7 @@ export function PostListCanvas(canvas: BlockCanvasProps<PostListBlock>) {
       {heading ? <p style={headingStyle(canvas)}>{block.heading}</p> : null}
       {posts.length === 0 ? (
         <CanvasNote canvas={canvas} background={background}>
-          No posts chosen yet. The block stays out of the email until it has one.
+          {words.emptyCanvas}
         </CanvasNote>
       ) : (
         posts.map((post, index) => (

@@ -24,6 +24,10 @@ export {
   type UseNewsletterEditorOptions,
 } from './editor/use-newsletter-editor';
 export { BlockletterRoot, type BlockletterRootProps, type BlockletterTheme } from './root';
+
+// Its words, in English or the host's language
+export { enMessages } from './i18n/en';
+export type { EditorFormat, EditorMessageOverrides, EditorMessages } from './i18n/messages';
 export {
   EditorProvider,
   useEditorContext,

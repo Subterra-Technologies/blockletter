@@ -1,5 +1,6 @@
 import { useId, useState } from 'react';
 import { isHexColor } from '@subterra-technologies/blockletter';
+import { useEditorMessages } from '../i18n/context';
 import { describedBy, Hint } from '../inspector/editor-fields';
 import { FieldError } from '../ui/field';
 import { Input } from '../ui/input';
@@ -29,6 +30,7 @@ export function BrandColorField({
   error?: string;
   onChange: (value: string) => void;
 }) {
+  const words = useEditorMessages().colors;
   const id = useId();
   const labelId = `${id}-label`;
   const hintId = `${id}-hint`;
@@ -58,9 +60,7 @@ export function BrandColorField({
       if (hex !== value) onChange(hex);
       return;
     }
-    setRejected(
-      `“${raw}” is not a six-digit hex colour such as #1f2937, so the ${label.toLowerCase()} colour stays ${value}.`,
-    );
+    setRejected(words.rejected(raw, label, value));
     setDraft(value);
   }
 
@@ -75,7 +75,7 @@ export function BrandColorField({
         <input
           type="color"
           value={isHexColor(value) ? value.toLowerCase() : fallback}
-          aria-label={`${label} colour picker`}
+          aria-label={words.picker(label)}
           aria-describedby={hintId}
           onChange={(event) => onChange(event.target.value)}
           className="bl:h-9 bl:w-10 bl:shrink-0 bl:cursor-pointer bl:rounded-md bl:border bl:border-input bl:bg-transparent bl:p-1 bl:outline-none bl:focus-visible:ring-[3px] bl:focus-visible:ring-ring/50 bl:disabled:cursor-not-allowed bl:disabled:opacity-50"
@@ -85,7 +85,7 @@ export function BrandColorField({
           spellCheck={false}
           autoComplete="off"
           value={draft}
-          aria-label={`${label} hex value`}
+          aria-label={words.hex(label)}
           aria-invalid={message ? true : undefined}
           aria-describedby={describedBy(hintId, message ? errorId : null)}
           onChange={(event) => setDraft(event.target.value)}

@@ -2,9 +2,11 @@ import { useLayoutEffect, useRef, useState, type FormEvent } from 'react';
 import {
   DEFAULT_LOOKAHEAD_DAYS,
   addDays,
-  periodErrors,
+  periodErrorCodes,
   type IssuePeriod,
 } from '@subterra-technologies/blockletter';
+import { useEditorMessages } from '../i18n/context';
+import { periodErrorText } from '../i18n/core-words';
 import { errorMessage } from '../lib/errors';
 import { useReturnFocus } from '../lib/return-focus';
 import { IssuePeriodFields } from '../period/issue-period-fields';
@@ -94,6 +96,8 @@ function DuplicateForm({
   onDone: () => void;
 }) {
   const { toast } = useToasts();
+  const m = useEditorMessages();
+  const words = m.dialogs.duplicate;
   const today = todayInZone(timeZone);
   const [period, setPeriod] = useState<IssuePeriod>(() => periodAfter(sourceEnd, today));
   const [seed, setSeed] = useState(sourceEnd);
@@ -111,7 +115,7 @@ function DuplicateForm({
     setError('');
   }
 
-  const errors = periodErrors(period, { today });
+  const errors = periodErrorText(periodErrorCodes(period, { today }), m);
 
   useLayoutEffect(() => {
     if (!focusInvalid.current) return;
@@ -131,10 +135,10 @@ function DuplicateForm({
     setPending(true);
     try {
       await onDuplicate(period);
-      toast(name ? `Copied “${name}”.` : 'Issue copied.');
+      toast(m.toasts.issueCopied(name));
       onDone();
     } catch (cause: unknown) {
-      setError(errorMessage(cause, 'The copy could not be made. Try again.'));
+      setError(errorMessage(cause, words.failed));
     } finally {
       setPending(false);
     }
@@ -148,12 +152,8 @@ function DuplicateForm({
       className="bl:flex bl:flex-col bl:gap-5"
     >
       <DialogHeader className="bl:text-left">
-        <DialogTitle className="bl:pr-6 bl:text-base">
-          {name ? `Duplicate “${name}”` : 'Duplicate this issue'}
-        </DialogTitle>
-        <DialogDescription className="bl:text-[0.8125rem]">
-          The copy keeps this issue’s layout and settings, and covers the dates you choose.
-        </DialogDescription>
+        <DialogTitle className="bl:pr-6 bl:text-base">{words.title(name)}</DialogTitle>
+        <DialogDescription className="bl:text-[0.8125rem]">{words.description}</DialogDescription>
       </DialogHeader>
       <IssuePeriodFields
         value={period}
@@ -165,7 +165,7 @@ function DuplicateForm({
       {error ? <FieldError>{error}</FieldError> : null}
       <DialogFooter>
         <Button type="button" variant="outline" onClick={onDone}>
-          Cancel
+          {m.common.cancel}
         </Button>
         {/* Not `disabled` while copying: a disabled button drops the focus it has. */}
         <Button
@@ -174,7 +174,7 @@ function DuplicateForm({
           aria-busy={pending || undefined}
           className="bl:aria-disabled:opacity-50"
         >
-          {pending ? 'Copying…' : 'Create copy'}
+          {pending ? words.copying : words.create}
         </Button>
       </DialogFooter>
     </form>

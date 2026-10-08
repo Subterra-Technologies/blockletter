@@ -1,10 +1,12 @@
 import type { HeaderBlock } from '@subterra-technologies/blockletter';
 import type { BlockCanvasProps } from '../../editor/types';
+import { useEditorMessages } from '../../i18n/context';
 import { blockBackground } from '../canvas-theme';
 import { CanvasSection, CanvasNote, labelStyle } from './shared';
 
 /** The masthead: the brand kit's logo, else the logo text or the organisation's name, over the strapline. */
 export function HeaderCanvas(canvas: BlockCanvasProps<HeaderBlock>) {
+  const words = useEditorMessages().blocks.header;
   const { block, brand, palette, fonts, px, image } = canvas;
   const strapline = [block.title, block.issueLabel].map((part) => part.trim()).filter(Boolean);
   const name = block.logoText.trim() || brand.name.trim();
@@ -42,7 +44,7 @@ export function HeaderCanvas(canvas: BlockCanvasProps<HeaderBlock>) {
       ) : null}
       {!logo && !name && strapline.length === 0 ? (
         <CanvasNote canvas={canvas} background={background}>
-          Empty header. It stays out of the email until it has a title.
+          {words.emptyCanvas}
         </CanvasNote>
       ) : null}
     </CanvasSection>

@@ -2,13 +2,15 @@ import { useLayoutEffect, useRef, useState, type FormEvent } from 'react';
 import {
   PERIOD_PRESETS,
   applyPeriodPreset,
-  periodErrors,
+  periodErrorCodes,
   suggestPeriod,
   type BlockBase,
   type IssuePeriod,
   type NewsletterTemplate,
   type PeriodPreset,
 } from '@subterra-technologies/blockletter';
+import { useEditorMessages } from '../i18n/context';
+import { periodErrorText } from '../i18n/core-words';
 import { errorMessage } from '../lib/errors';
 import { useReturnFocus } from '../lib/return-focus';
 import { SelectField } from '../inspector/editor-fields';
@@ -91,6 +93,8 @@ function NewIssueForm({
   onDone,
 }: Omit<NewIssueDialogProps, 'open' | 'onOpenChange'> & { onDone: () => void }) {
   const { toast } = useToasts();
+  const m = useEditorMessages();
+  const words = m.dialogs.newIssue;
   const today = todayInZone(timeZone);
   const [preset, setPreset] = useState<PeriodPreset>('this-month');
   const [period, setPeriod] = useState<IssuePeriod>(() => suggestPeriod(today));
@@ -104,7 +108,7 @@ function NewIssueForm({
   // The first template stands chosen until another is picked (or the picked one is deleted).
   const selected =
     templates?.find((template) => template.id === chosenId) ?? templates?.[0] ?? null;
-  const errors = periodErrors(period, { today });
+  const errors = periodErrorText(periodErrorCodes(period, { today }), m);
   const invalid = Object.keys(errors).length > 0;
 
   useLayoutEffect(() => {
@@ -123,16 +127,16 @@ function NewIssueForm({
       return;
     }
     if (!selected) {
-      setCreateError('Choose a layout to start from.');
+      setCreateError(words.chooseLayout);
       return;
     }
     setCreating(true);
     try {
       await onCreate({ templateId: selected.id, period });
-      toast(`Issue started from “${selected.name}”.`);
+      toast(m.toasts.issueStarted(selected.name));
       onDone();
     } catch (cause: unknown) {
-      setCreateError(errorMessage(cause, 'The issue could not be created. Try again.'));
+      setCreateError(errorMessage(cause, words.failed));
     } finally {
       setCreating(false);
     }
@@ -146,10 +150,8 @@ function NewIssueForm({
       className="bl:flex bl:min-w-0 bl:flex-col"
     >
       <DialogHeader className="bl:gap-1 bl:border-b bl:px-6 bl:py-4 bl:pr-12 bl:text-left">
-        <DialogTitle className="bl:text-base">New issue</DialogTitle>
-        <DialogDescription className="bl:text-[0.8125rem]">
-          Pick the dates this issue covers and a layout to start from. Nothing is sent from here.
-        </DialogDescription>
+        <DialogTitle className="bl:text-base">{words.title}</DialogTitle>
+        <DialogDescription className="bl:text-[0.8125rem]">{words.description}</DialogDescription>
       </DialogHeader>
       <div className="bl:flex bl:min-w-0 bl:flex-col bl:gap-6 bl:px-6 bl:py-5">
         {/* The period by name; the dates below say what it means and can be changed. The
@@ -157,10 +159,13 @@ function NewIssueForm({
             different question from what the issue is about. */}
         <div className="bl:sm:max-w-56">
           <SelectField
-            label="Period"
+            label={words.period}
             value={preset}
             disabled={creating}
-            options={PERIOD_PRESETS.map((option) => ({ value: option.id, label: option.label }))}
+            options={PERIOD_PRESETS.map((option) => ({
+              value: option.id,
+              label: words.presets[option.id],
+            }))}
             onChange={(next) => {
               setPreset(next);
               setPeriod(applyPeriodPreset(next, period, today));
@@ -196,7 +201,7 @@ function NewIssueForm({
       </div>
       <DialogFooter className="bl:border-t bl:px-6 bl:py-3">
         <Button type="button" variant="outline" onClick={onDone}>
-          Cancel
+          {m.common.cancel}
         </Button>
         {/* Not `disabled` while creating: a disabled button drops the focus it has. */}
         <Button
@@ -205,7 +210,7 @@ function NewIssueForm({
           aria-busy={creating || undefined}
           className="bl:aria-disabled:opacity-50"
         >
-          {creating ? 'Creating…' : 'Create issue'}
+          {creating ? words.creating : words.create}
         </Button>
       </DialogFooter>
     </form>

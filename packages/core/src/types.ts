@@ -495,4 +495,9 @@ export interface ValidationIssue {
   message: string;
   blockId?: string;
   path?: string;
+  /**
+   * What `message` was made from beyond `code` and `path`, for a form that words the problem in a
+   * language of its own: a limit (`max`, `min`), or which part of an image is wrong (`problem`).
+   */
+  values?: Readonly<Record<string, string | number>>;
 }

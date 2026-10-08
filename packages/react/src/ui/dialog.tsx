@@ -1,6 +1,7 @@
 import type { ComponentProps } from 'react';
 import { XIcon } from 'lucide-react';
 import { Dialog as DialogPrimitive } from 'radix-ui';
+import { useEditorMessages } from '../i18n/context';
 import { cn } from '../lib/cn';
 import { Button } from './button';
 import { usePortalContainer } from './portal-container';
@@ -43,6 +44,7 @@ function DialogContent({
 }: ComponentProps<typeof DialogPrimitive.Content> & {
   showCloseButton?: boolean;
 }) {
+  const { common } = useEditorMessages();
   return (
     <DialogPortal data-slot="dialog-portal">
       <DialogOverlay />
@@ -61,7 +63,7 @@ function DialogContent({
             className="bl:absolute bl:top-4 bl:right-4 bl:rounded-xs bl:opacity-70 bl:ring-offset-background bl:transition-opacity bl:hover:opacity-100 bl:focus:ring-2 bl:focus:ring-ring bl:focus:ring-offset-2 bl:focus:outline-hidden bl:disabled:pointer-events-none bl:data-[state=open]:bg-accent bl:data-[state=open]:text-muted-foreground bl:[&_svg]:pointer-events-none bl:[&_svg]:shrink-0 bl:[&_svg:not([class*=size-])]:size-4"
           >
             <XIcon />
-            <span className="bl:sr-only">Close</span>
+            <span className="bl:sr-only">{common.close}</span>
           </DialogPrimitive.Close>
         )}
       </DialogPrimitive.Content>
@@ -87,6 +89,7 @@ function DialogFooter({
 }: ComponentProps<'div'> & {
   showCloseButton?: boolean;
 }) {
+  const { common } = useEditorMessages();
   return (
     <div
       data-slot="dialog-footer"
@@ -99,7 +102,7 @@ function DialogFooter({
       {children}
       {showCloseButton && (
         <DialogPrimitive.Close asChild>
-          <Button variant="outline">Close</Button>
+          <Button variant="outline">{common.close}</Button>
         </DialogPrimitive.Close>
       )}
     </div>

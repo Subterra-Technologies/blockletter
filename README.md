@@ -49,6 +49,7 @@ The rule it was built on: _if I entered it once, I shouldn't have to enter it ag
 - [A tour](#a-tour)
 - [How it works](#how-it-works)
 - [Getting started](#getting-started)
+- [Translating the editor](#translating-the-editor)
 - [Documents from other languages and LLMs](#documents-from-other-languages-and-llms)
 - [The blocks](#the-blocks)
 - [Accessibility](#accessibility)
@@ -83,6 +84,8 @@ The rule it was built on: _if I entered it once, I shouldn't have to enter it ag
 - **Brand kits and templates.** Logo, colours, fonts and contact details restyle every block, and
   every colour pair is checked for contrast. Templates are saved layouts with tokens such as
   `{{monthYear}}`.
+- **In your language.** Every word the editor shows or says can be translated, and the email's
+  own words are yours to set too. [How](#translating-the-editor).
 - **Extensible.** The 21 built-in blocks use the same `defineBlock` API you use for your own.
 
 ## The demo
@@ -370,6 +373,92 @@ const jobEditorBlock = defineEditorBlock<JobBlock>({
 ```
 
 A block without a canvas drawing of its own is drawn on the canvas from its email HTML.
+
+## Translating the editor
+
+Every word the editor shows or says comes from one typed object, `EditorMessages`: labels and
+buttons, tooltips, placeholders, toasts, what it announces to screen readers, its dialogs and its
+error messages. The English is exported as `enMessages`. Pass what you translate as `messages`,
+group by group, and whatever you leave out stays English. A message with values in it is a
+function, so the word order and the plural forms are yours:
+
+```tsx
+import type { RenderLabels } from '@subterra-technologies/blockletter';
+import {
+  NewsletterEditor,
+  type EditorMessageOverrides,
+} from '@subterra-technologies/blockletter-react';
+
+// Defined once, outside the component: the editor reads it on every render.
+const es: EditorMessageOverrides = {
+  topBar: { view: 'Vista', canvas: 'Lienzo', preview: 'Vista previa', more: 'Más' },
+  palette: {
+    heading: 'Bloques',
+    // The last argument writes numbers and dates the way `locale` does.
+    blocksUsed: (count, max, { number }) => `${number(count)} de ${number(max)} bloques`,
+    groups: { content: 'Contenido', layout: 'Diseño', graphics: 'Gráficos' },
+  },
+  history: {
+    undo: 'Deshacer',
+    redo: 'Rehacer',
+    undid: (action) => `Deshecho: ${action}.`,
+    deleted: (block) => `se eliminó el bloque ${block}`,
+  },
+  toasts: { deleted: (block) => `${block} eliminado.`, undo: 'Deshacer' },
+  blocks: {
+    text: { label: 'Texto', description: 'Un título y unos párrafos.' },
+    quote: { label: 'Cita', description: 'Una cita destacada, con su autor.' },
+  },
+};
+
+// The email's own words, which the canvas and the preview show as the inbox will.
+const labels: Partial<RenderLabels> = {
+  readMore: 'Leer más',
+  managePreferences: 'Preferencias',
+  unsubscribe: 'Darse de baja',
+  months: 'ene. feb. mar. abr. may. jun. jul. ago. sept. oct. nov. dic.'.split(' '),
+};
+
+<NewsletterEditor
+  messages={es}
+  locale="es"
+  renderOptions={{ lang: 'es', labels }} // and the same to renderEmail() when you send
+  /* value, onChange, brand… */
+/>;
+```
+
+Two sets of words meet in the editor, and they need not be in the same language: someone can
+write a Spanish newsletter in an English editor.
+
+| Words                                                                  | Where they come from                                    |
+| ---------------------------------------------------------------------- | ------------------------------------------------------- |
+| The editor's own: buttons, tabs, forms, toasts, announcements          | `messages`, over `enMessages`                           |
+| The email's: "Read more", "Unsubscribe", month names on event tiles    | `renderOptions.labels`, for the canvas and the preview  |
+| The issue's: its subject, its blocks' text, a new block's sample words | The document, your block definitions and your templates |
+
+`locale` is the language of your messages, as a BCP 47 tag. The editor sets it as its `lang`, so
+screen readers pronounce its words in that language, and uses it with `Intl` for the numbers and
+dates it writes itself, such as an event's date in a data source's list; every function message
+gets the same formatting as its last argument. Without a `locale`, the editor writes them as it
+always has.
+
+- **Custom layouts.** Every part reads its words from the nearest `BlockletterRoot`, which takes
+  `messages` and `locale` too. A root inside another (`NewsletterEditor` within your own) starts
+  from the outer one's.
+- **Block names.** The built-in blocks are named from `blocks` (`blocks.event_tiles.label`). Your
+  own blocks bring their own `label` and `description`, and a built-in you give a label of your own
+  keeps it.
+- **Core's sentences.** A block's warnings ("Add alt text…"), the renderer's warnings, the brand
+  kit's validation errors and a period's errors come from core with stable codes, which the editor
+  words from `issues`, `warnings`, `brandKit.errors` and `period.errors`. Your own UI can do the
+  same with `blockIssueDetails()`, `renderEmail().warningDetails`, `periodErrorCodes()` and the
+  `code` and `values` of each `ValidationIssue`.
+- **What stays yours.** A data source's label, a template's name, the sample words a new block
+  starts with (its definition's `create`), and the message of any error your callbacks throw are
+  shown as you give them.
+
+The repository's tests render the editor in a pseudo-locale, where every message is wrapped in
+markers, and fail on any word on screen, in a tooltip or in an accessible name that is not.
 
 ## Documents from other languages and LLMs
 

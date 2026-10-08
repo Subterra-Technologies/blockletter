@@ -8,6 +8,7 @@ import {
   type SpacerBlock,
 } from '@subterra-technologies/blockletter';
 import type { BlockEditorProps } from '../../editor/types';
+import { useEditorMessages } from '../../i18n/context';
 import { blockEditor, withOptional } from '../editor-base';
 import {
   AreaField,
@@ -39,54 +40,54 @@ function toColumn(row: ColumnItem): ColumnItem {
 }
 
 export function ColumnsEditor({ block, onChange, readOnly }: BlockEditorProps<ColumnsBlock>) {
+  const { fields, blocks } = useEditorMessages();
+  const words = blocks.columns;
   const { commit } = blockEditor(block, onChange);
   return (
     <EditorFields readOnly={readOnly}>
       <ItemList
-        label="Columns"
-        noun="column"
+        words={words.list}
         items={block.columns}
         min={MIN_COLUMNS}
         max={MAX_COLUMNS}
         onChange={(columns) => commit({ ...block, columns: columns.map(toColumn) })}
         create={() => ({ body: '' })}
-        addLabel="Add column"
-        limitHint={`A columns block holds up to ${MAX_COLUMNS} columns.`}
-        hint="Two or three columns. They stack on phones."
+        limitHint={words.list.limit(MAX_COLUMNS)}
+        hint={words.hint}
         renderItem={(column, update) => (
           <>
             <ImageField
-              label="Picture (optional)"
+              label={fields.pictureOptional}
               value={column.image}
               disabled={readOnly}
               onChange={(image) => update({ image })}
             />
             <FieldPair>
               <TextField
-                label="Heading (optional)"
+                label={fields.headingOptional}
                 value={column.heading ?? ''}
                 onChange={(heading) => update({ heading })}
               />
               <TextField
-                label="Alt text"
+                label={fields.altText}
                 value={column.alt ?? ''}
                 onChange={(alt) => update({ alt })}
               />
             </FieldPair>
             <AreaField
-              label="Text"
+              label={fields.text}
               rows={3}
               value={column.body}
               onChange={(body) => update({ body })}
             />
             <FieldPair>
               <TextField
-                label="Link label (optional)"
+                label={fields.linkLabelOptional}
                 value={column.linkLabel ?? ''}
                 onChange={(linkLabel) => update({ linkLabel })}
               />
               <TextField
-                label="Link (optional)"
+                label={fields.linkOptional}
                 value={column.linkUrl ?? ''}
                 onChange={(linkUrl) => update({ linkUrl })}
               />
@@ -100,34 +101,35 @@ export function ColumnsEditor({ block, onChange, readOnly }: BlockEditorProps<Co
 
 // --- Button --------------------------------------------------------------------------------------
 
-const BUTTON_STYLES: readonly Choice<ButtonBlock['variant']>[] = [
-  { value: 'solid', label: 'Solid', hint: 'Filled with the accent colour' },
-  { value: 'outline', label: 'Outline', hint: 'Accent border, clear inside' },
-];
-
 export function ButtonEditor({ block, onChange, readOnly }: BlockEditorProps<ButtonBlock>) {
+  const { fields, blocks } = useEditorMessages();
+  const words = blocks.button;
   const { patch } = blockEditor(block, onChange);
+  const styles: readonly Choice<ButtonBlock['variant']>[] = [
+    { value: 'solid', label: words.solid, hint: words.solidHint },
+    { value: 'outline', label: words.outline, hint: words.outlineHint },
+  ];
   return (
     <EditorFields readOnly={readOnly}>
       <FieldPair>
         <TextField
-          label="Button label"
+          label={fields.buttonLabel}
           value={block.label}
           onChange={(label) => patch({ label })}
         />
         <TextField
-          label="Link"
-          placeholder="/events"
+          label={fields.link}
+          placeholder={words.linkPlaceholder}
           value={block.url}
           onChange={(url) => patch({ url })}
-          help="Paths like /events become full links when the email is rendered."
+          help={words.linkHelp}
         />
       </FieldPair>
       <ChoiceField
-        legend="Button style"
+        legend={words.style}
         value={block.variant}
         onChange={(variant) => patch({ variant })}
-        options={BUTTON_STYLES}
+        options={styles}
       />
     </EditorFields>
   );
@@ -136,42 +138,47 @@ export function ButtonEditor({ block, onChange, readOnly }: BlockEditorProps<But
 // --- Divider -------------------------------------------------------------------------------------
 
 export function DividerEditor({ block, onChange, readOnly }: BlockEditorProps<DividerBlock>) {
+  const words = useEditorMessages().blocks.divider;
   const { patch } = blockEditor(block, onChange);
   return (
     <EditorFields readOnly={readOnly}>
       <ChoiceField
-        legend="Rule thickness"
+        legend={words.thickness}
         value={block.thickness}
         onChange={(thickness) => patch({ thickness })}
         options={[
-          { value: 'hairline', label: 'Hairline' },
-          { value: 'thick', label: 'Thick' },
+          { value: 'hairline', label: words.hairline },
+          { value: 'thick', label: words.thick },
         ]}
       />
-      <Note>
-        A divider has no text. Use the Appearance tab to change its colour and the space around it.
-      </Note>
+      <Note>{words.note}</Note>
     </EditorFields>
   );
 }
 
 // --- Spacer --------------------------------------------------------------------------------------
 
-const SPACER_SIZES: readonly Choice<SpacerBlock['size']>[] = [
-  { value: 'small', label: 'Small', hint: '12px' },
-  { value: 'medium', label: 'Medium', hint: '28px' },
-  { value: 'large', label: 'Large', hint: '56px' },
-];
+/** The email's height for each spacer size, in pixels. */
+const SPACER_HEIGHTS: Readonly<Record<SpacerBlock['size'], number>> = {
+  small: 12,
+  medium: 28,
+  large: 56,
+};
 
 export function SpacerEditor({ block, onChange, readOnly }: BlockEditorProps<SpacerBlock>) {
+  const { common, blocks } = useEditorMessages();
+  const words = blocks.spacer;
   const { patch } = blockEditor(block, onChange);
+  const sizes: readonly Choice<SpacerBlock['size']>[] = (['small', 'medium', 'large'] as const).map(
+    (size) => ({ value: size, label: words[size], hint: common.pixels(SPACER_HEIGHTS[size]) }),
+  );
   return (
     <EditorFields readOnly={readOnly}>
       <ChoiceField
-        legend="Gap size"
+        legend={words.size}
         value={block.size}
         onChange={(size) => patch({ size })}
-        options={SPACER_SIZES}
+        options={sizes}
       />
     </EditorFields>
   );
@@ -180,18 +187,19 @@ export function SpacerEditor({ block, onChange, readOnly }: BlockEditorProps<Spa
 // --- Quote ---------------------------------------------------------------------------------------
 
 export function QuoteEditor({ block, onChange, readOnly }: BlockEditorProps<QuoteBlock>) {
+  const words = useEditorMessages().blocks.quote;
   const { patch, commit } = blockEditor(block, onChange);
   return (
     <EditorFields readOnly={readOnly}>
       <AreaField
-        label="Quote"
+        label={words.quote}
         rows={4}
         value={block.quote}
         onChange={(quote) => patch({ quote })}
       />
       <TextField
-        label="Who said it (optional)"
-        placeholder="Sam Rivera, Corner Bakery"
+        label={words.attribution}
+        placeholder={words.attributionPlaceholder}
         value={block.attribution ?? ''}
         onChange={(value) => commit(withOptional(block, 'attribution', value))}
       />

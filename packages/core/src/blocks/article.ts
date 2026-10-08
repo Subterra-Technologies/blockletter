@@ -1,5 +1,6 @@
 import { defineBlock } from '../definition';
 import { splitParagraphs } from '../html';
+import { issuesFrom } from '../issues';
 import type { ArticleBlock } from '../types';
 import { blockValidator } from '../validate';
 import { TABLE, missingAlt, tooLong } from './shared';
@@ -23,12 +24,17 @@ export const articleBlock = defineBlock<ArticleBlock>({
       .image('image', { optional: true })
       .string('linkLabel', { optional: true, label: 'link text' })
       .string('linkUrl', { optional: true, label: 'link' }).issues,
-  issues: (block) => [
+  issues: issuesFrom((block) => [
     ...tooLong('article', block.body),
     ...(missingAlt(block.image, block.title)
-      ? ['Add a title: it describes the image for screen readers.']
+      ? [
+          {
+            code: 'missing_title',
+            message: 'Add a title: it describes the image for screen readers.',
+          },
+        ]
       : []),
-  ],
+  ]),
   summary: (block) => block.title.trim() || block.kicker,
   render(block, ctx) {
     const kicker = block.kicker.trim();

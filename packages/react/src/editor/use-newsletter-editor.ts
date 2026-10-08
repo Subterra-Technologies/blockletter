@@ -10,7 +10,6 @@ import {
 import {
   DEFAULT_BRAND,
   LIMITS,
-  blockLabel,
   createBlock,
   duplicateBlock,
   ensureFooter,
@@ -35,6 +34,9 @@ import {
 } from '@subterra-technologies/blockletter';
 import { builtInEditorBlocks } from '../blocks';
 import type { InsertTarget, NewsletterCanvasHandle } from '../canvas/canvas';
+import { blockName } from '../i18n/blocks';
+import { useEditorMessages } from '../i18n/context';
+import type { BoundMessages } from '../i18n/resolve';
 import { focusedTextField, placeCaret, type TextField } from '../lib/caret';
 import { errorMessage } from '../lib/errors';
 import { nextFrame } from '../lib/focus';
@@ -151,25 +153,28 @@ export interface NewsletterEditorApi<B extends BlockBase = BuiltInBlock> {
 
 type Doc = NewsletterDocument<BlockBase>;
 
+/** What a change did, worded in the messages in use when it is said, not when it was made. */
+type ChangeLabel = (messages: BoundMessages, name: (type: string) => string) => string;
+
 /** What a change did, for the history: its words, and how it joins others and moves the choice. */
 interface ChangeNote {
-  label: string;
+  label: ChangeLabel;
   key?: string;
   selection?: HistorySelection;
-  continues?: HistoryStep<Doc>;
+  continues?: HistoryStep<Doc, ChangeLabel>;
 }
 
 const NO_SOURCES: readonly DataSource[] = [];
 const NONE: ReadonlySet<string> = new Set();
-
-const blockWord = (count: number): string => (count === 1 ? '1 block' : `${count} blocks`);
 
 /**
  * The editor's state and operations, for `NewsletterEditor` and for a host laying the parts out
  * itself: selection, the insertion point, canvas or preview, running refreshes, and every edit,
  * each built on core's pure list operations and handed back through `onChange`.
  *
- * Call it inside a `BlockletterRoot`: refreshes, deletions and undo report through its toasts.
+ * Call it inside a `BlockletterRoot`: refreshes, deletions and undo report through its toasts, in
+ * the root's `messages`. What an undo says it undid is worded when it is undone, so a host that
+ * changes language mid-session hears it in the new one.
  *
  * The footer is repaired for display with `ensureFooter` (one footer, visible, last) and the repair
  * is written back with the next real edit; opening a document never changes it by itself. Each
@@ -192,6 +197,7 @@ export function useNewsletterEditor<B extends BlockBase = BuiltInBlock>({
   defaultSelectedId,
 }: UseNewsletterEditorOptions<B>): NewsletterEditorApi<B> {
   const { toast, dismiss } = useToasts();
+  const messages = useEditorMessages();
   const [initialSelection] = useState(() =>
     value.blocks.some((block) => block.id === defaultSelectedId) ? defaultSelectedId : undefined,
   );
@@ -206,7 +212,7 @@ export function useNewsletterEditor<B extends BlockBase = BuiltInBlock>({
   const running = useRef(new Set<string>());
 
   /** The history itself, which every operation reads the moment it runs. */
-  const history = useRef<EditHistory<Doc>>(startHistory<Doc>(value));
+  const history = useRef<EditHistory<Doc, ChangeLabel>>(startHistory<Doc, ChangeLabel>(value));
   /** Whether there is anything to undo or redo, as this render shows it. */
   const [undoable, setUndoable] = useState(false);
   const [redoable, setRedoable] = useState(false);
@@ -238,12 +244,18 @@ export function useNewsletterEditor<B extends BlockBase = BuiltInBlock>({
   const latest = useRef(document);
   /** The selection as of the last render, for an answer that arrives after an await. */
   const selection = useRef(selectedId);
+  /**
+   * The words in use as of the last render: a step is worded when it is undone, and an answer
+   * that arrives after an await (a refresh) is said in whatever language the editor speaks then.
+   */
+  const words = useRef(messages);
   useLayoutEffect(() => {
     latest.current = document;
     selection.current = selectedId;
+    words.current = messages;
   });
 
-  const keep = useCallback((next: EditHistory<Doc>) => {
+  const keep = useCallback((next: EditHistory<Doc, ChangeLabel>) => {
     history.current = next;
     setUndoable(canUndoIn(next));
     setRedoable(canRedoIn(next));
@@ -299,7 +311,7 @@ export function useNewsletterEditor<B extends BlockBase = BuiltInBlock>({
 
   /** Hands `next` to the host as a step in the history; returns the step it now belongs to. */
   const commit = useCallback(
-    (next: Doc, note: ChangeNote): HistoryStep<Doc> | undefined => {
+    (next: Doc, note: ChangeNote): HistoryStep<Doc, ChangeLabel> | undefined => {
       if (readOnly) return undefined;
       const before = latest.current as Doc;
       withdrawOffer();
@@ -323,7 +335,12 @@ export function useNewsletterEditor<B extends BlockBase = BuiltInBlock>({
    * the choice alone) and saying what happened.
    */
   const restore = useCallback(
-    (next: Doc, rest: EditHistory<Doc>, chosen: string | null | undefined, message: string) => {
+    (
+      next: Doc,
+      rest: EditHistory<Doc, ChangeLabel>,
+      chosen: string | null | undefined,
+      message: string,
+    ) => {
       withdrawOffer();
       const field = focusedTextField();
       caret.current = field ? { field, text: field.value } : null;
@@ -344,21 +361,32 @@ export function useNewsletterEditor<B extends BlockBase = BuiltInBlock>({
     [dismiss, keep, onChange, toast, withdrawOffer],
   );
 
+  /** The name of a block type, in the words in use now. */
+  const name = useCallback(
+    (type: string) => blockName(type, definitions, words.current),
+    [definitions],
+  );
+
+  /** What a step did, in the words in use now. */
+  const worded = useCallback((label: ChangeLabel): string => label(words.current, name), [name]);
+
   const undo = useCallback(() => {
     if (readOnly) return;
     const result = undoIn(history.current);
     if (!result) return;
     const { step } = result;
-    restore(step.before, result.history, step.selection?.before, `Undid: ${step.label}.`);
-  }, [readOnly, restore]);
+    const message = words.current.history.undid(worded(step.label));
+    restore(step.before, result.history, step.selection?.before, message);
+  }, [readOnly, restore, worded]);
 
   const redo = useCallback(() => {
     if (readOnly) return;
     const result = redoIn(history.current);
     if (!result) return;
     const { step } = result;
-    restore(step.after, result.history, step.selection?.after, `Redid: ${step.label}.`);
-  }, [readOnly, restore]);
+    const message = words.current.history.redid(worded(step.label));
+    restore(step.after, result.history, step.selection?.after, message);
+  }, [readOnly, restore, worded]);
 
   const endStep = useCallback(() => {
     history.current = endStepIn(history.current);
@@ -378,8 +406,6 @@ export function useNewsletterEditor<B extends BlockBase = BuiltInBlock>({
     setRefreshing(new Set(running.current));
   }, []);
 
-  const name = useCallback((type: string) => blockLabel(type, definitions), [definitions]);
-
   const insert = useCallback(
     (type: string, index?: number) => {
       const doc = latest.current;
@@ -398,7 +424,7 @@ export function useNewsletterEditor<B extends BlockBase = BuiltInBlock>({
       commit(
         { ...doc, blocks: insertBlock<BlockBase>(doc.blocks, block, at) },
         {
-          label: `added the ${name(type)} block`,
+          label: (m, named) => m.history.added(named(type)),
           selection: { before: selection.current, after: block.id },
         },
       );
@@ -407,7 +433,7 @@ export function useNewsletterEditor<B extends BlockBase = BuiltInBlock>({
       setMode('canvas');
       pendingFocus.current = block.id;
     },
-    [brand, commit, definitions, maxBlocks, name, readOnly],
+    [brand, commit, definitions, maxBlocks, readOnly],
   );
 
   const move = useCallback(
@@ -422,12 +448,12 @@ export function useNewsletterEditor<B extends BlockBase = BuiltInBlock>({
       commit(
         { ...doc, blocks },
         {
-          label: `moved the ${name(block.type)} block`,
+          label: (m, named) => m.history.moved(named(block.type)),
           selection: { before: block.id, after: block.id },
         },
       );
     },
-    [commit, name, readOnly],
+    [commit, readOnly],
   );
 
   const duplicate = useCallback(
@@ -436,9 +462,7 @@ export function useNewsletterEditor<B extends BlockBase = BuiltInBlock>({
       const block = doc.blocks.find((item) => item.id === id);
       if (readOnly || !block || isStructural(block, definitions)) return;
       if (doc.blocks.length >= maxBlocks) {
-        toast(`An issue holds at most ${maxBlocks} blocks. Delete one before adding another.`, {
-          tone: 'error',
-        });
+        toast(words.current.toasts.tooManyBlocks(maxBlocks), { tone: 'error' });
         return;
       }
       const blocks = duplicateBlock<BlockBase>(doc.blocks, id);
@@ -447,14 +471,14 @@ export function useNewsletterEditor<B extends BlockBase = BuiltInBlock>({
       commit(
         { ...doc, blocks },
         {
-          label: `duplicated the ${name(block.type)} block`,
+          label: (m, named) => m.history.duplicated(named(block.type)),
           selection: { before: id, after: copy.id },
         },
       );
       setSelectedId(copy.id);
       pendingFocus.current = copy.id;
     },
-    [commit, definitions, maxBlocks, name, readOnly, toast],
+    [commit, definitions, maxBlocks, readOnly, toast],
   );
 
   const remove = useCallback(
@@ -463,14 +487,16 @@ export function useNewsletterEditor<B extends BlockBase = BuiltInBlock>({
       const at = doc.blocks.findIndex((item) => item.id === id);
       const block = doc.blocks[at];
       if (readOnly || !block || isStructural(block, definitions)) return;
-      const label = name(block.type);
       const chosen = selection.current === id;
       const neighbour = doc.blocks[at + 1] ?? doc.blocks[at - 1];
       const after = chosen ? (neighbour?.id ?? null) : selection.current;
       // No question first: the deletion is a step like any other, and Undo puts the block back.
       const step = commit(
         { ...doc, blocks: removeBlock<BlockBase>(doc.blocks, id) },
-        { label: `deleted the ${label} block`, selection: { before: id, after } },
+        {
+          label: (m, named) => m.history.deleted(named(block.type)),
+          selection: { before: id, after },
+        },
       );
       if (chosen) {
         setSelectedId(after);
@@ -478,9 +504,10 @@ export function useNewsletterEditor<B extends BlockBase = BuiltInBlock>({
         pendingFocus.current = after;
       }
       if (!step) return;
-      offer.current = toast(`${label} deleted.`, {
+      const { toasts } = words.current;
+      offer.current = toast(toasts.deleted(name(block.type)), {
         action: {
-          label: 'Undo',
+          label: toasts.undo,
           // Only ever this deletion: the toast is withdrawn as soon as anything else changes.
           onSelect: () => {
             if (history.current.past.at(-1) !== step) return;
@@ -501,12 +528,13 @@ export function useNewsletterEditor<B extends BlockBase = BuiltInBlock>({
       commit(
         { ...doc, blocks: toggleHiddenIn<BlockBase>(doc.blocks, id) },
         {
-          label: `${block.hidden ? 'showed' : 'hid'} the ${name(block.type)} block`,
+          label: (m, named) =>
+            block.hidden ? m.history.showed(named(block.type)) : m.history.hid(named(block.type)),
           selection: { before: id, after: id },
         },
       );
     },
-    [commit, name, readOnly],
+    [commit, readOnly],
   );
 
   const update = useCallback(
@@ -527,9 +555,8 @@ export function useNewsletterEditor<B extends BlockBase = BuiltInBlock>({
       commit(
         { ...doc, blocks },
         {
-          label: look
-            ? `changed the ${name(block.type)} block’s appearance`
-            : `edited the ${name(block.type)} block`,
+          label: (m, named) =>
+            look ? m.history.restyled(named(block.type)) : m.history.edited(named(block.type)),
           key:
             newest && paths.every((path) => within.includes(path))
               ? newest
@@ -538,7 +565,7 @@ export function useNewsletterEditor<B extends BlockBase = BuiltInBlock>({
         },
       );
     },
-    [commit, name],
+    [commit],
   );
 
   const refresh = useCallback(
@@ -555,30 +582,26 @@ export function useNewsletterEditor<B extends BlockBase = BuiltInBlock>({
         if (!now) return;
         // Someone edited the block while it was refreshing: their edit wins over old data.
         if (now !== block) {
-          toast(
-            `The block changed while it was refreshing, so the ${source.label} data was not applied. Refresh it again to use it.`,
-            { tone: 'info' },
-          );
+          toast(words.current.toasts.refreshChanged(source.label), { tone: 'info' });
           return;
         }
         commit(
           { ...current, blocks: updateBlockIn<BlockBase>(current.blocks, next) },
           {
-            label: `refreshed the ${name(block.type)} block from ${source.label}`,
+            label: (m, named) => m.history.refreshed(named(block.type), source.label),
             selection: { before: id, after: id },
           },
         );
-        toast(`Refreshed from ${source.label}.`);
+        toast(words.current.toasts.refreshed(source.label));
       } catch (cause: unknown) {
-        toast(
-          errorMessage(cause, `The block could not be refreshed from ${source.label}. Try again.`),
-          { tone: 'error' },
-        );
+        toast(errorMessage(cause, words.current.toasts.refreshFailed(source.label)), {
+          tone: 'error',
+        });
       } finally {
         setRunning([id], false);
       }
     },
-    [commit, name, readOnly, setRunning, sources, toast],
+    [commit, readOnly, setRunning, sources, toast],
   );
 
   const updatePeriod = useCallback(
@@ -586,7 +609,7 @@ export function useNewsletterEditor<B extends BlockBase = BuiltInBlock>({
       if (readOnly) return;
       const start = latest.current;
       // The step the refreshed blocks join, so one undo puts back the dates and what they listed.
-      const step = commit({ ...start, period }, { label: 'updated the period' });
+      const step = commit({ ...start, period }, { label: (m) => m.history.periodUpdated });
       const sourced = start.blocks.flatMap((block) => {
         const source = sourceFor(block, sources);
         return source ? [{ block: block as BlockBase, source }] : [];
@@ -616,16 +639,13 @@ export function useNewsletterEditor<B extends BlockBase = BuiltInBlock>({
         blocks = updateBlockIn(blocks, result.value);
       });
       if (blocks !== current.blocks) {
-        commit({ ...current, blocks }, { label: 'updated the period', continues: step });
+        commit({ ...current, blocks }, { label: (m) => m.history.periodUpdated, continues: step });
       }
       setRunning(ids, false);
       if (failed) {
-        toast(
-          `${blockWord(failed)} could not be refreshed for the new dates. Refresh them again from the canvas.`,
-          { tone: 'error' },
-        );
+        toast(words.current.toasts.periodRefreshFailed(failed), { tone: 'error' });
       } else {
-        toast(`Period updated. ${blockWord(sourced.length)} refreshed for the new dates.`);
+        toast(words.current.toasts.periodUpdated(sourced.length));
       }
     },
     [commit, readOnly, setRunning, sources, toast],
@@ -633,14 +653,17 @@ export function useNewsletterEditor<B extends BlockBase = BuiltInBlock>({
 
   const setSubject = useCallback(
     (subject: string) =>
-      void commit({ ...latest.current, subject }, { label: 'edited the subject', key: 'subject' }),
+      void commit(
+        { ...latest.current, subject },
+        { label: (m) => m.history.subjectEdited, key: 'subject' },
+      ),
     [commit],
   );
   const setPreheader = useCallback(
     (preheader: string) =>
       void commit(
         { ...latest.current, preheader },
-        { label: 'edited the preview line', key: 'preheader' },
+        { label: (m) => m.history.preheaderEdited, key: 'preheader' },
       ),
     [commit],
   );

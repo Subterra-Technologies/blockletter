@@ -1,4 +1,5 @@
 import { defineBlock } from '../definition';
+import { issuesFrom } from '../issues';
 import { LIMITS } from '../limits';
 import { formatShortDate, isIsoDate } from '../period';
 import type { EventTilesBlock } from '../types';
@@ -32,8 +33,17 @@ export const eventTilesBlock = defineBlock<EventTilesBlock>({
             .string('ref', { optional: true, label: 'source reference' });
         },
       ).issues,
-  issues: (block) =>
-    block.items.length > LIMITS.eventTiles ? [`Choose at most ${LIMITS.eventTiles} events.`] : [],
+  issues: issuesFrom((block) =>
+    block.items.length > LIMITS.eventTiles
+      ? [
+          {
+            code: 'too_many_events',
+            message: `Choose at most ${LIMITS.eventTiles} events.`,
+            values: { max: LIMITS.eventTiles },
+          },
+        ]
+      : [],
+  ),
   summary: (block) => joinNames(block.items.map((item) => item.title)) || block.heading,
   render(block, ctx) {
     const items = block.items.slice(0, LIMITS.eventTiles);

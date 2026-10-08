@@ -117,7 +117,10 @@ export interface BlockDefinition<B extends BlockBase = BlockBase> {
   create(): BlockBody<B>;
   /** Shape and rule checks of untrusted input at `path`. An empty array means valid. */
   validate(block: unknown, path: string): ValidationIssue[];
-  /** Soft warnings the editor shows while the block is selected ("Add alt text…"). */
+  /**
+   * Soft warnings the editor shows while the block is selected ("Add alt text…"). The built-in
+   * blocks' also carry stable codes, which `blockIssueDetails` reads.
+   */
   issues?(block: B): string[];
   /** The text the block carries, for one-line lists; `blockSummary` prefixes the label. */
   summary?(block: B): string;

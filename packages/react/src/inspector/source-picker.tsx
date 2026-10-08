@@ -1,6 +1,7 @@
 import { useEffect, useEffectEvent, useId, useState, type ReactNode } from 'react';
 import type { DataSource, SourcedItem } from '@subterra-technologies/blockletter';
 import { useEditorContext } from '../editor/context';
+import { useEditorMessages } from '../i18n/context';
 import { errorMessage } from '../lib/errors';
 import { Button } from '../ui/button';
 import { Checkbox } from '../ui/checkbox';
@@ -77,6 +78,7 @@ export function SourcePicker<T extends SourcedItem>({
   arrange = (next) => next,
 }: SourcePickerProps<T>) {
   const { period } = useEditorContext();
+  const { sources: words, common } = useEditorMessages();
   const id = useId();
   const labelId = `${id}-label`;
   const limitId = `${id}-limit`;
@@ -129,13 +131,12 @@ export function SourcePicker<T extends SourcedItem>({
         }))
       : [];
   const full = limit !== undefined && items.length >= limit;
-  const count = limit === undefined ? `${items.length}` : `${items.length}/${limit}`;
 
   let body: ReactNode;
   if (!current) {
     body = (
       <div role="status" className="bl:flex bl:flex-col bl:gap-2">
-        <span className="bl:sr-only">Loading {source.label}…</span>
+        <span className="bl:sr-only">{words.loading(source.label)}</span>
         <Skeleton aria-hidden="true" className="bl:h-9 bl:w-full" />
         <Skeleton aria-hidden="true" className="bl:h-9 bl:w-full" />
       </div>
@@ -146,21 +147,15 @@ export function SourcePicker<T extends SourcedItem>({
         role="alert"
         className="bl:flex bl:flex-wrap bl:items-center bl:justify-between bl:gap-2 bl:rounded-md bl:border bl:border-danger/30 bl:bg-danger-soft bl:px-3 bl:py-2 bl:text-[0.8125rem] bl:text-danger"
       >
-        <span>
-          {source.label} could not be loaded.{current.error ? ` ${current.error}` : ''}
-        </span>
+        <span>{words.failed(source.label, current.error)}</span>
         <Button type="button" variant="outline" size="sm" onClick={() => setAttempt((n) => n + 1)}>
-          Try again
+          {common.tryAgain}
         </Button>
       </div>
     );
   } else if (candidates.length === 0) {
     body = (
-      <Note>
-        {period
-          ? `Nothing from ${source.label} for this issue’s dates yet.`
-          : `Nothing from ${source.label} yet.`}
-      </Note>
+      <Note>{period ? words.nothingForDates(source.label) : words.nothing(source.label)}</Note>
     );
   } else {
     body = (
@@ -189,7 +184,7 @@ export function SourcePicker<T extends SourcedItem>({
               />
               <span className="bl:flex bl:min-w-0 bl:flex-col bl:gap-0.5">
                 <Label htmlFor={optionId} className="bl:leading-snug">
-                  {name || 'Untitled'}
+                  {name || common.untitled}
                 </Label>
                 {detail ? (
                   <span
@@ -209,12 +204,10 @@ export function SourcePicker<T extends SourcedItem>({
 
   return (
     <div className="bl:flex bl:min-w-0 bl:flex-col bl:gap-2">
-      <GroupLabel id={labelId}>
-        Pick from {source.label} ({count})
-      </GroupLabel>
+      <GroupLabel id={labelId}>{words.pickFrom(source.label, items.length, limit)}</GroupLabel>
       {body}
       {full && candidates.some((candidate) => !items.some((item) => item.ref === candidate.ref)) ? (
-        <Hint id={limitId}>That is as many as this block shows. Uncheck one to pick another.</Hint>
+        <Hint id={limitId}>{words.full}</Hint>
       ) : null}
       {help ? <Hint>{help}</Hint> : null}
     </div>

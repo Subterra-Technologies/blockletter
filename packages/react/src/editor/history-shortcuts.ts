@@ -1,4 +1,6 @@
 import { useSyncExternalStore } from 'react';
+import { englishMessages } from '../i18n/context';
+import type { BoundMessages } from '../i18n/resolve';
 
 /**
  * The keyboard side of undo and redo: which key presses they are, how to write them for people
@@ -39,14 +41,23 @@ export interface ShortcutText {
   aria: string;
 }
 
-/** Undo and redo's shortcuts as an Apple keyboard (⌘) or any other (Ctrl) has them. */
-export function historyShortcuts(apple: boolean): Readonly<Record<HistoryAction, ShortcutText>> {
-  return apple
-    ? { undo: { label: '⌘Z', aria: 'Meta+Z' }, redo: { label: '⇧⌘Z', aria: 'Meta+Shift+Z' } }
-    : {
-        undo: { label: 'Ctrl+Z', aria: 'Control+Z' },
-        redo: { label: 'Ctrl+Shift+Z', aria: 'Control+Shift+Z Control+Y' },
-      };
+/**
+ * Undo and redo's shortcuts as an Apple keyboard (⌘) or any other (Ctrl) has them: for people in
+ * the editor's words (a German keyboard says Strg), and for `aria-keyshortcuts` in the names the
+ * attribute takes, which are never translated.
+ */
+export function historyShortcuts(
+  apple: boolean,
+  messages: BoundMessages = englishMessages,
+): Readonly<Record<HistoryAction, ShortcutText>> {
+  const { shortcut } = messages.common;
+  return {
+    undo: { label: shortcut({ key: 'Z', apple }), aria: apple ? 'Meta+Z' : 'Control+Z' },
+    redo: {
+      label: shortcut({ key: 'Z', apple, shift: true }),
+      aria: apple ? 'Meta+Shift+Z' : 'Control+Shift+Z Control+Y',
+    },
+  };
 }
 
 const NEVER_CHANGES = () => () => undefined;

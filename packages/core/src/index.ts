@@ -38,7 +38,15 @@ export {
 export { getDefinition, paletteGroups, type PaletteGroup } from './registry';
 
 // Blocks and documents
-export { blockIssues, blockLabel, blockSummary, isStructural, styleSummary } from './registry';
+export {
+  blockIssueDetails,
+  blockIssues,
+  blockLabel,
+  blockSummary,
+  isStructural,
+  styleSummary,
+} from './registry';
+export type { BlockIssue } from './issues';
 export { createBlock, createDocument, migrateDocument } from './document';
 export { newBlockId } from './ids';
 export {
@@ -66,6 +74,7 @@ export {
   type ChoiceOptions,
   type ColorOptions,
   type FieldOptions,
+  type ImageProblem,
   type ListOptions,
   type TextOptions,
   type ValidatorOptions,
@@ -82,6 +91,7 @@ export {
   type RenderedEmail,
   type RenderLabels,
   type RenderOptions,
+  type RenderWarning,
 } from './render';
 export { absoluteUrl, escapeHtml, splitParagraphs } from './html';
 export { RESPONSIVE_CLASSES } from './responsive';
@@ -116,6 +126,7 @@ export {
   AP_MONTHS,
   DEFAULT_LOOKAHEAD_DAYS,
   MONTH_NAMES,
+  PERIOD_ERROR_MESSAGES,
   PERIOD_PRESETS,
   addDays,
   applyPeriodPreset,
@@ -127,12 +138,15 @@ export {
   monthLabel,
   monthPeriod,
   parseShortDate,
+  periodErrorCodes,
   periodErrors,
   periodLabel,
   presetRange,
   suggestPeriod,
   todayIn,
   validatePeriod,
+  type PeriodErrorCode,
+  type PeriodErrorCodes,
   type PeriodErrors,
   type PeriodPreset,
   type PeriodRules,

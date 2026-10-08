@@ -1,4 +1,5 @@
 import type { RenderContext } from '../definition';
+import type { BlockIssue } from '../issues';
 import { LIMITS, formatCount } from '../limits';
 import type { ImageRef } from '../types';
 
@@ -12,12 +13,32 @@ export const TABLE =
 export const gapCell = (ctx: RenderContext, width: number): string =>
   `<td class="${ctx.classes.gap}" width="${width}" style="width:${width}px;font-size:0;line-height:0;">&nbsp;</td>`;
 
-export const ALT_TEXT_ISSUE = 'Add alt text so screen readers can describe the image.';
+export const ALT_TEXT_ISSUE: BlockIssue = {
+  code: 'missing_alt',
+  message: 'Add alt text so screen readers can describe the image.',
+};
+
+export const MISSING_BUTTON_LABEL: BlockIssue = {
+  code: 'missing_button_label',
+  message: 'Give the button a label.',
+};
+
+/**
+ * The fields a built-in block's issues say are too long, by the word for them in the message:
+ * `values.field` of a `too_long` issue.
+ */
+export type LongTextField = 'text' | 'article' | 'letter' | 'quote' | 'column_text';
 
 /** "Keep the text to 5,000 characters or fewer." when `value` is over the limit. */
-export const tooLong = (label: string, value: string | undefined): string[] =>
+export const tooLong = (field: LongTextField, value: string | undefined): BlockIssue[] =>
   (value ?? '').length > LIMITS.maxTextLength
-    ? [`Keep the ${label} to ${formatCount(LIMITS.maxTextLength)} characters or fewer.`]
+    ? [
+        {
+          code: 'too_long',
+          message: `Keep the ${field.replace('_', ' ')} to ${formatCount(LIMITS.maxTextLength)} characters or fewer.`,
+          values: { field, max: LIMITS.maxTextLength },
+        },
+      ]
     : [];
 
 /** True when an image is set but nothing describes it. */

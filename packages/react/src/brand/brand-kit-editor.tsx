@@ -11,6 +11,8 @@ import {
   type BrandKit,
   type ValidationIssue,
 } from '@subterra-technologies/blockletter';
+import { useEditorMessages } from '../i18n/context';
+import { brandKitIssueText } from '../i18n/core-words';
 import { errorMessage } from '../lib/errors';
 import { sameBlock } from '../inspector/editor-base';
 import { FieldPair, Note, SelectField, TextField } from '../inspector/editor-fields';
@@ -24,12 +26,8 @@ import { BrandColorField } from './brand-color-field';
 type ColorKey = keyof BrandKit['colors'];
 type ContactKey = keyof BrandKit['contact'];
 
-const COLOR_FIELDS: readonly { key: ColorKey; label: string; hint: string }[] = [
-  { key: 'ink', label: 'Ink', hint: 'Text and headings, and the dark bands and footer.' },
-  { key: 'accent', label: 'Accent', hint: 'Buttons, small labels and big numbers.' },
-  { key: 'highlight', label: 'Highlight', hint: 'The big day numbers on event tiles.' },
-  { key: 'page', label: 'Page', hint: 'Behind the email, and the soft section background.' },
-];
+/** The brand colours, in the order the form asks for them. */
+const COLOR_FIELDS: readonly ColorKey[] = ['ink', 'accent', 'highlight', 'page'];
 
 /** WCAG AA for body text, which every pairing below carries. */
 const AA = 4.5;
@@ -89,6 +87,8 @@ export function BrandKitEditor({
   headingId,
 }: BrandKitEditorProps) {
   const { toast } = useToasts();
+  const m = useEditorMessages();
+  const words = m.brandKit;
   const autoId = useId();
   const [edits, setEdits] = useState<BrandKit | null>(null);
   const [saving, setSaving] = useState(false);
@@ -101,8 +101,10 @@ export function BrandKitEditor({
   const draft = edits ?? value;
   const dirty = edits !== null && !sameBlock(edits, value);
   const issues = checked ? validateBrandKit(draft) : [];
-  const errorAt = (path: string): string | undefined =>
-    issues.find((issue) => fieldPath(issue) === path)?.message;
+  const errorAt = (path: string): string | undefined => {
+    const issue = issues.find((candidate) => fieldPath(candidate) === path);
+    return issue && brandKitIssueText(issue, m);
+  };
   const elsewhere = issues.filter((issue) => {
     const path = fieldPath(issue);
     return !FIELD_PATHS.has(path) && !/^social\/\d+\/url$/.test(path);
@@ -131,9 +133,9 @@ export function BrandKitEditor({
   // The two pairings that carry text: ink on the page, and a button label on the accent.
   const contrastWarning =
     inkContrast < AA
-      ? `Ink on page is ${inkContrast.toFixed(1)}:1, below the 4.5:1 minimum for body text. Pick a darker ink or a lighter page.`
+      ? words.inkContrast(inkContrast, AA)
       : buttonContrast < AA
-        ? `Button labels on the accent colour are ${buttonContrast.toFixed(1)}:1, below the 4.5:1 minimum. Try a darker or lighter accent.`
+        ? words.buttonContrast(buttonContrast, AA)
         : '';
 
   function edit(change: Partial<BrandKit>): void {
@@ -164,9 +166,9 @@ export function BrandKitEditor({
       setEdits((current) => (current && !sameBlock(current, saved) ? current : null));
       setChecked(false);
       pendingFocus.current = 'saved';
-      toast('Brand kit saved.');
+      toast(m.toasts.brandKitSaved);
     } catch (cause: unknown) {
-      setError(errorMessage(cause, 'The brand kit was not saved. Try again.'));
+      setError(errorMessage(cause, words.saveFailed));
     } finally {
       setSaving(false);
     }
@@ -205,33 +207,31 @@ export function BrandKitEditor({
           tabIndex={-1}
           className="bl:text-[0.9375rem] bl:font-semibold bl:text-foreground bl:outline-none"
         >
-          Brand kit
+          {words.heading}
         </h2>
-        <Note>
-          Every issue is styled with these. Saving restyles every issue that has not gone out yet.
-        </Note>
+        <Note>{words.note}</Note>
       </div>
 
       <fieldset disabled={readOnly} className="bl:flex bl:min-w-0 bl:flex-col bl:gap-6">
         <section aria-labelledby={`${autoId}-org`} className="bl:flex bl:flex-col bl:gap-4">
           <h3 id={`${autoId}-org`} className="bl:text-[0.8125rem] bl:font-semibold">
-            Organisation
+            {words.organisation}
           </h3>
           <TextField
-            label="Organisation name"
+            label={words.name}
             value={draft.name}
             maxLength={120}
             error={errorAt('name')}
-            help="The footer’s first line, and the header’s text when there is no logo."
+            help={words.nameHelp}
             onChange={(name) => edit({ name })}
           />
           <ImageField
-            label="Logo"
+            label={words.logo}
             value={draft.logo}
             fit="contain"
             disabled={readOnly}
             error={errorAt('logo')}
-            help="Wide logos read best in email."
+            help={words.logoHelp}
             onChange={(logo) => {
               const next = { ...draft };
               if (logo) next.logo = logo;
@@ -243,17 +243,17 @@ export function BrandKitEditor({
 
         <section aria-labelledby={`${autoId}-colors`} className="bl:flex bl:flex-col bl:gap-4">
           <h3 id={`${autoId}-colors`} className="bl:text-[0.8125rem] bl:font-semibold">
-            Colours
+            {words.colors}
           </h3>
-          {COLOR_FIELDS.map((field) => (
+          {COLOR_FIELDS.map((key) => (
             <BrandColorField
-              key={field.key}
-              label={field.label}
-              hint={field.hint}
-              value={draft.colors[field.key]}
-              fallback={DEFAULT_BRAND.colors[field.key]}
-              error={errorAt(`colors/${field.key}`)}
-              onChange={(color) => setColor(field.key, color)}
+              key={key}
+              label={words.colorFields[key].label}
+              hint={words.colorFields[key].hint}
+              value={draft.colors[key]}
+              fallback={DEFAULT_BRAND.colors[key]}
+              error={errorAt(`colors/${key}`)}
+              onChange={(color) => setColor(key, color)}
             />
           ))}
           {contrastWarning ? (
@@ -269,18 +269,18 @@ export function BrandKitEditor({
 
         <section aria-labelledby={`${autoId}-fonts`} className="bl:flex bl:flex-col bl:gap-4">
           <h3 id={`${autoId}-fonts`} className="bl:text-[0.8125rem] bl:font-semibold">
-            Fonts
+            {words.fonts}
           </h3>
           <FieldPair>
             <SelectField
-              label="Heading font"
+              label={words.headingFont}
               value={draft.fonts.heading}
               options={FONT_OPTIONS}
               error={errorAt('fonts/heading')}
               onChange={(font) => setFont('heading', font)}
             />
             <SelectField
-              label="Body font"
+              label={words.bodyFont}
               value={draft.fonts.body}
               options={FONT_OPTIONS}
               error={errorAt('fonts/body')}
@@ -289,7 +289,7 @@ export function BrandKitEditor({
           </FieldPair>
           <div
             role="img"
-            aria-label="Font sample"
+            aria-label={words.fontSample}
             className="bl:flex bl:flex-col bl:gap-1 bl:rounded-md bl:border bl:px-4 bl:py-3"
             style={{ background: palette.page, color: palette.text }}
           >
@@ -300,36 +300,36 @@ export function BrandKitEditor({
                 lineHeight: 1.25,
               }}
             >
-              This month at a glance
+              {words.sampleHeading}
             </span>
             <span style={{ fontFamily: fontStack(draft.fonts.body), fontSize: '0.875rem' }}>
-              Events, new faces and news, in your own colours and type.
+              {words.sampleBody}
             </span>
           </div>
         </section>
 
         <section aria-labelledby={`${autoId}-contact`} className="bl:flex bl:flex-col bl:gap-4">
           <h3 id={`${autoId}-contact`} className="bl:text-[0.8125rem] bl:font-semibold">
-            Contact
+            {words.contact}
           </h3>
-          <Note>Every footer uses these unless an issue gives its own.</Note>
-          {contactField('address', 'Address')}
+          <Note>{words.contactNote}</Note>
+          {contactField('address', words.address)}
           <FieldPair>
-            {contactField('phone', 'Phone', 'tel')}
-            {contactField('email', 'Email', 'email')}
+            {contactField('phone', words.phone, 'tel')}
+            {contactField('email', words.email, 'email')}
           </FieldPair>
-          {contactField('website', 'Website', 'url')}
+          {contactField('website', words.website, 'url')}
           <SocialLinksField
             links={draft.social}
             onChange={(social) => edit({ social })}
-            empty="No social links yet."
+            empty={m.socialLinks.none}
             urlErrors={draft.social.map((_, index) => errorAt(`social/${index}/url`))}
           />
         </section>
       </fieldset>
 
       {elsewhere.length ? (
-        <FieldError errors={elsewhere.map((issue) => ({ message: issue.message }))} />
+        <FieldError errors={elsewhere.map((issue) => ({ message: brandKitIssueText(issue, m) }))} />
       ) : null}
       {error ? <FieldError>{error}</FieldError> : null}
       {readOnly ? null : (
@@ -341,11 +341,11 @@ export function BrandKitEditor({
             disabled={!dirty}
             aria-busy={saving || undefined}
           >
-            {saving ? 'Saving…' : 'Save brand kit'}
+            {saving ? m.common.saving : words.save}
           </Button>
           {dirty ? (
             <Button type="button" variant="ghost" size="sm" disabled={saving} onClick={discard}>
-              Discard changes
+              {words.discard}
             </Button>
           ) : null}
         </div>

@@ -1,5 +1,6 @@
 import { labelOn, type SponsorsBlock } from '@subterra-technologies/blockletter';
 import type { BlockCanvasProps } from '../../editor/types';
+import { useEditorMessages } from '../../i18n/context';
 import { blockBackground } from '../canvas-theme';
 import { CanvasSection, CanvasNote, bodyStyle, headingStyle } from './shared';
 
@@ -20,6 +21,7 @@ const tileText = (name: string): string =>
 
 /** A logo (or an initials tile, alternating accent and ink) beside each sponsor's thank-you. */
 export function SponsorsCanvas(canvas: BlockCanvasProps<SponsorsBlock>) {
+  const words = useEditorMessages().blocks.sponsors;
   const { block, palette, fonts, px, image } = canvas;
   const heading = block.heading.trim();
   return (
@@ -27,7 +29,7 @@ export function SponsorsCanvas(canvas: BlockCanvasProps<SponsorsBlock>) {
       {heading ? <p style={headingStyle(canvas)}>{block.heading}</p> : null}
       {block.items.length === 0 ? (
         <CanvasNote canvas={canvas} background={blockBackground(block, palette.card)}>
-          No sponsors yet. The block stays out of the email until it has one.
+          {words.emptyCanvas}
         </CanvasNote>
       ) : (
         block.items.map((item, index) => {

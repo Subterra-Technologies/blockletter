@@ -82,6 +82,7 @@ newBlockId(type): string;
 blockLabel(type, definitions?): string;
 blockSummary(block, definitions?): string;
 blockIssues(block, definitions?): string[];
+blockIssueDetails(block, definitions?): BlockIssue[]; // the same, with codes: { code?, message, values? }
 isStructural(block, definitions?): boolean;
 createDocument(init?: Partial<NewsletterDocument>): NewsletterDocument;
 migrateDocument(input: unknown): NewsletterDocument; // upgrades older versions; v1 is identity
@@ -97,6 +98,7 @@ BLOCK_ALIGNMENTS; BLOCK_PADDINGS; BLOCK_FONT_SIZES; SOCIAL_NETWORKS; styleSummar
 validateDocument(doc, definitions?): ValidationIssue[];
 assertValidDocument(doc, definitions?): asserts doc is NewsletterDocument; // throws BlockletterValidationError
 class BlockletterValidationError extends Error { issues: ValidationIssue[] }
+interface ValidationIssue { code; message; blockId?; path?; values? } // values: { max }, { min }, { problem }…
 ```
 
 ### Rendering
@@ -115,7 +117,8 @@ interface RenderOptions {
   lang?: string;                          // <html lang>; default 'en'
   labels?: Partial<RenderLabels>;         // 'Read more', 'Manage preferences', 'Unsubscribe', …
 }
-interface RenderedEmail { html: string; text: string; warnings: string[] }
+interface RenderedEmail { html: string; text: string; warnings: string[]; warningDetails: RenderWarning[] }
+interface RenderWarning { code?: string; message: string; values?: Record<string, string | number> }
 
 renderEmail(doc, options?): RenderedEmail;
 renderBlock(block, options?): RenderedBlock;   // one block's rows, e.g. to draw a host block on a canvas
@@ -171,6 +174,8 @@ isIsoDate(value); addDays(iso, days); compareIsoDates(a, b);
 todayIn(timeZone: string, now?: Date): string;       // 'YYYY-MM-DD' in that zone
 monthPeriod(monthKey): IssuePeriod; periodLabel(period): string;
 validatePeriod(period, rules?): string[]; periodErrors(period, rules?): PeriodErrors;
+periodErrorCodes(period, rules?): PeriodErrorCodes;   // the same problems as codes
+PERIOD_ERROR_MESSAGES;                                // the English for each code
 PERIOD_PRESETS; presetRange(preset, today); applyPeriodPreset(…);
 suggestPeriod(today, preset?, { lookaheadDays? }): IssuePeriod;
 formatShortDate(iso, months?): string;                // AP style: "Sept. 5"
@@ -199,6 +204,29 @@ Refresh rules: `event_tiles` takes the source's first `limit` items; `sponsors`,
 and `post_list` replace previously sourced items (those with `ref`) and keep hand-written ones;
 `dated_list` keeps hand-written lines, adds the source's, and orders by `sortDate`. A block that
 gains items is un-hidden; assembly hides sourced blocks that come back empty.
+
+### Words for a person, with codes
+
+Every sentence core writes for a person to read also comes with a stable code and the values it
+was made from, so an editor or a host can say the same thing in another language. The English
+stays exactly as it was; the codes sit beside it.
+
+- **A built-in block's issues**, from `blockIssueDetails()`: `missing_alt`, `missing_title`,
+  `missing_signature`, `missing_photo_alt`, `missing_sponsor_name`, `too_long` (`field`, `max`),
+  `too_many_events` and `too_many_posts` (`max`), `column_count`, `photo_count` and
+  `number_count` (`min`, `max`), `missing_button_label`, `missing_button_link` and
+  `missing_callout_link`.
+- **Render warnings**, from `warningDetails`: `no_unsubscribe_url`, `local_image`,
+  `relative_link`, `missing_alt` (`type`, `label`), `unknown_block` (`type`) and `gmail_clip`
+  (`kilobytes`).
+- **A period's problems**, from `periodErrorCodes()`: `missing_start`, `start_after_end`,
+  `missing_end`, `end_after_today`, `missing_lookahead` and `lookahead_before_end`.
+- **Validation issues**, by `code` and `path`, with `values`: `max` (`too_long`,
+  `too_many_items`, `too_many_blocks`), `min` (`too_few_items`) and `problem` (`invalid_image`).
+
+A host's own block words its issues and warnings itself, in its own language, so they come without
+a code. A built-in block's issues keep their codes in a definition that spreads it, and lose them
+when a host replaces its `issues` with its own.
 
 ### Documents from other languages and LLMs
 
@@ -250,6 +278,8 @@ import '@subterra-technologies/blockletter-react/styles.css';
   renderOptions={{ baseUrl, … }}    // passed to the live preview
   readOnly={status !== 'draft'}
   toolbar={<HostActions />}         // the host's Save / Approve / Send
+  messages={es}                     // optional; the editor's words, over enMessages
+  locale="es"                       // optional; its lang, and how it writes numbers and dates
 />
 ```
 
@@ -261,6 +291,36 @@ them: `undo()`, `redo()`, `canUndo`, `canRedo`).
 
 Editor block definitions extend core ones with UI: `{ ...coreDefinition, icon, Editor, Canvas? }`.
 A custom block with no `Canvas` is drawn on the canvas from its email HTML.
+
+### Languages
+
+```ts
+enMessages: EditorMessages;                // every word the editor shows or says, in English
+type EditorMessageOverrides;               // any part of it, to the depth needed
+interface EditorFormat { locale; number(value, fractionDigits?); date(iso) }
+<BlockletterRoot messages={es} locale="es">  // what every part inside reads its words from
+```
+
+Every word the editor shows or says (visible text, accessible names, tooltips, placeholders,
+toasts, live-region announcements, dialogs, empty states and errors) comes from `EditorMessages`,
+grouped by the part of the editor it belongs to. Text with values in it is a function of those
+values, with the editor's `EditorFormat` last, never a template with placeholders, so word order
+and plural forms are the translator's. The parts read the words through an internal hook from the
+nearest `BlockletterRoot`, which lays its `messages` over the English (or over an enclosing
+root's), so a host composing the parts itself translates them in one place.
+
+`locale` sets the root's `lang` and drives `Intl` for the numbers and dates the editor writes
+itself; without one, the editor writes them as it always has. The built-in blocks' names and
+descriptions are messages too, unless a host's definition gives a built-in type words of its own;
+a host's own blocks bring their own. Core's sentences (block issues, render warnings, brand kit
+and period errors) are worded from their codes.
+
+Three sets of words meet in the editor, and each has its own owner: the editor's (`messages`),
+the email's ("Read more", month names, "Unsubscribe": `RenderOptions.labels`, which the canvas
+and the preview use exactly as the renderer does), and the issue's own (its text, a new block's
+sample words from its definition's `create`, a template's). The email's language can differ from
+the editor's. A test renders the editor in a pseudo-locale, every message wrapped in markers, and
+fails on any visible text, `aria-label`, `title`, `placeholder` or `alt` that is not.
 
 ### Styling
 

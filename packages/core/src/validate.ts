@@ -8,7 +8,9 @@ import type { ValidationIssue } from './types';
  * that can live anywhere needs its own.
  *
  * Every built-in block validates itself with these, and they are exported so a host's own block
- * can do the same. Messages are plain English a person can act on; `path` says where, for code.
+ * can do the same. Messages are plain English a person can act on; `path` says where, for code,
+ * and `values` carries anything else a message was made from (a limit, the part of an image that
+ * is wrong), so a form in another language can word the same problem from `code` and `path`.
  *
  * Issue codes: `invalid_document`, `unsupported_version`, `invalid_type`, `required`, `too_long`,
  * `invalid_value`, `invalid_color`, `invalid_date`, `invalid_image`, `invalid_email`,
@@ -39,6 +41,16 @@ const words = (key: string): string =>
 
 const UNREADABLE = 'is not in a format Blockletter can read.';
 const COLOR_MESSAGE = 'Colours must be six-digit hex values such as #1f2937.';
+
+/** What an issue's message was made from, beyond its code and path. */
+type IssueValues = Readonly<Record<string, string | number>>;
+
+/**
+ * Which part of an image is wrong, as `values.problem` on an `invalid_image` issue: not an image
+ * at all, an asset id that is not text, a `url` that is not text, an address that is not http(s),
+ * or neither an address nor an asset id.
+ */
+export type ImageProblem = 'unreadable' | 'asset_id' | 'not_text' | 'not_web' | 'no_address';
 
 export interface FieldOptions {
   /** Absent is fine; present must still be valid. */
@@ -112,17 +124,23 @@ export class ObjectValidator {
   }
 
   /** Records a problem at `key` below this object, or at the object itself. */
-  add(code: string, message: string, key?: string | number): this {
-    return this.addAt(key === undefined ? this.path : joinPath(this.path, key), code, message);
+  add(code: string, message: string, key?: string | number, values?: IssueValues): this {
+    return this.addAt(
+      key === undefined ? this.path : joinPath(this.path, key),
+      code,
+      message,
+      values,
+    );
   }
 
   /** Records a problem at an absolute `path`. */
-  addAt(path: string, code: string, message: string): this {
+  addAt(path: string, code: string, message: string, values?: IssueValues): this {
     this.issues.push({
       code,
       message,
       ...(this.blockId ? { blockId: this.blockId } : {}),
       ...(path ? { path } : {}),
+      ...(values ? { values } : {}),
     });
     return this;
   }
@@ -152,6 +170,7 @@ export class ObjectValidator {
         'too_long',
         `Keep the ${label} to ${formatCount(options.max)} characters or fewer.`,
         key,
+        { max: options.max },
       );
     }
     return this;
@@ -206,23 +225,42 @@ export class ObjectValidator {
     if (this.skip(key, options)) return this;
     const value = this.value[key];
     const label = options.label ?? words(key);
-    if (!isRecord(value)) return this.add('invalid_image', `The ${label} ${UNREADABLE}`, key);
+    const problem = (kind: ImageProblem): IssueValues => ({ problem: kind });
+    if (!isRecord(value)) {
+      return this.add('invalid_image', `The ${label} ${UNREADABLE}`, key, problem('unreadable'));
+    }
     const { url, assetId } = value;
     if (assetId !== undefined && typeof assetId !== 'string') {
-      this.add('invalid_image', `The ${label}'s asset id should be text.`, `${key}/assetId`);
+      this.add(
+        'invalid_image',
+        `The ${label}'s asset id should be text.`,
+        `${key}/assetId`,
+        problem('asset_id'),
+      );
     }
     if (typeof url !== 'string') {
-      return this.add('invalid_image', `The ${label} needs a web address.`, `${key}/url`);
+      return this.add(
+        'invalid_image',
+        `The ${label} needs a web address.`,
+        `${key}/url`,
+        problem('not_text'),
+      );
     }
     if (url.trim() && !/^https?:\/\//i.test(url.trim())) {
       return this.add(
         'invalid_image',
         `The ${label} needs a web address starting with https://.`,
         `${key}/url`,
+        problem('not_web'),
       );
     }
     if (!url.trim() && !(typeof assetId === 'string' && assetId.trim())) {
-      return this.add('invalid_image', `The ${label} has no address.`, `${key}/url`);
+      return this.add(
+        'invalid_image',
+        `The ${label} has no address.`,
+        `${key}/url`,
+        problem('no_address'),
+      );
     }
     return this;
   }
@@ -252,13 +290,17 @@ export class ObjectValidator {
       return this.add('invalid_type', `The ${label} should be a list.`, key);
     }
     if (options.min !== undefined && value.length < options.min) {
-      this.add('too_few_items', options.tooFew ?? `Add at least ${options.min} ${label}.`, key);
+      this.add('too_few_items', options.tooFew ?? `Add at least ${options.min} ${label}.`, key, {
+        min: options.min,
+        ...(options.max !== undefined ? { max: options.max } : {}),
+      });
     }
     if (options.max !== undefined && value.length > options.max) {
       this.add(
         'too_many_items',
         options.tooMany ?? `Keep the ${label} to ${options.max} or fewer.`,
         key,
+        { max: options.max, ...(options.min !== undefined ? { min: options.min } : {}) },
       );
     }
     if (each) {
@@ -309,6 +351,7 @@ function checkTextLength(value: unknown, path: string, check: ObjectValidator): 
         path,
         'too_long',
         `Keep each text field to ${formatCount(LIMITS.maxTextLength)} characters or fewer.`,
+        { max: LIMITS.maxTextLength },
       );
     }
   } else if (Array.isArray(value)) {
