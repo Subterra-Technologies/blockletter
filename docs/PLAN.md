@@ -117,7 +117,6 @@ Dogfooding proves the API in real products.
   ([#4](https://github.com/Subterra-Technologies/blockletter/issues/4)). (Mobile-responsive email is done.)
 - Social icons ([#5](https://github.com/Subterra-Technologies/blockletter/issues/5)), merge tags and personalisation ([#6](https://github.com/Subterra-Technologies/blockletter/issues/6)).
 - Two panes between 768 and 1023px of editor width ([#9](https://github.com/Subterra-Technologies/blockletter/issues/9)).
-- i18n: editor labels and render labels.
 - Recipes: Next.js with a hosted database, a serverless send route, plain Node rendering.
 
 ### 8 — Open-source launch checklist
