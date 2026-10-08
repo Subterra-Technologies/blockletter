@@ -1,5 +1,6 @@
 import { useId, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { ArrowDownIcon, ArrowUpIcon, Trash2Icon } from 'lucide-react';
+import { useEditorMessages } from '../i18n/context';
 import { Button } from '../ui/button';
 import { LiveRegion } from '../ui/live-region';
 import { AddButton, GroupLabel, Hint, Note } from './editor-fields';
@@ -21,8 +22,6 @@ type Control = 'first' | 'title' | 'up' | 'down';
 
 const FOCUSABLE =
   'input:not([type="hidden"]):not([disabled]), textarea:not([disabled]), select:not([disabled]), button:not([disabled])';
-
-const capitalize = (text: string): string => text.charAt(0).toUpperCase() + text.slice(1);
 
 /** The source's id for an item a data source supplied; unique within a list. */
 const refOf = (item: unknown): string | undefined => {
@@ -67,15 +66,16 @@ function useRowKeys(items: readonly unknown[]) {
 }
 
 export interface ItemListProps<T> {
-  /** The list's visible name, e.g. "Events"; the list is labelled by it. */
-  label: string;
-  /** One item, in lower case: "event" makes "Event 1", "Remove event 1", "Move event 1 up". */
-  noun: string;
+  /**
+   * The list's words: its visible name ("Events"), which labels it; one item ("event"), which
+   * `lists` messages make "Event 1", "Remove event 1" and "Move event 1 up" from; and its Add
+   * button's label.
+   */
+  words: { label: string; item: string; add: string };
   items: readonly T[];
   onChange: (items: T[]) => void;
   /** A fresh item for the Add button. */
   create: () => NoInfer<T>;
-  addLabel: string;
   /** The fields for one item; `update` merges changes into it. */
   renderItem: (
     item: NoInfer<T>,
@@ -101,12 +101,10 @@ export interface ItemListProps<T> {
 }
 
 export function ItemList<T>({
-  label,
-  noun,
+  words,
   items,
   onChange,
   create,
-  addLabel,
   renderItem,
   min = 0,
   max = Number.POSITIVE_INFINITY,
@@ -117,16 +115,17 @@ export function ItemList<T>({
   reorderable = false,
   badge,
 }: ItemListProps<T>) {
+  const { lists, common } = useEditorMessages();
   const id = useId();
   const labelId = `${id}-label`;
   const limitId = `${id}-limit`;
   const { keys, rows, setRows, manualBefore } = useRowKeys(items);
+  const { item: noun } = words;
   const [announcement, setAnnouncement] = useState('');
   const containerRef = useRef<HTMLDivElement>(null);
   const addRef = useRef<HTMLButtonElement>(null);
   const pendingFocus = useRef<{ key: string; control: Control } | 'add' | null>(null);
 
-  const Noun = capitalize(noun);
   const full = items.length >= max;
 
   // Focus moves once the list has re-rendered with the change, never before.
@@ -171,7 +170,7 @@ export function ItemList<T>({
       setRows({ next: rows.next + 1, manual: [...rows.manual, rows.next] });
     }
     pendingFocus.current = { key, control: 'first' };
-    setAnnouncement(`${Noun} ${items.length + 1} added.`);
+    setAnnouncement(lists.added(noun, items.length + 1));
     onChange([...items, item]);
   }
 
@@ -187,7 +186,7 @@ export function ItemList<T>({
       neighbour === undefined
         ? 'add'
         : { key: neighbour, control: variant === 'card' ? 'title' : 'first' };
-    setAnnouncement(`${Noun} ${index + 1} removed.`);
+    setAnnouncement(lists.removed(noun, index + 1));
     onChange(items.filter((_, position) => position !== index));
   }
 
@@ -206,7 +205,7 @@ export function ItemList<T>({
       setRows({ next: rows.next, manual });
     }
     pendingFocus.current = { key, control: direction < 0 ? 'up' : 'down' };
-    setAnnouncement(`${Noun} moved to position ${to + 1} of ${items.length}.`);
+    setAnnouncement(lists.moved(noun, to + 1, items.length));
     const next = [...items];
     next[index] = other;
     next[to] = item;
@@ -218,7 +217,7 @@ export function ItemList<T>({
 
   return (
     <div ref={containerRef} className="bl:flex bl:min-w-0 bl:flex-col bl:gap-2">
-      <GroupLabel id={labelId}>{label}</GroupLabel>
+      <GroupLabel id={labelId}>{words.label}</GroupLabel>
       {items.length === 0 ? (
         empty ? (
           <Note>{empty}</Note>
@@ -235,7 +234,7 @@ export function ItemList<T>({
                   variant="ghost"
                   size="icon-sm"
                   data-row-control="up"
-                  aria-label={`Move ${noun} ${number} up`}
+                  aria-label={lists.moveUp(noun, number)}
                   disabled={index === 0}
                   onClick={() => move(index, -1)}
                   className="bl:text-muted-foreground"
@@ -247,7 +246,7 @@ export function ItemList<T>({
                   variant="ghost"
                   size="icon-sm"
                   data-row-control="down"
-                  aria-label={`Move ${noun} ${number} down`}
+                  aria-label={lists.moveDown(noun, number)}
                   disabled={index === items.length - 1}
                   onClick={() => move(index, 1)}
                   className="bl:text-muted-foreground"
@@ -276,7 +275,7 @@ export function ItemList<T>({
                     variant="ghost"
                     size="icon-sm"
                     data-row-control="remove"
-                    aria-label={`Remove ${noun} ${number}`}
+                    aria-label={lists.remove(noun, number)}
                     disabled={items.length <= min}
                     onClick={() => remove(index)}
                     className="bl:shrink-0 bl:text-muted-foreground bl:hover:text-danger"
@@ -301,7 +300,7 @@ export function ItemList<T>({
                       data-row-control="title"
                       className="bl:text-[0.8125rem] bl:font-semibold bl:outline-none bl:focus-visible:underline bl:focus-visible:underline-offset-4"
                     >
-                      {Noun} {number}
+                      {lists.row(noun, number)}
                     </span>
                     {itemBadge}
                   </span>
@@ -312,13 +311,13 @@ export function ItemList<T>({
                       variant="ghost"
                       size="xs"
                       data-row-control="remove"
-                      aria-label={`Remove ${noun} ${number}`}
+                      aria-label={lists.remove(noun, number)}
                       disabled={items.length <= min}
                       onClick={() => remove(index)}
                       className="bl:text-muted-foreground bl:hover:text-danger"
                     >
                       <Trash2Icon aria-hidden="true" />
-                      Remove
+                      {common.remove}
                     </Button>
                   </span>
                 </div>
@@ -331,7 +330,7 @@ export function ItemList<T>({
         </ol>
       )}
       <AddButton
-        label={addLabel}
+        label={words.add}
         disabled={full}
         describedById={full && limitHint ? limitId : undefined}
         buttonRef={addRef}

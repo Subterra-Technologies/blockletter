@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
+import { useEditorMessages } from '../i18n/context';
 import { TextField } from '../inspector/editor-fields';
 import { Button } from '../ui/button';
 import { linkAddress } from './link-address';
@@ -32,6 +33,8 @@ export function LinkForm({
   onRemove,
   onCancel,
 }: LinkFormProps) {
+  const m = useEditorMessages();
+  const words = m.formatting;
   const titleId = `${id}-title`;
   const [address, setAddress] = useState(href);
   const [text, setText] = useState('');
@@ -43,7 +46,7 @@ export function LinkForm({
   }, []);
 
   function apply(): void {
-    const result = linkAddress(address);
+    const result = linkAddress(address, m);
     if ('error' in result) {
       setError(result.error);
       input.current?.focus();
@@ -75,12 +78,12 @@ export function LinkForm({
       className="bl:flex bl:min-w-0 bl:flex-col bl:gap-3 bl:rounded-md bl:border bl:bg-background bl:p-3 bl:shadow-xs"
     >
       <p id={titleId} className="bl:text-sm bl:font-medium">
-        {editing ? 'Edit link' : 'Add a link'}
+        {editing ? words.editLink : words.addLink}
       </p>
       <TextField
-        label="Link address"
+        label={words.address}
         type="url"
-        placeholder="https://"
+        placeholder={m.common.webAddress}
         autoComplete="url"
         spellCheck={false}
         value={address}
@@ -94,8 +97,8 @@ export function LinkForm({
       />
       {needsText ? (
         <TextField
-          label="Text to show"
-          help="Leave it blank to show the address."
+          label={words.textToShow}
+          help={words.textToShowHelp}
           value={text}
           onKeyDown={applyOnEnter}
           onChange={setText}
@@ -103,15 +106,15 @@ export function LinkForm({
       ) : null}
       <div className="bl:flex bl:flex-wrap bl:gap-2">
         <Button type="button" size="sm" onClick={apply}>
-          {editing ? 'Update link' : 'Add link'}
+          {editing ? words.update : words.apply}
         </Button>
         {editing ? (
           <Button type="button" size="sm" variant="outline" onClick={onRemove}>
-            Remove link
+            {words.removeLink}
           </Button>
         ) : null}
         <Button type="button" size="sm" variant="ghost" onClick={onCancel}>
-          Cancel
+          {m.common.cancel}
         </Button>
       </div>
     </div>

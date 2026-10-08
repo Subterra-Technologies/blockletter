@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useRef, useState, type ReactNode } from 'react';
+import { useEditorMessages } from '../i18n/context';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -41,6 +42,7 @@ const ConfirmContext = createContext<Confirm | null>(null);
 
 /** Mounted by `BlockletterRoot`, so its dialog portals into the root like every other overlay. */
 export function ConfirmProvider({ children }: { children: ReactNode }) {
+  const { common } = useEditorMessages();
   const [request, setRequest] = useState<ConfirmOptions | null>(null);
   const resolverRef = useRef<((answer: boolean) => void) | null>(null);
   // A confirmation opened from code has no trigger for Radix to hand focus back to, so it
@@ -102,7 +104,7 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={() => settle(false)}>
-              {request?.cancelLabel ?? 'Cancel'}
+              {request?.cancelLabel ?? common.cancel}
             </AlertDialogCancel>
             {/* The variant prop, not a className: the action renders through Slot, which
                 would let the default fill win over a destructive class. */}

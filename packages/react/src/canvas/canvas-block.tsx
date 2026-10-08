@@ -6,6 +6,8 @@ import {
   type BlockBase,
 } from '@subterra-technologies/blockletter';
 import type { EditorBlockDefinition } from '../editor/types';
+import { definitionText } from '../i18n/blocks';
+import { useEditorMessages } from '../i18n/context';
 import { canvasProps, type CanvasTheme } from './canvas-theme';
 import { CanvasSection, CanvasNote } from './blocks/shared';
 
@@ -29,16 +31,14 @@ export const CanvasBlock = memo(function CanvasBlock({
   definitions,
   theme,
 }: CanvasBlockProps) {
+  const m = useEditorMessages();
   if (!definition) {
-    return (
-      <Note theme={theme}>
-        Unknown block “{block.type}”. Nothing defines it, so the email leaves it out.
-      </Note>
-    );
+    return <Note theme={theme}>{m.canvas.unknownBlock(block.type)}</Note>;
   }
   const Drawing = definition.Canvas;
+  const note = m.canvas.blockNotDrawn(definitionText(definition, m).label);
   return (
-    <DrawingBoundary block={block} label={definition.label} theme={theme}>
+    <DrawingBoundary block={block} note={note} theme={theme}>
       {Drawing ? (
         <Drawing {...canvasProps(block, theme)} />
       ) : (
@@ -63,6 +63,7 @@ function HtmlBlock({
   definitions: readonly EditorBlockDefinition[];
   theme: CanvasTheme;
 }) {
+  const m = useEditorMessages();
   const html = useMemo(() => {
     try {
       const options = { ...theme.options, brand: theme.brand, definitions, annotate: false };
@@ -73,14 +74,14 @@ function HtmlBlock({
   }, [block, definitions, theme]);
 
   if (html === null) {
-    return <Note theme={theme}>This block could not be drawn. The preview shows its email.</Note>;
+    return <Note theme={theme}>{m.canvas.notDrawn}</Note>;
   }
   if (!html.trim()) {
     const canvas = canvasProps(block, theme);
     return (
       <CanvasSection canvas={canvas} background={theme.palette.card}>
         <CanvasNote canvas={canvas} background={theme.palette.card}>
-          Nothing to show yet. The block stays out of the email until it has content.
+          {m.canvas.nothingYet}
         </CanvasNote>
       </CanvasSection>
     );
@@ -125,7 +126,8 @@ function Note({ theme, children }: { theme: CanvasTheme; children: ReactNode }) 
 
 interface BoundaryProps {
   block: BlockBase;
-  label: string;
+  /** What to say in place of the drawing, should it fail. */
+  note: string;
   theme: CanvasTheme;
   children: ReactNode;
 }
@@ -155,10 +157,6 @@ class DrawingBoundary extends Component<BoundaryProps, BoundaryState> {
 
   override render() {
     if (!this.state.failed) return this.props.children;
-    return (
-      <Note theme={this.props.theme}>
-        The {this.props.label} block could not be drawn. The preview shows its email.
-      </Note>
-    );
+    return <Note theme={this.props.theme}>{this.props.note}</Note>;
   }
 }

@@ -4,6 +4,7 @@ import {
   type TextBlock,
 } from '@subterra-technologies/blockletter';
 import type { BlockCanvasProps } from '../../editor/types';
+import { useEditorMessages } from '../../i18n/context';
 import { blockBackground } from '../canvas-theme';
 import { CanvasSection, CanvasNote, EmailParagraphs, headingStyle } from './shared';
 
@@ -14,13 +15,14 @@ import { CanvasSection, CanvasNote, EmailParagraphs, headingStyle } from './shar
  * through the canvas, and a click on one chooses the block rather than following it.
  */
 export function TextCanvas(canvas: BlockCanvasProps<TextBlock>) {
+  const words = useEditorMessages().blocks.text;
   const { block, palette, fonts, px } = canvas;
   const heading = block.heading?.trim() ?? '';
   return (
     <CanvasSection canvas={canvas} background={palette.card} padding="20px 32px">
       {!block.body.trim() && !heading ? (
         <CanvasNote canvas={canvas} background={blockBackground(block, palette.card)}>
-          Empty text block. It stays out of the email until it has text.
+          {words.emptyCanvas}
         </CanvasNote>
       ) : (
         <>

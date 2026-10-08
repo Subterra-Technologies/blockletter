@@ -1,10 +1,12 @@
 import type { ButtonBlock } from '@subterra-technologies/blockletter';
 import type { BlockCanvasProps } from '../../editor/types';
+import { useEditorMessages } from '../../i18n/context';
 import { blockBackground } from '../canvas-theme';
 import { CanvasSection, EmailButton, CanvasNote } from './shared';
 
 /** One centred button, solid or outlined. */
 export function ButtonCanvas(canvas: BlockCanvasProps<ButtonBlock>) {
+  const words = useEditorMessages().blocks.button;
   const { block, palette } = canvas;
   const background = blockBackground(block, palette.card);
   return (
@@ -19,7 +21,7 @@ export function ButtonCanvas(canvas: BlockCanvasProps<ButtonBlock>) {
           />
         ) : (
           <CanvasNote canvas={canvas} background={background}>
-            Button with no label. It stays out of the email until it has one.
+            {words.emptyCanvas}
           </CanvasNote>
         )}
       </div>

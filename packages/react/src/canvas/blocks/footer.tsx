@@ -1,6 +1,7 @@
 import type { CSSProperties, ReactNode } from 'react';
 import { absoluteUrl, type FooterBlock } from '@subterra-technologies/blockletter';
 import type { BlockCanvasProps } from '../../editor/types';
+import { useEditorMessages } from '../../i18n/context';
 import { blockBackground } from '../canvas-theme';
 import { CanvasSection, CanvasNote, smallStyle } from './shared';
 
@@ -30,6 +31,7 @@ function dotted(items: ReactNode[]): ReactNode[] {
  * does; the preference and unsubscribe links appear when the render options carry their addresses.
  */
 export function FooterCanvas(canvas: BlockCanvasProps<FooterBlock>) {
+  const words = useEditorMessages().blocks.footer;
   const { block, brand, palette, fonts, px, labels, options } = canvas;
   const name = brand.name?.trim() ?? '';
   const address = block.address.trim() || (brand.contact?.address?.trim() ?? '');
@@ -65,7 +67,7 @@ export function FooterCanvas(canvas: BlockCanvasProps<FooterBlock>) {
     <CanvasSection canvas={canvas} background={palette.footer} padding="24px 32px 28px 32px">
       {empty ? (
         <CanvasNote canvas={canvas} background={blockBackground(block, palette.footer)}>
-          Empty footer. Add contact details or a line saying why readers receive this email.
+          {words.emptyCanvas}
         </CanvasNote>
       ) : null}
       {name ? (

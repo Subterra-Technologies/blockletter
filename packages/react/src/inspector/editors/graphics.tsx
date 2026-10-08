@@ -7,6 +7,7 @@ import {
   type StatsBlock,
 } from '@subterra-technologies/blockletter';
 import type { BlockEditorProps } from '../../editor/types';
+import { useEditorMessages } from '../../i18n/context';
 import { blockEditor, withImage, withOptional } from '../editor-base';
 import {
   AreaField,
@@ -32,41 +33,52 @@ const [MIN_STATS, MAX_STATS] = LIMITS.stats;
 // --- Image + text --------------------------------------------------------------------------------
 
 export function ImageTextEditor({ block, onChange, readOnly }: BlockEditorProps<ImageTextBlock>) {
+  const { fields, blocks } = useEditorMessages();
+  const words = blocks.image_text;
   const { patch, commit } = blockEditor(block, onChange);
   return (
     <EditorFields readOnly={readOnly}>
       <ImageField
-        label="Picture"
+        label={fields.picture}
         value={block.image}
         disabled={readOnly}
         onChange={(image) => commit(withImage(block, 'image', image))}
       />
       <TextField
-        label="Alt text"
-        help="Describe the picture for readers who cannot see it."
+        label={fields.altText}
+        help={fields.altTextHelp}
         value={block.alt}
         onChange={(alt) => patch({ alt })}
       />
       <ChoiceField
-        legend="Picture side"
+        legend={words.side}
         value={block.imageSide}
         onChange={(imageSide) => patch({ imageSide })}
         options={[
-          { value: 'left', label: 'Left' },
-          { value: 'right', label: 'Right' },
+          { value: 'left', label: words.left },
+          { value: 'right', label: words.right },
         ]}
       />
-      <TextField label="Heading" value={block.heading} onChange={(heading) => patch({ heading })} />
-      <AreaField label="Text" rows={5} value={block.body} onChange={(body) => patch({ body })} />
+      <TextField
+        label={fields.heading}
+        value={block.heading}
+        onChange={(heading) => patch({ heading })}
+      />
+      <AreaField
+        label={fields.text}
+        rows={5}
+        value={block.body}
+        onChange={(body) => patch({ body })}
+      />
       <FieldPair>
         <TextField
-          label="Link label (optional)"
+          label={fields.linkLabelOptional}
           value={block.linkLabel ?? ''}
           onChange={(value) => commit(withOptional(block, 'linkLabel', value))}
         />
         <TextField
-          label="Link (optional)"
-          placeholder="/events"
+          label={fields.linkOptional}
+          placeholder={words.linkPlaceholder}
           value={block.linkUrl ?? ''}
           onChange={(value) => commit(withOptional(block, 'linkUrl', value))}
         />
@@ -78,50 +90,49 @@ export function ImageTextEditor({ block, onChange, readOnly }: BlockEditorProps<
 // --- Banner --------------------------------------------------------------------------------------
 
 export function BannerEditor({ block, onChange, readOnly }: BlockEditorProps<BannerBlock>) {
+  const { fields, blocks } = useEditorMessages();
+  const words = blocks.banner;
   const { patch, commit } = blockEditor(block, onChange);
   return (
     <EditorFields readOnly={readOnly}>
       <ImageField
-        label="Banner image"
+        label={words.image}
         value={block.image}
         disabled={readOnly}
         onChange={(image) => commit(withImage(block, 'image', image))}
       />
-      <TextField label="Alt text" value={block.alt} onChange={(alt) => patch({ alt })} />
+      <TextField label={fields.altText} value={block.alt} onChange={(alt) => patch({ alt })} />
       <FieldPair>
         <TextField
-          label="Headline (optional)"
+          label={words.headline}
           value={block.heading ?? ''}
           onChange={(value) => commit(withOptional(block, 'heading', value))}
         />
         <TextField
-          label="Subheading (optional)"
+          label={words.subheading}
           value={block.subheading ?? ''}
           onChange={(value) => commit(withOptional(block, 'subheading', value))}
         />
       </FieldPair>
       <FieldPair>
         <TextField
-          label="Button label (optional)"
+          label={words.buttonLabel}
           value={block.ctaLabel ?? ''}
           onChange={(value) => commit(withOptional(block, 'ctaLabel', value))}
         />
         <TextField
-          label="Button link (optional)"
-          placeholder="/events"
+          label={words.buttonLink}
+          placeholder={words.linkPlaceholder}
           value={block.ctaUrl ?? ''}
           onChange={(value) => commit(withOptional(block, 'ctaUrl', value))}
         />
       </FieldPair>
       <CheckField
-        label="Place the headline over the image"
+        label={words.overlay}
         checked={block.overlay}
         onChange={(overlay) => patch({ overlay })}
       />
-      <Note>
-        Overlay text needs a darker picture to stay readable. Turn it off to put the headline
-        underneath instead.
-      </Note>
+      <Note>{words.overlayNote}</Note>
     </EditorFields>
   );
 }
@@ -137,32 +148,36 @@ function toPhoto(photo: PhotoItem): PhotoItem {
 }
 
 export function PhotoGridEditor({ block, onChange, readOnly }: BlockEditorProps<PhotoGridBlock>) {
+  const { fields, blocks } = useEditorMessages();
+  const words = blocks.photo_grid;
   const { commit } = blockEditor(block, onChange);
   return (
     <EditorFields readOnly={readOnly}>
       <ItemList
-        label="Photos"
-        noun="photo"
+        words={words.list}
         items={block.photos}
         min={MIN_PHOTOS}
         max={MAX_PHOTOS}
         onChange={(photos) => commit({ ...block, photos: photos.map(toPhoto) })}
         create={() => ({ alt: '' })}
-        addLabel="Add photo"
-        limitHint={`A photo grid holds up to ${MAX_PHOTOS} photos.`}
-        hint="Two to six photos: three to a row when they divide by three, otherwise two."
+        limitHint={words.list.limit(MAX_PHOTOS)}
+        hint={words.hint}
         renderItem={(photo, update) => (
           <>
             <ImageField
-              label="Picture"
+              label={fields.picture}
               value={photo.image}
               disabled={readOnly}
               onChange={(image) => update({ image })}
             />
             <FieldPair>
-              <TextField label="Alt text" value={photo.alt} onChange={(alt) => update({ alt })} />
               <TextField
-                label="Caption (optional)"
+                label={fields.altText}
+                value={photo.alt}
+                onChange={(alt) => update({ alt })}
+              />
+              <TextField
+                label={fields.captionOptional}
                 value={photo.caption ?? ''}
                 onChange={(caption) => update({ caption })}
               />
@@ -177,32 +192,32 @@ export function PhotoGridEditor({ block, onChange, readOnly }: BlockEditorProps<
 // --- Numbers -------------------------------------------------------------------------------------
 
 export function StatsEditor({ block, onChange, readOnly }: BlockEditorProps<StatsBlock>) {
+  const { fields, blocks } = useEditorMessages();
+  const words = blocks.stats;
   const { patch } = blockEditor(block, onChange);
   return (
     <EditorFields readOnly={readOnly}>
       <ItemList
-        label="Numbers"
-        noun="number"
+        words={words.list}
         variant="line"
         items={block.items}
         min={MIN_STATS}
         max={MAX_STATS}
         onChange={(items) => patch({ items })}
         create={() => ({ value: '', label: '' })}
-        addLabel="Add number"
-        limitHint={`A numbers block holds up to ${MAX_STATS} numbers.`}
-        hint="Two to four numbers, side by side in the email."
+        limitHint={words.list.limit(MAX_STATS)}
+        hint={words.hint}
         renderItem={(item, update) => (
           <>
             <TextField
-              label="Number"
-              placeholder="120"
+              label={words.number}
+              placeholder={words.numberPlaceholder}
               value={item.value}
               onChange={(value) => update({ value })}
             />
             <TextField
-              label="Label"
-              placeholder="Members"
+              label={fields.label}
+              placeholder={words.statLabelPlaceholder}
               value={item.label}
               onChange={(label) => update({ label })}
             />

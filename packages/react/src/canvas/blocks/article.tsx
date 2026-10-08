@@ -1,5 +1,6 @@
 import type { ArticleBlock } from '@subterra-technologies/blockletter';
 import type { BlockCanvasProps } from '../../editor/types';
+import { useEditorMessages } from '../../i18n/context';
 import { blockBackground } from '../canvas-theme';
 import {
   CanvasSection,
@@ -16,6 +17,7 @@ import {
  * tile on the ink band) beside the title, the paragraphs and an optional link.
  */
 export function ArticleCanvas(canvas: BlockCanvasProps<ArticleBlock>) {
+  const words = useEditorMessages().blocks.article;
   const { block, palette, fonts, px, image } = canvas;
   const background = blockBackground(block, palette.card);
   const kicker = block.kicker.trim();
@@ -25,7 +27,7 @@ export function ArticleCanvas(canvas: BlockCanvasProps<ArticleBlock>) {
     return (
       <CanvasSection canvas={canvas} background={palette.card}>
         <CanvasNote canvas={canvas} background={background}>
-          Empty article. It stays out of the email until it has text.
+          {words.emptyCanvas}
         </CanvasNote>
       </CanvasSection>
     );

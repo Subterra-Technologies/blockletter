@@ -1,5 +1,6 @@
 import type { Ref } from 'react';
 import { Redo2Icon, Undo2Icon } from 'lucide-react';
+import { useEditorMessages } from '../i18n/context';
 import { Button } from '../ui/button';
 import { DropdownMenuItem, DropdownMenuShortcut } from '../ui/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
@@ -12,7 +13,6 @@ interface HistoryControlsProps {
   onRedo: () => void;
 }
 
-const NAMES: Readonly<Record<HistoryAction, string>> = { undo: 'Undo', redo: 'Redo' };
 const ICONS = { undo: Undo2Icon, redo: Redo2Icon } as const;
 
 /**
@@ -30,7 +30,8 @@ export function HistoryButtons({
   onRedo,
   undoRef,
 }: HistoryControlsProps & { undoRef?: Ref<HTMLButtonElement> }) {
-  const shortcuts = historyShortcuts(useApplePlatform());
+  const m = useEditorMessages();
+  const shortcuts = historyShortcuts(useApplePlatform(), m);
 
   const button = (action: HistoryAction, enabled: boolean, run: () => void) => {
     const Icon = ICONS[action];
@@ -42,7 +43,7 @@ export function HistoryButtons({
             type="button"
             variant="ghost"
             size="icon-sm"
-            aria-label={NAMES[action]}
+            aria-label={m.history[action]}
             aria-keyshortcuts={shortcuts[action].aria}
             aria-disabled={enabled ? undefined : true}
             onClick={() => {
@@ -56,7 +57,8 @@ export function HistoryButtons({
         <TooltipContent side="bottom" sideOffset={6}>
           {/* A real space, so the description reads "Undo Ctrl+Z", not one word. A span, not a
               `kbd`: host pages often style every `kbd`, and would box it in their own colours. */}
-          {NAMES[action]} <span className="bl:ml-1 bl:opacity-75">{shortcuts[action].label}</span>
+          {m.history[action]}{' '}
+          <span className="bl:ml-1 bl:opacity-75">{shortcuts[action].label}</span>
         </TooltipContent>
       </Tooltip>
     );
@@ -79,7 +81,8 @@ export function HistoryButtons({
  * given to assistive technology as `aria-keyshortcuts` rather than read out as part of its name.
  */
 export function HistoryMenuItems({ canUndo, canRedo, onUndo, onRedo }: HistoryControlsProps) {
-  const shortcuts = historyShortcuts(useApplePlatform());
+  const m = useEditorMessages();
+  const shortcuts = historyShortcuts(useApplePlatform(), m);
 
   const item = (action: HistoryAction, enabled: boolean, run: () => void) => {
     const Icon = ICONS[action];
@@ -90,7 +93,7 @@ export function HistoryMenuItems({ canUndo, canRedo, onUndo, onRedo }: HistoryCo
         onSelect={run}
       >
         <Icon aria-hidden="true" />
-        {NAMES[action]}
+        {m.history[action]}
         <DropdownMenuShortcut aria-hidden="true">{shortcuts[action].label}</DropdownMenuShortcut>
       </DropdownMenuItem>
     );

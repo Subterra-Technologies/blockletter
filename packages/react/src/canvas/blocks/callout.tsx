@@ -1,10 +1,12 @@
 import type { CalloutBlock } from '@subterra-technologies/blockletter';
 import type { BlockCanvasProps } from '../../editor/types';
+import { useEditorMessages } from '../../i18n/context';
 import { blockBackground } from '../canvas-theme';
 import { CanvasSection, EmailButton, CanvasNote, EmailParagraphs, headingStyle } from './shared';
 
 /** A short heading, a sentence or two, and a button once the button has a link. */
 export function CalloutCanvas(canvas: BlockCanvasProps<CalloutBlock>) {
+  const words = useEditorMessages().blocks.callout;
   const { block, palette } = canvas;
   const background = blockBackground(block, palette.card);
   const heading = block.heading.trim();
@@ -15,7 +17,7 @@ export function CalloutCanvas(canvas: BlockCanvasProps<CalloutBlock>) {
     <CanvasSection canvas={canvas} background={palette.card} padding="20px 32px">
       {empty ? (
         <CanvasNote canvas={canvas} background={background}>
-          Empty callout. It stays out of the email until it has text.
+          {words.emptyCanvas}
         </CanvasNote>
       ) : (
         <>
@@ -28,7 +30,7 @@ export function CalloutCanvas(canvas: BlockCanvasProps<CalloutBlock>) {
           ) : null}
           {label && !hasLink ? (
             <CanvasNote canvas={canvas} background={background}>
-              The button appears once it has a link.
+              {words.needsLink}
             </CanvasNote>
           ) : null}
         </>

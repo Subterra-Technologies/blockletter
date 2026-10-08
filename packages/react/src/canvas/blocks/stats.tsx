@@ -1,5 +1,6 @@
 import { LIMITS, readable, type StatsBlock } from '@subterra-technologies/blockletter';
 import type { BlockCanvasProps } from '../../editor/types';
+import { useEditorMessages } from '../../i18n/context';
 import { blockBackground } from '../canvas-theme';
 import { CanvasSection, CanvasNote } from './shared';
 
@@ -8,6 +9,7 @@ import { CanvasSection, CanvasNote } from './shared';
  * unlabelled one "Label", so the slot can still be seen and filled.
  */
 export function StatsCanvas(canvas: BlockCanvasProps<StatsBlock>) {
+  const words = useEditorMessages().blocks.stats;
   const { block, palette, fonts, px } = canvas;
   const background = blockBackground(block, palette.soft);
   const items = block.items.slice(0, LIMITS.stats[1]);
@@ -15,7 +17,7 @@ export function StatsCanvas(canvas: BlockCanvasProps<StatsBlock>) {
     <CanvasSection canvas={canvas} background={palette.soft} padding="24px 32px">
       {items.length === 0 ? (
         <CanvasNote canvas={canvas} background={background}>
-          No numbers yet. The block stays out of the email until it has one.
+          {words.emptyCanvas}
         </CanvasNote>
       ) : (
         <div className={items.length > 2 ? 'bl:flex bl:@max-[28rem]/sheet:flex-col' : 'bl:flex'}>
@@ -46,7 +48,7 @@ export function StatsCanvas(canvas: BlockCanvasProps<StatsBlock>) {
                   color: palette.muted,
                 }}
               >
-                {item.label.trim() || 'Label'}
+                {item.label.trim() || words.labelPlaceholder}
               </p>
             </div>
           ))}

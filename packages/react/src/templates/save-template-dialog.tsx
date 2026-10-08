@@ -1,4 +1,5 @@
 import { useId, useRef, useState, type FormEvent } from 'react';
+import { useEditorMessages } from '../i18n/context';
 import { errorMessage } from '../lib/errors';
 import { useReturnFocus } from '../lib/return-focus';
 import { Hint } from '../inspector/editor-fields';
@@ -45,6 +46,8 @@ export function SaveTemplateDialog({
   suggestedName = '',
 }: SaveTemplateDialogProps) {
   const { toast } = useToasts();
+  const m = useEditorMessages();
+  const words = m.dialogs.saveTemplate;
   const id = useId();
   const nameId = `${id}-name`;
   const descriptionId = `${id}-description`;
@@ -73,7 +76,7 @@ export function SaveTemplateDialog({
     if (saving) return;
     const trimmed = name.trim();
     if (!trimmed) {
-      setNameError('Give the template a name.');
+      setNameError(words.nameRequired);
       nameRef.current?.focus();
       return;
     }
@@ -83,9 +86,9 @@ export function SaveTemplateDialog({
     try {
       await onSave({ name: trimmed, description: description.trim() });
       onOpenChange(false);
-      toast('Template saved. It is offered when you start the next issue.');
+      toast(m.toasts.templateSaved);
     } catch (cause: unknown) {
-      setSaveError(errorMessage(cause, 'That template could not be saved. Try again.'));
+      setSaveError(errorMessage(cause, words.failed));
     } finally {
       setSaving(false);
     }
@@ -109,21 +112,20 @@ export function SaveTemplateDialog({
           onSubmit={(event) => void submit(event)}
         >
           <DialogHeader className="bl:text-left">
-            <DialogTitle className="bl:text-base">Save as template</DialogTitle>
+            <DialogTitle className="bl:text-base">{words.title}</DialogTitle>
             <DialogDescription className="bl:text-[0.8125rem]">
-              Saves this issue’s blocks as a layout to start new issues from. The content stays with
-              this issue.
+              {words.description}
             </DialogDescription>
           </DialogHeader>
           <Field className="bl:gap-2" data-invalid={nameError ? 'true' : undefined}>
-            <FieldLabel htmlFor={nameId}>Template name</FieldLabel>
+            <FieldLabel htmlFor={nameId}>{words.name}</FieldLabel>
             <Input
               ref={nameRef}
               id={nameId}
               value={name}
               maxLength={TEMPLATE_NAME_MAX}
               required
-              placeholder="Event announcement"
+              placeholder={words.namePlaceholder}
               aria-invalid={nameError ? true : undefined}
               aria-describedby={nameError ? `${nameId}-error` : undefined}
               onChange={(event) => setName(event.target.value)}
@@ -131,23 +133,21 @@ export function SaveTemplateDialog({
             {nameError ? <FieldError id={`${nameId}-error`}>{nameError}</FieldError> : null}
           </Field>
           <Field className="bl:gap-2">
-            <FieldLabel htmlFor={descriptionId}>Description</FieldLabel>
+            <FieldLabel htmlFor={descriptionId}>{words.descriptionLabel}</FieldLabel>
             <Input
               id={descriptionId}
               value={description}
               maxLength={TEMPLATE_DESCRIPTION_MAX}
               aria-describedby={`${descriptionId}-help`}
-              placeholder="Banner, story and one button"
+              placeholder={words.descriptionPlaceholder}
               onChange={(event) => setDescription(event.target.value)}
             />
-            <Hint id={`${descriptionId}-help`}>
-              One line, so it is easy to recognise when starting an issue.
-            </Hint>
+            <Hint id={`${descriptionId}-help`}>{words.descriptionHint}</Hint>
           </Field>
           {saveError ? <FieldError>{saveError}</FieldError> : null}
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
+              {m.common.cancel}
             </Button>
             {/* Not `disabled` while saving: a disabled button drops the focus it has. */}
             <Button
@@ -156,7 +156,7 @@ export function SaveTemplateDialog({
               aria-busy={saving || undefined}
               className="bl:aria-disabled:opacity-50"
             >
-              {saving ? 'Saving…' : 'Save template'}
+              {saving ? m.common.saving : words.save}
             </Button>
           </DialogFooter>
         </form>

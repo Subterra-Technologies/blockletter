@@ -14,7 +14,7 @@ import {
 import { ArrowLeftIcon, BookmarkIcon, LockIcon, MoreHorizontalIcon } from 'lucide-react';
 import {
   isStructural,
-  periodErrors,
+  periodErrorCodes,
   sourceFor,
   type BlockBase,
   type BrandKit,
@@ -29,6 +29,9 @@ import { AppearancePanel } from '../appearance/appearance-panel';
 import { builtInEditorBlocks } from '../blocks';
 import { BrandKitEditor } from '../brand/brand-kit-editor';
 import { NewsletterCanvas } from '../canvas/canvas';
+import { useEditorMessages } from '../i18n/context';
+import { periodErrorText } from '../i18n/core-words';
+import type { EditorMessageOverrides } from '../i18n/messages';
 import { BlockInspector, type BlockInspectorHandle } from '../inspector/block-inspector';
 import { Hint } from '../inspector/editor-fields';
 import { cn } from '../lib/cn';
@@ -89,6 +92,17 @@ export interface NewsletterEditorProps<B extends BlockBase = BuiltInBlock> {
   /** Saves the layout as a template; adds "Save as template…" to the More menu. */
   onSaveAsTemplate?: (request: SaveTemplateRequest) => void | Promise<void>;
   theme?: BlockletterTheme;
+  /**
+   * The editor's words in another language: any part of `EditorMessages`, over the English. Keep
+   * the object stable. The email's own words ("Read more", "Unsubscribe") are
+   * `renderOptions.labels`, which the canvas and the preview both use.
+   */
+  messages?: EditorMessageOverrides;
+  /**
+   * The language of `messages`, as a BCP 47 tag (`es`, `pt-BR`): the editor's `lang`, and how it
+   * writes numbers and dates. See `BlockletterRoot`.
+   */
+  locale?: string;
   className?: string;
   /** Default `canvas`. */
   defaultMode?: EditorMode;
@@ -142,6 +156,8 @@ export function NewsletterEditor<B extends BlockBase = BuiltInBlock>({
   toolbar,
   onSaveAsTemplate,
   theme,
+  messages,
+  locale,
   className,
   defaultMode = 'canvas',
   defaultTab = 'block',
@@ -164,6 +180,8 @@ export function NewsletterEditor<B extends BlockBase = BuiltInBlock>({
   return (
     <BlockletterRoot
       theme={theme}
+      messages={messages}
+      locale={locale}
       className={cn(
         'bl:@container/editor bl:flex bl:min-w-0 bl:flex-col bl:rounded-xl bl:border bl:bg-background bl:text-foreground',
         fill && 'bl:relative bl:h-full bl:min-h-0 bl:overflow-hidden',
@@ -197,8 +215,6 @@ const BLOCK_TABS: readonly InspectorTab[] = ['block', 'appearance'];
 /** Compact enough for all four inspector tabs on one row, even at 320px. */
 const TAB = 'bl:px-1 bl:text-[0.8125rem]';
 
-const blockWord = (count: number): string => (count === 1 ? '1 block' : `${count} blocks`);
-
 /** The room the desktop preview needs unscaled: the 600px email and its stage's padding. */
 const DESKTOP_PREVIEW_ROOM = 632;
 
@@ -212,12 +228,6 @@ const WIDE_LAYOUT_REM = 64;
 type Pane = 'blocks' | 'canvas' | 'edit';
 /** The narrow fill layout's tabs: one per pane, and Preview, the canvas pane in preview mode. */
 type PaneTab = Pane | 'preview';
-const PANE_LABELS: Readonly<Record<PaneTab, string>> = {
-  blocks: 'Blocks',
-  canvas: 'Canvas',
-  edit: 'Edit',
-  preview: 'Preview',
-};
 
 /**
  * How the panes are laid out: with the page (`flow`, the default: the canvas as tall as the issue,
@@ -274,6 +284,7 @@ function Workspace<B extends BlockBase>({
     defaultSelectedId,
   });
   const { document, selected, insertTarget, mode, canvasRef, canUndo, canRedo, endStep } = editor;
+  const m = useEditorMessages();
   // The keys and the browser's own Undo are answered here (`onHistoryKey`, `onBrowserHistory`),
   // so the fields inside are told to leave them alone: see `EditorContextValue.history`.
   const historyContext = useMemo<Partial<EditorContextValue>>(
@@ -609,7 +620,7 @@ function Workspace<B extends BlockBase>({
             type="button"
             variant="outline"
             size="icon-sm"
-            aria-label="More"
+            aria-label={m.topBar.more}
           >
             <MoreHorizontalIcon aria-hidden="true" />
           </Button>
@@ -627,7 +638,7 @@ function Workspace<B extends BlockBase>({
           {onSaveAsTemplate ? (
             <DropdownMenuItem onSelect={() => setSavingTemplate(true)}>
               <BookmarkIcon aria-hidden="true" />
-              Save as template…
+              {m.topBar.saveAsTemplate}
             </DropdownMenuItem>
           ) : null}
         </DropdownMenuContent>
@@ -663,17 +674,17 @@ function Workspace<B extends BlockBase>({
           the list grows to hold the second row. */}
       <TabsList className="bl:w-full bl:flex-wrap bl:group-data-[orientation=horizontal]/tabs:h-auto">
         <TabsTrigger value="block" className={TAB}>
-          Block
+          {m.inspector.tabs.block}
         </TabsTrigger>
         <TabsTrigger value="appearance" className={TAB}>
-          Appearance
+          {m.inspector.tabs.appearance}
         </TabsTrigger>
         <TabsTrigger value="settings" className={TAB}>
-          Settings
+          {m.inspector.tabs.settings}
         </TabsTrigger>
         {onBrandChange ? (
           <TabsTrigger value="brand" className={TAB}>
-            Brand kit
+            {m.inspector.tabs.brand}
           </TabsTrigger>
         ) : null}
       </TabsList>
@@ -688,7 +699,7 @@ function Workspace<B extends BlockBase>({
             onChange={editor.update}
           />
         ) : (
-          <EmptyPanel>Choose a block on the canvas to edit what it says.</EmptyPanel>
+          <EmptyPanel>{m.inspector.chooseBlock}</EmptyPanel>
         )}
       </TabsContent>
 
@@ -701,7 +712,7 @@ function Workspace<B extends BlockBase>({
             onChange={editor.update}
           />
         ) : (
-          <EmptyPanel>Choose a block on the canvas to change how it looks.</EmptyPanel>
+          <EmptyPanel>{m.appearance.chooseBlock}</EmptyPanel>
         )}
       </TabsContent>
 
@@ -761,9 +772,7 @@ function Workspace<B extends BlockBase>({
           className="bl:flex bl:shrink-0 bl:items-start bl:gap-2 bl:border-b bl:bg-muted bl:px-4 bl:py-2 bl:text-[0.8125rem] bl:text-muted-foreground"
         >
           <LockIcon aria-hidden="true" className="bl:mt-0.5 bl:size-4 bl:shrink-0" />
-          <span>
-            {readOnlyReason ?? 'This issue is read-only, so nothing in it can be changed.'}
-          </span>
+          <span>{readOnlyReason ?? m.topBar.readOnly}</span>
         </p>
       ) : null}
 
@@ -792,7 +801,7 @@ function Workspace<B extends BlockBase>({
       >
         {readOnly ? null : (
           <section
-            {...(single ? panel('blocks') : { 'aria-label': 'Block palette' })}
+            {...(single ? panel('blocks') : { 'aria-label': m.palette.region })}
             className={cn(
               'bl:min-w-0 bl:px-2 bl:py-4',
               layout === 'flow' &&
@@ -804,7 +813,7 @@ function Workspace<B extends BlockBase>({
             <BlockPalette
               headingId={paletteHeadingId}
               blocks={document.blocks}
-              countLabel={`${count} of ${editor.maxBlocks} blocks`}
+              countLabel={m.palette.blocksUsed(count, editor.maxBlocks)}
               insertLabel={insertTarget?.label ?? null}
               disabled={editor.full}
               // Dragging needs the canvas beside the palette.
@@ -846,7 +855,7 @@ function Workspace<B extends BlockBase>({
               )}
             >
               <h2 id={previewHeadingId} className="bl:sr-only">
-                Preview
+                {m.preview.region}
               </h2>
               <PreviewPane
                 document={document}
@@ -859,7 +868,7 @@ function Workspace<B extends BlockBase>({
 
         <section
           ref={inspectorColumn}
-          {...(single ? panel('edit') : { id: inspectorId, 'aria-label': 'Inspector' })}
+          {...(single ? panel('edit') : { id: inspectorId, 'aria-label': m.inspector.region })}
           className={cn(
             'bl:min-w-0',
             layout === 'flow' &&
@@ -880,7 +889,7 @@ function Workspace<B extends BlockBase>({
                   onClick={backToCanvas}
                 >
                   <ArrowLeftIcon aria-hidden="true" />
-                  Back to canvas
+                  {m.panes.backToCanvas}
                 </Button>
               </div>
               <div className="bl:relative bl:min-h-0 bl:flex-1 bl:overflow-y-auto bl:p-3 bl:@md/editor:p-4">
@@ -897,7 +906,7 @@ function Workspace<B extends BlockBase>({
         <SaveTemplateDialog
           open={savingTemplate}
           onOpenChange={setSavingTemplate}
-          suggestedName={`${document.subject.trim() || 'Newsletter'} layout`}
+          suggestedName={m.dialogs.saveTemplate.suggestedName(document.subject.trim())}
           onSave={onSaveAsTemplate}
         />
       ) : null}
@@ -949,6 +958,7 @@ function PaneSwitch({
   tabId: (tab: PaneTab) => string;
   panelId: (tab: PaneTab) => string;
 }) {
+  const m = useEditorMessages();
   const buttons = useRef(new Map<PaneTab, HTMLButtonElement>());
 
   function onKeyDown(event: KeyboardEvent<HTMLButtonElement>, index: number): void {
@@ -977,7 +987,7 @@ function PaneSwitch({
   return (
     <div
       role="tablist"
-      aria-label="Editor panes"
+      aria-label={m.panes.label}
       className="bl:inline-flex bl:h-8 bl:items-center bl:rounded-lg bl:bg-muted bl:p-[3px]"
     >
       {tabs.map((tab, index) => (
@@ -1001,7 +1011,7 @@ function PaneSwitch({
             'bl:aria-selected:bg-background bl:aria-selected:text-foreground bl:aria-selected:shadow-sm',
           )}
         >
-          {PANE_LABELS[tab]}
+          {m.panes[tab]}
         </button>
       ))}
     </div>
@@ -1016,6 +1026,7 @@ function ModeSwitch({
   mode: EditorMode;
   onChange: (mode: EditorMode) => void;
 }) {
+  const m = useEditorMessages();
   const option = (value: EditorMode, label: string) => (
     <button
       type="button"
@@ -1033,11 +1044,11 @@ function ModeSwitch({
   return (
     <div
       role="group"
-      aria-label="View"
+      aria-label={m.topBar.view}
       className="bl:inline-flex bl:h-8 bl:items-center bl:rounded-lg bl:bg-muted bl:p-[3px]"
     >
-      {option('canvas', 'Canvas')}
-      {option('preview', 'Preview')}
+      {option('canvas', m.topBar.canvas)}
+      {option('preview', m.topBar.preview)}
     </div>
   );
 }
@@ -1061,13 +1072,14 @@ function SettingsPanel<B extends BlockBase>({
   readOnly: boolean;
 }) {
   const { document } = editor;
+  const m = useEditorMessages();
   const confirm = useConfirm();
   const ids = useId();
   const [draft, setDraft] = useState<IssuePeriod | null>(null);
   const [updating, setUpdating] = useState(false);
   // The same rule New issue and Duplicate apply: an issue covers up to today, no further.
   const [today] = useState(() => todayInZone(undefined));
-  const errors = draft ? periodErrors(draft, { today }) : {};
+  const errors = draft ? periodErrorText(periodErrorCodes(draft, { today }), m) : {};
   const invalid = Object.keys(errors).length > 0;
   const sourced = document.blocks.filter((block) => sourceFor(block, sources)).length;
 
@@ -1076,10 +1088,9 @@ function SettingsPanel<B extends BlockBase>({
     if (
       sourced > 0 &&
       !(await confirm({
-        title: `Refresh ${blockWord(sourced)} for the new dates?`,
-        description:
-          'Blocks filled from your data are read again for these dates, and what they list changes to match. Everything else in the issue stays as it is.',
-        confirmLabel: 'Update period',
+        title: m.settings.confirmTitle(sourced),
+        description: m.settings.confirmDescription,
+        confirmLabel: m.settings.update,
       }))
     ) {
       return;
@@ -1095,27 +1106,29 @@ function SettingsPanel<B extends BlockBase>({
 
   return (
     <div className="bl:flex bl:min-w-0 bl:flex-col bl:gap-5">
-      <h2 className="bl:text-[0.9375rem] bl:font-semibold bl:text-foreground">Settings</h2>
+      <h2 className="bl:text-[0.9375rem] bl:font-semibold bl:text-foreground">
+        {m.settings.heading}
+      </h2>
       <fieldset disabled={readOnly} className="bl:flex bl:min-w-0 bl:flex-col bl:gap-4">
         <Field className="bl:gap-2">
-          <FieldLabel htmlFor={`${ids}-subject`}>Subject</FieldLabel>
+          <FieldLabel htmlFor={`${ids}-subject`}>{m.settings.subject}</FieldLabel>
           <Input
             id={`${ids}-subject`}
             value={document.subject}
             aria-describedby={`${ids}-subject-help`}
             onChange={(event) => editor.setSubject(event.target.value)}
           />
-          <Hint id={`${ids}-subject-help`}>What an inbox shows first.</Hint>
+          <Hint id={`${ids}-subject-help`}>{m.settings.subjectHint}</Hint>
         </Field>
         <Field className="bl:gap-2">
-          <FieldLabel htmlFor={`${ids}-preheader`}>Preview line</FieldLabel>
+          <FieldLabel htmlFor={`${ids}-preheader`}>{m.settings.preheader}</FieldLabel>
           <Input
             id={`${ids}-preheader`}
             value={document.preheader}
             aria-describedby={`${ids}-preheader-help`}
             onChange={(event) => editor.setPreheader(event.target.value)}
           />
-          <Hint id={`${ids}-preheader-help`}>The line an inbox shows under the subject.</Hint>
+          <Hint id={`${ids}-preheader-help`}>{m.settings.preheaderHint}</Hint>
         </Field>
       </fieldset>
 
@@ -1139,12 +1152,10 @@ function SettingsPanel<B extends BlockBase>({
               aria-describedby={`${ids}-period-help`}
               onClick={() => void applyPeriod()}
             >
-              {updating ? 'Updating…' : 'Update period'}
+              {updating ? m.settings.updating : m.settings.update}
             </Button>
             <p id={`${ids}-period-help`} className="bl:text-[0.8125rem] bl:text-muted-foreground">
-              {sourced > 0
-                ? `This refreshes the ${blockWord(sourced)} filled from your data for the dates above. Everything else stays as it is.`
-                : 'No block here is filled from your data, so only the dates change.'}
+              {sourced > 0 ? m.settings.refreshHelp(sourced) : m.settings.noSources}
             </p>
           </div>
         </div>

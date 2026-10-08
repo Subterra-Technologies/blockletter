@@ -1,5 +1,6 @@
 import type { BannerBlock } from '@subterra-technologies/blockletter';
 import type { BlockCanvasProps } from '../../editor/types';
+import { useEditorMessages } from '../../i18n/context';
 import { blockBackground } from '../canvas-theme';
 import { CanvasSection, EmailButton, EmailImage, CanvasNote } from './shared';
 
@@ -11,6 +12,7 @@ const cssUrl = (url: string): string => url.replace(/["\\]/g, '\\$&').replace(/[
  * its own until there is an image. The same three layouts the email has.
  */
 export function BannerCanvas(canvas: BlockCanvasProps<BannerBlock>) {
+  const words = useEditorMessages().blocks.banner;
   const { block, palette, fonts, px, image } = canvas;
   const src = image(block.image);
   const heading = block.heading?.trim() ?? '';
@@ -93,7 +95,7 @@ export function BannerCanvas(canvas: BlockCanvasProps<BannerBlock>) {
           copy(palette.bandText, palette.bandMuted, band)
         ) : (
           <CanvasNote canvas={canvas} background={band}>
-            Add an image or a headline. Until then the email shows a plain band.
+            {words.emptyCanvas}
           </CanvasNote>
         )}
       </div>

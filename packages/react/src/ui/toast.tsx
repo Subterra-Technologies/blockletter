@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from 'react';
 import { CircleAlertIcon, CircleCheckIcon, InfoIcon, XIcon } from 'lucide-react';
+import { useEditorMessages } from '../i18n/context';
 import { cn } from '../lib/cn';
 
 export type ToastTone = 'success' | 'error' | 'info';
@@ -115,6 +116,7 @@ const toneColor: Record<ToastTone, string> = {
  */
 export function ToastRegion() {
   const { toasts, dismiss } = useToasts();
+  const words = useEditorMessages().toasts;
 
   return (
     <div
@@ -149,7 +151,7 @@ export function ToastRegion() {
             ) : null}
             <button
               type="button"
-              aria-label="Dismiss message"
+              aria-label={words.dismiss}
               onClick={() => dismiss(toast.id)}
               className="bl:-my-1 bl:flex bl:size-7 bl:shrink-0 bl:items-center bl:justify-center bl:rounded-md bl:text-muted-foreground bl:outline-none bl:hover:bg-accent bl:hover:text-foreground bl:focus-visible:ring-2 bl:focus-visible:ring-ring/50"
             >

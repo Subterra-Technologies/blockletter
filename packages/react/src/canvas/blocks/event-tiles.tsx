@@ -5,6 +5,7 @@ import {
   type EventTilesBlock,
 } from '@subterra-technologies/blockletter';
 import type { BlockCanvasProps } from '../../editor/types';
+import { useEditorMessages } from '../../i18n/context';
 import { blockBackground } from '../canvas-theme';
 import { CanvasSection, CanvasNote, headingStyle } from './shared';
 
@@ -13,6 +14,7 @@ import { CanvasSection, CanvasNote, headingStyle } from './shared';
  * organisation's own calendar date, so the day and "Sept. 5" are read straight from it.
  */
 export function EventTilesCanvas(canvas: BlockCanvasProps<EventTilesBlock>) {
+  const words = useEditorMessages().blocks.event_tiles;
   const { block, palette, fonts, px, labels } = canvas;
   const items = block.items.slice(0, LIMITS.eventTiles);
   const heading = block.heading.trim();
@@ -21,7 +23,7 @@ export function EventTilesCanvas(canvas: BlockCanvasProps<EventTilesBlock>) {
       {heading ? <p style={headingStyle(canvas, palette.bandText)}>{block.heading}</p> : null}
       {items.length === 0 ? (
         <CanvasNote canvas={canvas} background={blockBackground(block, palette.band)}>
-          No events chosen yet. The block stays out of the email until it has one.
+          {words.emptyCanvas}
         </CanvasNote>
       ) : (
         <div className={items.length > 2 ? 'bl:flex bl:@max-[28rem]/sheet:flex-col' : 'bl:flex'}>

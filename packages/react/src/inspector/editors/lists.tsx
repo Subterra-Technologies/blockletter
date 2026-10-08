@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react';
 import {
   LIMITS,
-  formatShortDate,
   sortDatedItems,
   sourceFor,
   type BlockBase,
@@ -20,6 +19,8 @@ import {
 } from '@subterra-technologies/blockletter';
 import { useEditorContext } from '../../editor/context';
 import type { BlockEditorProps } from '../../editor/types';
+import { useEditorMessages } from '../../i18n/context';
+import type { BoundMessages } from '../../i18n/resolve';
 import { StatusBadge } from '../../ui/status-badge';
 import { blockEditor } from '../editor-base';
 import { AreaField, EditorFields, FieldPair, TextField } from '../editor-fields';
@@ -42,14 +43,17 @@ function useBlockSource(block: Pick<BlockBase, 'type' | 'source'>): DataSource |
 
 /** "From Club events" beside a row the source supplied. */
 const sourceBadge =
-  (source: DataSource | undefined) =>
+  (source: DataSource | undefined, messages: BoundMessages) =>
   (item: SourcedItem): ReactNode =>
-    source && item.ref ? <StatusBadge tone="info">From {source.label}</StatusBadge> : null;
+    source && item.ref ? (
+      <StatusBadge tone="info">{messages.sources.from(source.label)}</StatusBadge>
+    ) : null;
 
-const emptyNote = (plural: string, source: DataSource | undefined): string =>
-  source
-    ? `No ${plural} yet. Pick from ${source.label} above, or add one by hand.`
-    : `No ${plural} yet.`;
+/** What a list says while it is empty, with a source above it to pick from or not. */
+const emptyNote = (
+  words: { empty: string; emptyFromSource: (source: string) => string },
+  source: DataSource | undefined,
+): string => (source ? words.emptyFromSource(source.label) : words.empty);
 
 /** Copies `item` with its blank optional fields left out. */
 function compact<T extends object>(item: T, optional: readonly (keyof T)[]): T {
@@ -63,21 +67,32 @@ function compact<T extends object>(item: T, optional: readonly (keyof T)[]): T {
 
 // --- Event tiles ---------------------------------------------------------------------------------
 
-const describeEvent = (item: EventTileItem) => ({
-  name: item.title,
-  detail: [formatShortDate(item.date), item.time, item.location].filter(Boolean).join(' · '),
-});
-
 export function EventTilesEditor({ block, onChange, readOnly }: BlockEditorProps<EventTilesBlock>) {
   const source = useBlockSource(block);
+  const m = useEditorMessages();
+  const { fields } = m;
+  const words = m.blocks.event_tiles;
   const { patch } = blockEditor(block, onChange);
   const setItems = (items: EventTileItem[]) =>
     patch({ items: items.map((item) => compact(item, ['time', 'location', 'url'])) });
-  const help = `Up to ${LIMITS.eventTiles} events become the big date tiles.`;
+  const help = words.help(LIMITS.eventTiles);
+  // The date as the editor writes dates, with the time and place the source gave beside it.
+  const describeEvent = (item: EventTileItem) => ({
+    name: item.title,
+    detail: words.pickDetail({
+      date: item.date,
+      ...(item.time ? { time: item.time } : {}),
+      ...(item.location ? { location: item.location } : {}),
+    }),
+  });
 
   return (
     <EditorFields readOnly={readOnly}>
-      <TextField label="Heading" value={block.heading} onChange={(heading) => patch({ heading })} />
+      <TextField
+        label={fields.heading}
+        value={block.heading}
+        onChange={(heading) => patch({ heading })}
+      />
       {source ? (
         <SourcePicker
           source={source}
@@ -89,43 +104,45 @@ export function EventTilesEditor({ block, onChange, readOnly }: BlockEditorProps
         />
       ) : null}
       <ItemList
-        label="Events"
-        noun="event"
+        words={words.list}
         reorderable
         items={block.items}
         onChange={setItems}
         max={LIMITS.eventTiles}
         create={() => ({ title: '', date: '' })}
-        addLabel="Add event"
-        limitHint={`Event tiles show up to ${LIMITS.eventTiles} events.`}
-        empty={emptyNote('events', source)}
+        limitHint={words.list.limit(LIMITS.eventTiles)}
+        empty={emptyNote(words.list, source)}
         hint={source ? undefined : help}
-        badge={sourceBadge(source)}
+        badge={sourceBadge(source, m)}
         renderItem={(item, update) => (
           <>
-            <TextField label="Title" value={item.title} onChange={(title) => update({ title })} />
+            <TextField
+              label={fields.title}
+              value={item.title}
+              onChange={(title) => update({ title })}
+            />
             <FieldPair>
               <TextField
-                label="Date"
+                label={fields.date}
                 type="date"
                 value={item.date}
                 onChange={(date) => update({ date })}
               />
               <TextField
-                label="Time (optional)"
-                placeholder="6:30 PM"
+                label={words.timeOptional}
+                placeholder={words.timePlaceholder}
                 value={item.time ?? ''}
                 onChange={(time) => update({ time })}
               />
             </FieldPair>
             <TextField
-              label="Location (optional)"
+              label={words.locationOptional}
               value={item.location ?? ''}
               onChange={(location) => update({ location })}
             />
             <TextField
-              label="Link (optional)"
-              placeholder="/events"
+              label={fields.linkOptional}
+              placeholder={words.linkPlaceholder}
               value={item.url ?? ''}
               onChange={(url) => update({ url })}
             />
@@ -142,13 +159,20 @@ const describeSponsor = (item: SponsorItem) => ({ name: item.name, detail: item.
 
 export function SponsorsEditor({ block, onChange, readOnly }: BlockEditorProps<SponsorsBlock>) {
   const source = useBlockSource(block);
+  const m = useEditorMessages();
+  const { fields } = m;
+  const words = m.blocks.sponsors;
   const { patch } = blockEditor(block, onChange);
   const setItems = (items: SponsorItem[]) =>
     patch({ items: items.map((item) => compact(item, ['logo', 'url'])) });
 
   return (
     <EditorFields readOnly={readOnly}>
-      <TextField label="Heading" value={block.heading} onChange={(heading) => patch({ heading })} />
+      <TextField
+        label={fields.heading}
+        value={block.heading}
+        onChange={(heading) => patch({ heading })}
+      />
       {source ? (
         <SourcePicker
           source={source}
@@ -158,37 +182,35 @@ export function SponsorsEditor({ block, onChange, readOnly }: BlockEditorProps<S
         />
       ) : null}
       <ItemList
-        label="Sponsors"
-        noun="sponsor"
+        words={words.list}
         reorderable
         items={block.items}
         onChange={setItems}
-        create={() => ({ name: '', message: 'Thank you for sponsoring!' })}
-        addLabel="Add sponsor"
-        empty={emptyNote('sponsors', source)}
-        badge={sourceBadge(source)}
+        create={() => ({ name: '', message: words.newMessage })}
+        empty={emptyNote(words.list, source)}
+        badge={sourceBadge(source, m)}
         renderItem={(item, update) => (
           <>
             <FieldPair>
               <TextField
-                label="Sponsor name"
+                label={words.sponsorName}
                 value={item.name}
                 onChange={(name) => update({ name })}
               />
               <TextField
-                label="Link (optional)"
+                label={fields.linkOptional}
                 value={item.url ?? ''}
                 onChange={(url) => update({ url })}
               />
             </FieldPair>
             <AreaField
-              label="Thank-you message"
+              label={words.message}
               rows={2}
               value={item.message}
               onChange={(message) => update({ message })}
             />
             <ImageField
-              label="Logo"
+              label={words.logo}
               value={item.logo}
               disabled={readOnly}
               onChange={(logo) => update({ logo })}
@@ -206,15 +228,22 @@ const describeName = (item: NameListItem) => ({ name: item.name, detail: item.de
 
 export function NameListEditor({ block, onChange, readOnly }: BlockEditorProps<NameListBlock>) {
   const source = useBlockSource(block);
+  const m = useEditorMessages();
+  const { fields } = m;
+  const words = m.blocks.name_list;
   const { patch } = blockEditor(block, onChange);
   const setItems = (items: NameListItem[]) =>
     patch({ items: items.map((item) => compact(item, ['detail', 'url'])) });
 
   return (
     <EditorFields readOnly={readOnly}>
-      <TextField label="Heading" value={block.heading} onChange={(heading) => patch({ heading })} />
+      <TextField
+        label={fields.heading}
+        value={block.heading}
+        onChange={(heading) => patch({ heading })}
+      />
       <AreaField
-        label="Intro"
+        label={words.intro}
         rows={3}
         value={block.intro}
         onChange={(intro) => patch({ intro })}
@@ -228,26 +257,28 @@ export function NameListEditor({ block, onChange, readOnly }: BlockEditorProps<N
         />
       ) : null}
       <ItemList
-        label="Names"
-        noun="name"
+        words={words.list}
         reorderable
         items={block.items}
         onChange={setItems}
         create={() => ({ name: '' })}
-        addLabel="Add name"
-        empty={emptyNote('names', source)}
-        badge={sourceBadge(source)}
+        empty={emptyNote(words.list, source)}
+        badge={sourceBadge(source, m)}
         renderItem={(item, update) => (
           <>
-            <TextField label="Name" value={item.name} onChange={(name) => update({ name })} />
             <TextField
-              label="Second line (optional)"
-              placeholder="Bakery · Joined Sept. 3"
+              label={fields.name}
+              value={item.name}
+              onChange={(name) => update({ name })}
+            />
+            <TextField
+              label={words.secondLine}
+              placeholder={words.secondLinePlaceholder}
               value={item.detail ?? ''}
               onChange={(detail) => update({ detail })}
             />
             <TextField
-              label="Link (optional)"
+              label={fields.linkOptional}
               value={item.url ?? ''}
               onChange={(url) => update({ url })}
             />
@@ -267,14 +298,21 @@ const describePost = (item: PostItem) => ({
 
 export function PostListEditor({ block, onChange, readOnly }: BlockEditorProps<PostListBlock>) {
   const source = useBlockSource(block);
+  const m = useEditorMessages();
+  const { fields } = m;
+  const words = m.blocks.post_list;
   const { patch } = blockEditor(block, onChange);
   const setItems = (items: PostItem[]) =>
     patch({ items: items.map((item) => compact(item, ['kicker'])) });
-  const help = `Up to ${LIMITS.posts} posts, each with its title and summary.`;
+  const help = words.help(LIMITS.posts);
 
   return (
     <EditorFields readOnly={readOnly}>
-      <TextField label="Heading" value={block.heading} onChange={(heading) => patch({ heading })} />
+      <TextField
+        label={fields.heading}
+        value={block.heading}
+        onChange={(heading) => patch({ heading })}
+      />
       {source ? (
         <SourcePicker
           source={source}
@@ -286,36 +324,38 @@ export function PostListEditor({ block, onChange, readOnly }: BlockEditorProps<P
         />
       ) : null}
       <ItemList
-        label="Posts"
-        noun="post"
+        words={words.list}
         reorderable
         items={block.items}
         onChange={setItems}
         max={LIMITS.posts}
         create={() => ({ title: '', excerpt: '', url: '' })}
-        addLabel="Add post"
-        limitHint={`A post list shows up to ${LIMITS.posts} posts.`}
-        empty={emptyNote('posts', source)}
+        limitHint={words.list.limit(LIMITS.posts)}
+        empty={emptyNote(words.list, source)}
         hint={source ? undefined : help}
-        badge={sourceBadge(source)}
+        badge={sourceBadge(source, m)}
         renderItem={(item, update) => (
           <>
             <TextField
-              label="Label (optional)"
-              placeholder="Announcement"
+              label={words.kicker}
+              placeholder={words.kickerPlaceholder}
               value={item.kicker ?? ''}
               onChange={(kicker) => update({ kicker })}
             />
-            <TextField label="Title" value={item.title} onChange={(title) => update({ title })} />
+            <TextField
+              label={fields.title}
+              value={item.title}
+              onChange={(title) => update({ title })}
+            />
             <AreaField
-              label="Summary"
+              label={words.excerpt}
               rows={2}
               value={item.excerpt}
               onChange={(excerpt) => update({ excerpt })}
             />
             <TextField
-              label="Link"
-              placeholder="/news"
+              label={fields.link}
+              placeholder={words.linkPlaceholder}
               value={item.url}
               onChange={(url) => update({ url })}
             />
@@ -332,6 +372,9 @@ const describeDated = (item: DatedItem) => ({ name: item.text, detail: item.date
 
 export function DatedListEditor({ block, onChange, readOnly }: BlockEditorProps<DatedListBlock>) {
   const source = useBlockSource(block);
+  const m = useEditorMessages();
+  const { fields } = m;
+  const words = m.blocks.dated_list;
   const { patch } = blockEditor(block, onChange);
   const setItems = (items: DatedItem[]) =>
     patch({ items: items.map((item) => compact(item, ['sortDate'])) });
@@ -340,12 +383,12 @@ export function DatedListEditor({ block, onChange, readOnly }: BlockEditorProps<
     <EditorFields readOnly={readOnly}>
       <FieldPair>
         <TextField
-          label="Heading"
+          label={fields.heading}
           value={block.heading}
           onChange={(heading) => patch({ heading })}
         />
         <TextField
-          label="Subheading"
+          label={fields.subheading}
           value={block.subheading}
           onChange={(subheading) => patch({ subheading })}
         />
@@ -360,35 +403,33 @@ export function DatedListEditor({ block, onChange, readOnly }: BlockEditorProps<
         />
       ) : null}
       <ItemList
-        label="Lines"
-        noun="line"
+        words={words.list}
         reorderable
         items={block.items}
         onChange={setItems}
         create={() => ({ date: '', text: '' })}
-        addLabel="Add line"
-        empty={emptyNote('lines', source)}
-        hint="Lines render as “Sept. 5 · Farmers market | Town square”. Lines with a sort date appear in date order; the rest follow in the order shown here."
-        badge={sourceBadge(source)}
+        empty={emptyNote(words.list, source)}
+        hint={words.hint}
+        badge={sourceBadge(source, m)}
         renderItem={(item, update) => (
           <>
             <FieldPair>
               <TextField
-                label="Date"
-                placeholder="Sept. 5"
+                label={fields.date}
+                placeholder={words.datePlaceholder}
                 value={item.date}
                 onChange={(date) => update({ date })}
               />
               <TextField
-                label="Sort date (optional)"
+                label={words.sortDate}
                 type="date"
                 value={item.sortDate ?? ''}
                 onChange={(sortDate) => update({ sortDate })}
               />
             </FieldPair>
             <TextField
-              label="What’s happening"
-              placeholder="Farmers market | Town square"
+              label={words.happening}
+              placeholder={words.happeningPlaceholder}
               value={item.text}
               onChange={(text) => update({ text })}
             />

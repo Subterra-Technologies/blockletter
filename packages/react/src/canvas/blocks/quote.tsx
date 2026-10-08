@@ -1,10 +1,12 @@
 import type { QuoteBlock } from '@subterra-technologies/blockletter';
 import type { BlockCanvasProps } from '../../editor/types';
+import { useEditorMessages } from '../../i18n/context';
 import { blockBackground } from '../canvas-theme';
 import { CanvasSection, CanvasNote, smallStyle } from './shared';
 
 /** One pull quote in large italic type beside an accent rule, with its attribution. */
 export function QuoteCanvas(canvas: BlockCanvasProps<QuoteBlock>) {
+  const words = useEditorMessages().blocks.quote;
   const { block, palette, fonts, px } = canvas;
   const quote = block.quote.trim();
   const attribution = block.attribution?.trim() ?? '';
@@ -36,7 +38,7 @@ export function QuoteCanvas(canvas: BlockCanvasProps<QuoteBlock>) {
         </div>
       ) : (
         <CanvasNote canvas={canvas} background={blockBackground(block, palette.soft)}>
-          Add the quote. The block stays out of the email until it has one.
+          {words.emptyCanvas}
         </CanvasNote>
       )}
     </CanvasSection>

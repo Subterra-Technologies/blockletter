@@ -4,17 +4,15 @@ import {
   BLOCK_ALIGNMENTS,
   BLOCK_FONT_SIZES,
   BLOCK_PADDINGS,
-  blockLabel,
   isHexColor,
   resolvePalette,
-  styleSummary,
-  type BlockAlign,
   type BlockBase,
-  type BlockFontSize,
-  type BlockPadding,
   type BlockStyle,
 } from '@subterra-technologies/blockletter';
 import { useEditorContext } from '../editor/context';
+import { blockName } from '../i18n/blocks';
+import { useEditorMessages } from '../i18n/context';
+import { styleSummaryText } from '../i18n/core-words';
 import { Button } from '../ui/button';
 import { Field, FieldLabel } from '../ui/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
@@ -30,18 +28,6 @@ export interface AppearancePanelProps<B extends BlockBase = BlockBase> {
   /** Id of the panel's heading, which an editor may focus when the panel opens. */
   headingId?: string;
 }
-
-const CHOICE_LABELS: Record<BlockAlign | BlockPadding | BlockFontSize, string> = {
-  left: 'Left',
-  center: 'Centre',
-  right: 'Right',
-  none: 'None',
-  tight: 'Tight',
-  normal: 'Normal',
-  loose: 'Loose',
-  small: 'Small',
-  large: 'Large',
-};
 
 type ChoiceKey = 'align' | 'paddingY' | 'fontSize';
 
@@ -59,6 +45,8 @@ export function AppearancePanel<B extends BlockBase>({
 }: AppearancePanelProps<B>) {
   const editor = useEditorContext();
   const { brand, definitions } = editor;
+  const m = useEditorMessages();
+  const words = m.appearance;
   const locked = readOnly ?? editor.readOnly;
   const ids = useId();
   const heading = headingId ?? `${ids}-heading`;
@@ -66,11 +54,11 @@ export function AppearancePanel<B extends BlockBase>({
   const hasStyle = Object.keys(style).length > 0;
   const palette = resolvePalette(brand);
   const swatches: ColorSwatch[] = [
-    { label: 'Page', value: brand.colors?.page },
-    { label: 'Ink', value: brand.colors?.ink },
-    { label: 'Accent', value: brand.colors?.accent },
-    { label: 'Highlight', value: brand.colors?.highlight },
-    { label: 'White', value: '#ffffff' },
+    { label: words.swatches.page, value: brand.colors?.page },
+    { label: words.swatches.ink, value: brand.colors?.ink },
+    { label: words.swatches.accent, value: brand.colors?.accent },
+    { label: words.swatches.highlight, value: brand.colors?.highlight },
+    { label: words.swatches.white, value: '#ffffff' },
   ].filter((swatch): swatch is ColorSwatch => isHexColor(swatch.value));
 
   /** The block with `nextStyle`, or without a `style` key at all once it is empty. */
@@ -93,6 +81,7 @@ export function AppearancePanel<B extends BlockBase>({
     label: string,
     options: readonly NonNullable<BlockStyle[K]>[],
     fallback: NonNullable<BlockStyle[K]>,
+    names: Readonly<Record<NonNullable<BlockStyle[K]>, string>>,
   ) => {
     const id = `${ids}-${key}`;
     return (
@@ -111,7 +100,7 @@ export function AppearancePanel<B extends BlockBase>({
           <SelectContent>
             {options.map((option) => (
               <SelectItem key={option} value={option}>
-                {CHOICE_LABELS[option]}
+                {names[option]}
               </SelectItem>
             ))}
           </SelectContent>
@@ -129,7 +118,7 @@ export function AppearancePanel<B extends BlockBase>({
             tabIndex={-1}
             className="bl:text-[0.9375rem] bl:font-semibold bl:text-foreground bl:outline-none"
           >
-            {blockLabel(block.type, definitions)}
+            {blockName(block.type, definitions, m)}
           </h2>
           {hasStyle && !locked ? (
             <Button
@@ -140,14 +129,12 @@ export function AppearancePanel<B extends BlockBase>({
               className="bl:-mt-0.5"
             >
               <RotateCcwIcon aria-hidden="true" />
-              Reset appearance
+              {words.reset}
             </Button>
           ) : null}
         </div>
-        <p className="bl:text-xs bl:text-muted-foreground">{styleSummary(block.style)}</p>
-        <Note>
-          Styling for this block only. Leave a field alone to keep the brand kit&apos;s styling.
-        </Note>
+        <p className="bl:text-xs bl:text-muted-foreground">{styleSummaryText(block.style, m)}</p>
+        <Note>{words.note}</Note>
       </div>
       <fieldset
         disabled={locked}
@@ -155,41 +142,41 @@ export function AppearancePanel<B extends BlockBase>({
         className="bl:flex bl:min-w-0 bl:flex-col bl:gap-5"
       >
         <ColorField
-          label="Background"
+          label={words.background}
           controlId={`${ids}-background`}
           value={style.background}
           fallback={palette.card}
-          fallbackLabel="the block's own background"
+          fallbackLabel={words.backgroundDefault}
           swatches={swatches}
           disabled={locked}
           onValueChange={(value) => patch({ background: value })}
         />
         <ColorField
-          label="Text colour"
+          label={words.textColor}
           controlId={`${ids}-text`}
           value={style.textColor}
           fallback={palette.text}
-          fallbackLabel="the brand kit's text colour"
+          fallbackLabel={words.textColorDefault}
           swatches={swatches}
           disabled={locked}
           onValueChange={(value) => patch({ textColor: value })}
         />
-        {choice('align', 'Alignment', BLOCK_ALIGNMENTS, 'left')}
+        {choice('align', words.align, BLOCK_ALIGNMENTS, 'left', words.alignments)}
         <FieldPair>
-          {choice('paddingY', 'Vertical padding', BLOCK_PADDINGS, 'normal')}
-          {choice('fontSize', 'Text size', BLOCK_FONT_SIZES, 'normal')}
+          {choice('paddingY', words.padding, BLOCK_PADDINGS, 'normal', words.paddings)}
+          {choice('fontSize', words.fontSize, BLOCK_FONT_SIZES, 'normal', words.fontSizes)}
         </FieldPair>
         <div className="bl:flex bl:flex-col bl:gap-3">
           <CheckField
             id={`${ids}-full-width`}
-            label="Edge-to-edge band"
+            label={words.fullWidth}
             checked={style.fullWidth === true}
             disabled={locked}
             onChange={(checked) => patch({ fullWidth: checked || undefined })}
           />
           <CheckField
             id={`${ids}-divider`}
-            label="Hairline under the block"
+            label={words.divider}
             checked={style.divider === true}
             disabled={locked}
             onChange={(checked) => patch({ divider: checked || undefined })}

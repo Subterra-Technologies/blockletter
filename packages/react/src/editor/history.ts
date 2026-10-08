@@ -3,8 +3,9 @@
  * keeps, and what its tests drive directly.
  *
  * Every change the editor makes to the document is a step: the document before it and after it,
- * and what it did, in words an announcement can finish ("Undid: deleted the Quote block"). Undo
- * hands back a step's `before`, redo its `after`, and a new change clears whatever was undone.
+ * and what it did, in words an announcement can finish ("Undid: deleted the Quote block"), or
+ * whatever makes them (`L`), so they can be worded only when they are said. Undo hands back a
+ * step's `before`, redo its `after`, and a new change clears whatever was undone.
  *
  * The history also keeps the documents it handed the host. The editor is controlled, so the host
  * passes each of them back as `value`; a `value` that is none of them (another issue, a reload,
@@ -28,11 +29,11 @@ export interface HistorySelection {
 }
 
 /** One change, as undo and redo replay it. */
-export interface HistoryStep<D> {
+export interface HistoryStep<D, L = string> {
   before: D;
   after: D;
   /** What the change did, lower case and in the past: "deleted the Quote block". */
-  label: string;
+  label: L;
   /** Edits that share a key (one field of one block) join into one step while they keep coming. */
   key?: string;
   /** When the step last grew, in milliseconds. */
@@ -42,19 +43,19 @@ export interface HistoryStep<D> {
 }
 
 /** A change the editor has made, for `record`. */
-export interface HistoryChange<D> extends HistoryStep<D> {
+export interface HistoryChange<D, L = string> extends HistoryStep<D, L> {
   /**
    * The step this change finishes, such as a period's refreshed blocks arriving after its new
    * dates: folded into that step while it is still the newest, however long it took.
    */
-  continues?: HistoryStep<D>;
+  continues?: HistoryStep<D, L>;
 }
 
-export interface EditHistory<D> {
+export interface EditHistory<D, L = string> {
   /** Steps that can be undone, oldest first. */
-  readonly past: readonly HistoryStep<D>[];
+  readonly past: readonly HistoryStep<D, L>[];
   /** Steps undone and not yet redone; the next to redo is last. */
-  readonly future: readonly HistoryStep<D>[];
+  readonly future: readonly HistoryStep<D, L>[];
   /**
    * The documents handed to the host, oldest first: the one it last passed back as `value`, then
    * any it has not passed back yet.
@@ -74,12 +75,13 @@ export interface RecordOptions<D> {
 }
 
 /** A history with nothing to undo, starting from the host's `value`. */
-export function startHistory<D>(value: D): EditHistory<D> {
+export function startHistory<D, L = string>(value: D): EditHistory<D, L> {
   return { past: [], future: [], emitted: [value] };
 }
 
-export const canUndo = (history: EditHistory<unknown>): boolean => history.past.length > 0;
-export const canRedo = (history: EditHistory<unknown>): boolean => history.future.length > 0;
+export const canUndo = (history: EditHistory<unknown, unknown>): boolean => history.past.length > 0;
+export const canRedo = (history: EditHistory<unknown, unknown>): boolean =>
+  history.future.length > 0;
 
 /** `emitted` with `document` handed out after it, never longer than the history itself. */
 function handOut<D>(emitted: readonly D[], document: D, limit: number): D[] {
@@ -92,11 +94,11 @@ function handOut<D>(emitted: readonly D[], document: D, limit: number): D[] {
  * Whatever was undone can no longer be redone. A step that ends where it began, typed and then
  * erased, is dropped.
  */
-export function record<D>(
-  history: EditHistory<D>,
-  change: HistoryChange<D>,
+export function record<D, L = string>(
+  history: EditHistory<D, L>,
+  change: HistoryChange<D, L>,
   options: RecordOptions<D> = {},
-): EditHistory<D> {
+): EditHistory<D, L> {
   const { limit = HISTORY_LIMIT, coalesceMs = COALESCE_MS, same = Object.is } = options;
   const { continues, ...step } = change;
   const emitted = handOut(history.emitted, change.after, limit);
@@ -111,7 +113,7 @@ export function record<D>(
   if (last && joins) {
     const earlier = history.past.slice(0, -1);
     if (same(last.before, step.after)) return { past: earlier, future: [], emitted };
-    const grown: HistoryStep<D> = { ...last, after: step.after, at: step.at };
+    const grown: HistoryStep<D, L> = { ...last, after: step.after, at: step.at };
     if (last.selection && step.selection) {
       grown.selection = { before: last.selection.before, after: step.selection.after };
     }
@@ -126,7 +128,7 @@ export function record<D>(
  * come: a field's own command (bold, a list) is a step apart from the typing either side of it.
  * The rest of a change it continues still folds in.
  */
-export function endStep<D>(history: EditHistory<D>): EditHistory<D> {
+export function endStep<D, L = string>(history: EditHistory<D, L>): EditHistory<D, L> {
   return history.past.length && !history.ended ? { ...history, ended: true } : history;
 }
 
@@ -134,10 +136,10 @@ export function endStep<D>(history: EditHistory<D>): EditHistory<D> {
  * The newest step taken back, its `before` handed out; undefined when there is none. What is
  * typed next is a step of its own, never part of the one before.
  */
-export function undo<D>(
-  history: EditHistory<D>,
+export function undo<D, L = string>(
+  history: EditHistory<D, L>,
   limit: number = HISTORY_LIMIT,
-): { history: EditHistory<D>; step: HistoryStep<D> } | undefined {
+): { history: EditHistory<D, L>; step: HistoryStep<D, L> } | undefined {
   const step = history.past.at(-1);
   if (!step) return undefined;
   return {
@@ -152,10 +154,10 @@ export function undo<D>(
 }
 
 /** The step undone last put back, its `after` handed out, and closed as `undo` leaves it. */
-export function redo<D>(
-  history: EditHistory<D>,
+export function redo<D, L = string>(
+  history: EditHistory<D, L>,
   limit: number = HISTORY_LIMIT,
-): { history: EditHistory<D>; step: HistoryStep<D> } | undefined {
+): { history: EditHistory<D, L>; step: HistoryStep<D, L> } | undefined {
   const step = history.future.at(-1);
   if (!step) return undefined;
   return {
@@ -175,18 +177,18 @@ export function redo<D>(
  * which also lets a host that passes its documents back late keep its history. Anything else is a
  * document the editor did not make, and the history starts over from it.
  */
-export function receive<D>(
-  history: EditHistory<D>,
+export function receive<D, L = string>(
+  history: EditHistory<D, L>,
   value: D,
   same: (left: D, right: D) => boolean = Object.is,
-): EditHistory<D> {
+): EditHistory<D, L> {
   const { emitted } = history;
   let at = emitted.lastIndexOf(value);
   for (let index = emitted.length - 1; at < 0 && index >= 0; index -= 1) {
     const document = emitted[index];
     if (document !== undefined && same(document, value)) at = index;
   }
-  if (at < 0) return startHistory(value);
+  if (at < 0) return startHistory<D, L>(value);
   if (at === 0 && emitted[0] === value) return history;
   return { ...history, emitted: [value, ...emitted.slice(at + 1)] };
 }
