@@ -20,8 +20,12 @@ export function Embed() {
           </p>
           <p>
             Every part is exported on its own too: the canvas, palette, inspector, preview, brand
-            kit, template picker and dialogs. Blockletter is pre-release, and its packages are not
-            on npm yet.
+            kit, template picker and dialogs. Both packages are on npm:{' '}
+            <code>
+              npm install @subterra-technologies/blockletter
+              @subterra-technologies/blockletter-react
+            </code>
+            .
           </p>
         </div>
         <CodeBlock title="Your editor page" code={EDITOR_SNIPPET} />

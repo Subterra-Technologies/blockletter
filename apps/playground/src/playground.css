@@ -255,14 +255,24 @@ body {
   margin-left: auto;
 }
 
-.pg-bar__note {
+.pg-page .pg-bar__note {
   margin: 0;
   padding: 2px 10px;
   border: 1px solid var(--pg-rule);
   border-radius: 999px;
   color: var(--pg-muted);
   font-size: 0.8125rem;
+  text-decoration: none;
   white-space: nowrap;
+  transition:
+    color 120ms ease,
+    border-color 120ms ease;
+}
+
+/* The version pill links to the package on npm: it darkens under the pointer, like the nav. */
+.pg-page .pg-bar__note:hover {
+  border-color: var(--pg-rule-strong);
+  color: var(--pg-ink);
 }
 
 .pg-page .pg-bar__source {

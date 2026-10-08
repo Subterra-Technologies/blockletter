@@ -21,7 +21,7 @@ See [ARCHITECTURE.md](./ARCHITECTURE.md) for the package design and public API.
 | 1     | Core: document model, 21 blocks, renderer, brand, templates, periods, data sources, validation | Done        |
 | 2     | React editor: canvas, palette, inspector, appearance, brand kit, templates, preview            | Done        |
 | 3     | Demo site (live docs) + quality gates (Playwright + axe at four widths)                        | Done        |
-| 4     | Releases: Changesets, npm publishing at launch                                                 | In progress |
+| 4     | Releases: Changesets, npm publishing at launch                                                 | Done        |
 | 5     | Convex adapter                                                                                 | Planned     |
 | 6     | Subterra's own products adopt Blockletter                                                      | Planned     |
 | 7     | Product gaps to close before 1.0                                                               | In progress |
@@ -89,7 +89,7 @@ Port the editor into `packages/react`, decoupled from Convex, Next.js and the ho
 - A release workflow opens a **Version packages** pull request from the changesets on `main`;
   merging it publishes to npm with provenance, through npm trusted publishing once the first
   release exists. [RELEASING.md](./RELEASING.md) has the one-time setup.
-- First release: `0.1.0`, waiting on the npm organisation (or a rename to unscoped names).
+- First release: `0.1.0`, published to npm on 2026-10-08.
 
 ### 5 — Convex adapter (`packages/convex`)
 
@@ -126,7 +126,7 @@ Node, Next.js and Convex. Still open:
 - [x] Licence: MIT (decided 2026-10-07), in `LICENSE` and every package's `license` field.
 - [x] README, CONTRIBUTING, CODE_OF_CONDUCT, SECURITY, issue and pull request templates.
 - [x] Demo built into this repository, with a Pages workflow ready to publish it.
-- [ ] Public name and npm scope decided (`blockletter` is unclaimed on npm as of 2026-10-07).
+- [x] Public name and npm scope: `@subterra-technologies/blockletter` and `-react` (2026-10-08).
 - [x] Denylist and secret scan pass across the full history (2026-10-07).
 - [ ] 1.0 API review: everything exported is intended to be supported ([#8](https://github.com/Subterra-Technologies/blockletter/issues/8)).
 - [x] Delete the retired `Subterra-Technologies/blockletter-demo` repository (2026-10-07).
@@ -135,7 +135,7 @@ Node, Next.js and Convex. Still open:
 - [x] [Email client compatibility](./COMPATIBILITY.md) documented; real-client checks still to fill in.
 - [x] Repository public and the demo live at https://subterra-technologies.github.io/blockletter/
       (2026-10-07).
-- [ ] Publish the packages and remove the README's pre-release note.
+- [x] Publish the packages (`0.1.0`, 2026-10-08) and remove the README's pre-release note.
 
 ## Decisions
 

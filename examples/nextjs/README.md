@@ -11,8 +11,8 @@ TypeScript.
 
 Node 20.9 or later.
 
-Once the packages are published, `npm install` here is all the setup. Until then, install against
-the repository's packed build (see [Installing an example](../README.md#installing-an-example)):
+`npm install` here is all the setup. To run it against a change to the packages instead, install
+against the repository's packed build (see [Installing an example](../README.md#installing-an-example)):
 
 ```sh
 # in the repository root

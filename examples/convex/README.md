@@ -17,8 +17,8 @@ them, and a small Vite + React client with the editor.
 
 Node 20.19 or 22.12 and later, which Vite 8 needs.
 
-Once the packages are published, `npm install` here is all the setup. Until then, install against
-the repository's packed build (see [Installing an example](../README.md#installing-an-example)):
+`npm install` here is all the setup. To run it against a change to the packages instead, install
+against the repository's packed build (see [Installing an example](../README.md#installing-an-example)):
 
 ```sh
 # in the repository root
