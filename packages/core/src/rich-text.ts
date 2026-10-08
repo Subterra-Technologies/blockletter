@@ -317,6 +317,14 @@ const decodeEntities = (value: string): string =>
     .replace(/&#x([0-9a-f]+);/gi, (_, code: string) => codePoint(Number.parseInt(code, 16)))
     .replace(/&amp;/g, '&');
 
+/**
+ * Removes tags as `/<[^>]+>/g` does: each `<` takes everything up to the next `>`, so taking one
+ * tag out can never join the text around it into a new tag (`<scr<b>ipt>` must not become
+ * `<script>`). Only the text up to the last `>` can hold a tag, and keeping the pattern to it means
+ * no attempt scans to the end of the input in vain.
+ */
+const stripTags = (html: string): string => replaceBefore(html, '>', /<[^>]+>/g, () => '');
+
 /** A line without the spaces and tabs at its end: a loop, as `/[ \t]+$/` is quadratic on long runs. */
 function trimTrailingSpaces(line: string): string {
   let end = line.length;
@@ -347,7 +355,7 @@ export function htmlToText(html: string): string {
       // A link with no address is left for the tag stripping below, which keeps its text.
       if (!match) return whole;
       const href = decodeEntities((match[2] ?? match[3] ?? '').trim());
-      const plainLabel = label.replace(/<[^<>]+>/g, '').trim();
+      const plainLabel = stripTags(label).trim();
       if (!href || href === '#' || href === plainLabel) return plainLabel;
       return `${plainLabel} (${href})`;
     },
@@ -355,7 +363,7 @@ export function htmlToText(html: string): string {
   // Blocks that are visually separated in the email get a blank line; list items one line.
   text = text.replace(/<\/(p|div|h[1-6]|blockquote|pre)\s*>/gi, '\n\n');
   text = text.replace(/<\/(ol|ul|tr)\s*>/gi, '\n');
-  text = text.replace(/<[^<>]+>/g, '');
+  text = stripTags(text);
   text = decodeEntities(text);
   return text
     .split('\n')

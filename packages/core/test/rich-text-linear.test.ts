@@ -70,6 +70,16 @@ describe('rich text constructs left open', () => {
     expect(sanitizeHtml('<p>a</p><script>x</script><script><p>b</p>')).toBe('<p>a</p><p>b</p>');
   });
 
+  it('never joins the text around a removed tag into a new tag', () => {
+    expect(htmlToText('<p>a <scr<b>ipt>alert(1)</p>')).not.toMatch(/<script/i);
+    expect(htmlToText('<p>x</p><scr<i>ipt>')).not.toMatch(/<script/i);
+  });
+
+  it('keeps a lone < in text, as before', () => {
+    expect(htmlToText('<p>1 &lt; 2</p>')).toBe('1 < 2');
+    expect(htmlToText('1 < 2')).toBe('1 < 2');
+  });
+
   it('pairs each link with its own closing tag, and leaves one with no closing tag alone', () => {
     expect(sanitizeHtml('<a href="https://a.test">a</a> <a href="https://b.test">b')).toBe(
       '<a href="https://a.test" rel="noopener" target="_blank">a</a> <a href="https://b.test">b',
