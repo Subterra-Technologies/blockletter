@@ -3,6 +3,8 @@
   "version": "0.0.0",
   "description": "Blockletter's accessible React newsletter editor: canvas, block palette, inspector, brand kit, templates and a live preview. Ships one compiled stylesheet; no Tailwind needed.",
   "license": "MIT",
+  "author": "Subterra Technologies (https://www.subterratechnologies.com)",
+  "homepage": "https://subterra-technologies.github.io/blockletter/",
   "type": "module",
   "sideEffects": [
     "**/*.css"
@@ -60,8 +62,11 @@
     "url": "git+https://github.com/Subterra-Technologies/blockletter.git",
     "directory": "packages/react"
   },
+  "bugs": {
+    "url": "https://github.com/Subterra-Technologies/blockletter/issues"
+  },
   "publishConfig": {
-    "registry": "https://npm.pkg.github.com"
+    "access": "public"
   },
   "keywords": [
     "email",

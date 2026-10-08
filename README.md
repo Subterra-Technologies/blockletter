@@ -9,8 +9,11 @@ JavaScript does, and blocks that fill themselves from your own records.
 
 **[Live demo](https://subterra-technologies.github.io/blockletter/)** ·
 [Rendered email](https://subterra-technologies.github.io/blockletter/?render=email) ·
-[Architecture](docs/ARCHITECTURE.md) · [Roadmap](docs/PLAN.md) ·
-[Contributing](CONTRIBUTING.md)
+[Architecture](docs/ARCHITECTURE.md) · [Email clients](docs/COMPATIBILITY.md) ·
+[Roadmap](docs/PLAN.md) · [Contributing](CONTRIBUTING.md)
+
+[![CI](https://github.com/Subterra-Technologies/blockletter/actions/workflows/ci.yml/badge.svg)](https://github.com/Subterra-Technologies/blockletter/actions/workflows/ci.yml)
+[![Licence: MIT](https://img.shields.io/badge/licence-MIT-blue.svg)](LICENSE)
 
 <br>
 
@@ -59,6 +62,7 @@ The rule it was built on: _if I entered it once, I shouldn't have to enter it ag
 - **Email-safe by construction.** Table layout, inline styles, web-safe fonts, absolute links,
   escaped text, sanitised rich text, a hidden preheader, a layout that reflows on phones while
   Outlook keeps its fixed 600px, and a plain-text version of every email.
+  [What each client gets](docs/COMPATIBILITY.md).
 - **A renderer that runs anywhere.** `renderEmail()` is a pure function with zero dependencies:
   the same document renders the same email in the browser, a Node worker, an edge function or a
   database function.
@@ -412,7 +416,7 @@ npm run test:e2e   # the demo in a real browser, with an accessibility audit
 npm run check      # denylist, lint, typecheck, tests, build
 ```
 
-Requires Node 20+. The packages import each other's source inside the repository, so there is no
+Requires Node 22+. The packages import each other's source inside the repository, so there is no
 build step while you work. `node apps/playground/scripts/capture-media.mjs` regenerates the
 screenshots and animations in this README from a running build of the demo.
 
@@ -420,7 +424,10 @@ screenshots and animations in this README from a running build of the demo.
 
 Issues and pull requests are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) first, follow the
 [code of conduct](CODE_OF_CONDUCT.md), and report security problems privately as described in
-[SECURITY.md](SECURITY.md).
+[SECURITY.md](SECURITY.md). Questions and ideas belong in
+[Discussions](https://github.com/Subterra-Technologies/blockletter/discussions); issues labelled
+[good first issue](https://github.com/Subterra-Technologies/blockletter/labels/good%20first%20issue)
+are a good place to start.
 
 ## Licence
 

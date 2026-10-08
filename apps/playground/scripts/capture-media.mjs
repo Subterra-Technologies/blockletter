@@ -94,6 +94,8 @@ await shot('editor.png', '?block=banner', { height: 1000, scale: 2 });
 // The demo as a visitor first meets it, and the social card for links to it (1200 x 630).
 await shot('site.png', '', { height: 900, frame: 'page' });
 await shot('og-image.png', '', { width: 1200, height: 630, scale: 1, frame: 'page' });
+// GitHub's social preview for the repository (Settings → Social preview), at its 1280 × 640.
+await shot('social-preview.png', '', { width: 1280, height: 640, scale: 1, frame: 'page' });
 
 // The docs, opened on the live Rendering section: the open issue's HTML, text, warnings and
 // document.

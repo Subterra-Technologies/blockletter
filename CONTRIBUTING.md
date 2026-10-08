@@ -6,16 +6,20 @@ accessible are the ones most likely to land.
 
 ## Before you start
 
+- **Questions and ideas:** start a thread in
+  [Discussions](https://github.com/Subterra-Technologies/blockletter/discussions).
 - **Bugs:** open an issue with steps to reproduce, what you expected, and what happened. For
   rendering bugs, include the document JSON (the demo's Rendering section has a **Document** tab)
   and the email client that showed the problem.
 - **Features:** open an issue to discuss it before writing code. New blocks, render options and
-  editor props are public API, and every one we add is one we keep supporting.
+  editor props are public API, and every one we add is one we keep supporting. Issues labelled
+  [good first issue](https://github.com/Subterra-Technologies/blockletter/labels/good%20first%20issue)
+  are small and well defined, a good way in.
 - **Security problems:** do not open an issue. See [SECURITY.md](SECURITY.md).
 
 ## Setting up
 
-You need Node 20 or newer.
+You need Node 22 or newer.
 
 ```sh
 git clone https://github.com/Subterra-Technologies/blockletter.git
@@ -27,12 +31,12 @@ npm run dev        # the demo at http://localhost:5173
 The packages import each other's source inside the repository, so there is no build step while you
 work: edit `packages/core` or `packages/react` and the demo reloads.
 
-| Path              | What lives there                                                  |
-| ----------------- | ----------------------------------------------------------------- |
-| `packages/core`   | Document model, block definitions, renderer, brand kit, templates |
-| `packages/react`  | The editor and its parts, with its scoped, compiled stylesheet    |
-| `apps/playground` | The demo site and its browser tests                               |
-| `docs`            | [Architecture](docs/ARCHITECTURE.md) and [roadmap](docs/PLAN.md)  |
+| Path              | What lives there                                                                                                                         |
+| ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `packages/core`   | Document model, block definitions, renderer, brand kit, templates                                                                        |
+| `packages/react`  | The editor and its parts, with its scoped, compiled stylesheet                                                                           |
+| `apps/playground` | The demo site and its browser tests                                                                                                      |
+| `docs`            | [Architecture](docs/ARCHITECTURE.md), [roadmap](docs/PLAN.md), [email clients](docs/COMPATIBILITY.md) and [releasing](docs/RELEASING.md) |
 
 ## Checks
 
@@ -50,7 +54,9 @@ npm run test:e2e   # the demo in Chromium, with axe at four widths
 - **Tests with the change.** Renderer changes assert on the HTML and the plain-text version;
   editor changes use Testing Library and the helpers in `packages/react/test/helpers`.
 - **Email-safe output.** Tables and inline styles, absolute links, escaped text, nothing an email
-  client strips. A layout change should be checked at 600px and at phone width.
+  client strips. A layout change should be checked at 600px and at phone width, in at least one
+  real client; [docs/COMPATIBILITY.md](docs/COMPATIBILITY.md) says what the output relies on and
+  how to check it.
 - **Accessible editor.** Every pointer interaction has a keyboard path, every control has a
   visible label, and nothing scrolls sideways at 320px. The browser tests run axe; keep them clean.
 - **No invented data.** Sample content is fictional or clearly labelled, and defaults never carry
@@ -63,6 +69,16 @@ npm run test:e2e   # the demo in Chromium, with axe at four widths
 Keep each pull request to one change, describe what it does and why, and link the issue it
 addresses. Screenshots help for anything visible. A maintainer will review it; expect questions
 about API shape and accessibility, since those are the hardest things to change later.
+
+If your change affects `packages/core` or `packages/react`, add a changeset:
+
+```sh
+npx changeset
+```
+
+Choose the packages and the bump, and write one line for the changelog, in the words a user of the
+package needs. Changes to the demo, the docs or the tests need no changeset.
+[docs/RELEASING.md](docs/RELEASING.md) covers what happens after merge.
 
 By contributing, you agree that your contributions are licensed under the project's
 [MIT licence](LICENSE), and that you will follow the [code of conduct](CODE_OF_CONDUCT.md).
