@@ -11,8 +11,8 @@
     "test:e2e": "playwright test"
   },
   "dependencies": {
-    "@subterra-technologies/blockletter": "0.1.0",
-    "@subterra-technologies/blockletter-react": "0.1.0",
+    "@subterra-technologies/blockletter": "0.1.1",
+    "@subterra-technologies/blockletter-react": "0.1.1",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "lucide-react": "^1.48.0"

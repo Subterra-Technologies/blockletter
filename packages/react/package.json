@@ -1,6 +1,6 @@
 {
   "name": "@subterra-technologies/blockletter-react",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Blockletter's accessible React newsletter editor: canvas, block palette, inspector, brand kit, templates and a live preview. Ships one compiled stylesheet; no Tailwind needed.",
   "license": "MIT",
   "author": "Subterra Technologies (https://www.subterratechnologies.com)",
@@ -36,7 +36,7 @@
     "react-dom": "^19.2.0"
   },
   "dependencies": {
-    "@subterra-technologies/blockletter": "0.1.0",
+    "@subterra-technologies/blockletter": "0.1.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^1.48.0",

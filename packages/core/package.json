@@ -1,6 +1,6 @@
 {
   "name": "@subterra-technologies/blockletter",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Blockletter core: a typed newsletter document model and an email-safe HTML + plain-text renderer. Zero dependencies; runs in the browser, Node, edge runtimes and Convex.",
   "license": "MIT",
   "author": "Subterra Technologies (https://www.subterratechnologies.com)",
