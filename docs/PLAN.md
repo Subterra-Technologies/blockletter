@@ -112,12 +112,14 @@ Dogfooding proves the API in real products.
 
 ### 7 — Gaps to close before 1.0
 
+Done: undo and redo, formatted text in text blocks, a translatable editor, and example apps for
+Node, Next.js and Convex. Still open:
+
 - Click-to-select from the preview ([#2](https://github.com/Subterra-Technologies/blockletter/issues/2)).
 - Outlook VML for background images ([#3](https://github.com/Subterra-Technologies/blockletter/issues/3)), optional dark-mode email styles
   ([#4](https://github.com/Subterra-Technologies/blockletter/issues/4)). (Mobile-responsive email is done.)
 - Social icons ([#5](https://github.com/Subterra-Technologies/blockletter/issues/5)), merge tags and personalisation ([#6](https://github.com/Subterra-Technologies/blockletter/issues/6)).
 - Two panes between 768 and 1023px of editor width ([#9](https://github.com/Subterra-Technologies/blockletter/issues/9)).
-- Recipes: Next.js with a hosted database, a serverless send route, plain Node rendering.
 
 ### 8 — Open-source launch checklist
 
