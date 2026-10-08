@@ -1,0 +1,719 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://raw.githubusercontent.com/Subterra-Technologies/blockletter/main/packages/core/schema/newsletter-template.json",
+  "title": "Blockletter newsletter template",
+  "description": "A reusable starting layout. `subject`, `preheader` and every block string may carry tokens — `{{month}}`, `{{monthYear}}`, `{{year}}`, `{{period}}`, `{{org}}` — filled by `applyTemplate`. Generated from the TypeScript types in `@subterra-technologies/blockletter`, with the built-in blocks. A template becomes a document through `applyTemplate()` or `assembleDocument()` from that package, and that document must still pass `validateDocument()`, the source of truth for the rules this schema leaves out: limits, unique block ids, real dates and image addresses.",
+  "type": "object",
+  "properties": {
+    "id": { "type": "string" },
+    "name": { "type": "string" },
+    "description": { "type": "string" },
+    "builtIn": {
+      "type": "boolean",
+      "description": "Shipped with Blockletter (or the host); read-only in the template picker."
+    },
+    "subject": { "type": "string" },
+    "preheader": { "type": "string" },
+    "blocks": { "type": "array", "items": { "$ref": "#/definitions/BuiltInBlock" } }
+  },
+  "required": ["id", "name", "description", "subject", "preheader", "blocks"],
+  "additionalProperties": false,
+  "definitions": {
+    "BuiltInBlock": {
+      "anyOf": [
+        { "$ref": "#/definitions/HeaderBlock" },
+        { "$ref": "#/definitions/LetterBlock" },
+        { "$ref": "#/definitions/EventTilesBlock" },
+        { "$ref": "#/definitions/SponsorsBlock" },
+        { "$ref": "#/definitions/NameListBlock" },
+        { "$ref": "#/definitions/CalloutBlock" },
+        { "$ref": "#/definitions/PostListBlock" },
+        { "$ref": "#/definitions/ArticleBlock" },
+        { "$ref": "#/definitions/DatedListBlock" },
+        { "$ref": "#/definitions/TextBlock" },
+        { "$ref": "#/definitions/ImageBlock" },
+        { "$ref": "#/definitions/ImageTextBlock" },
+        { "$ref": "#/definitions/ColumnsBlock" },
+        { "$ref": "#/definitions/BannerBlock" },
+        { "$ref": "#/definitions/ButtonBlock" },
+        { "$ref": "#/definitions/DividerBlock" },
+        { "$ref": "#/definitions/SpacerBlock" },
+        { "$ref": "#/definitions/QuoteBlock" },
+        { "$ref": "#/definitions/StatsBlock" },
+        { "$ref": "#/definitions/PhotoGridBlock" },
+        { "$ref": "#/definitions/FooterBlock" }
+      ],
+      "description": "Every block Blockletter ships. Hosts add their own through `BlockDefinition`."
+    },
+    "HeaderBlock": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique within its document." },
+        "type": { "type": "string", "enum": ["header"] },
+        "hidden": {
+          "type": "boolean",
+          "description": "Left out of the email (and folded on the canvas) without being deleted."
+        },
+        "style": { "$ref": "#/definitions/BlockStyle" },
+        "source": {
+          "type": "string",
+          "description": "Id of the `DataSource` that fills this block's `items`. Absent: written by hand. A template can name a source the host has not registered; the block then simply stays manual."
+        },
+        "title": { "type": "string" },
+        "issueLabel": {
+          "type": "string",
+          "description": "e.g. \"September 2026\"; templates write `{{monthYear}}`."
+        },
+        "logoText": {
+          "type": "string",
+          "description": "Shown when the brand kit has no logo, and used as the logo's alt text when it does."
+        }
+      },
+      "required": ["id", "type", "hidden", "title", "issueLabel", "logoText"],
+      "additionalProperties": false,
+      "description": "Masthead: the brand kit's logo (or `logoText`) over a \"title · issue\" strapline."
+    },
+    "BlockStyle": {
+      "type": "object",
+      "properties": {
+        "background": {
+          "type": "string",
+          "description": "Six-digit hex colour such as `#1f2937`; the only colour form a document accepts.",
+          "pattern": "^#[0-9a-fA-F]{6}$"
+        },
+        "textColor": {
+          "type": "string",
+          "description": "Six-digit hex colour such as `#1f2937`; the only colour form a document accepts.",
+          "pattern": "^#[0-9a-fA-F]{6}$"
+        },
+        "align": { "type": "string", "enum": ["left", "center", "right"] },
+        "paddingY": { "type": "string", "enum": ["none", "tight", "normal", "loose"] },
+        "fontSize": { "type": "string", "enum": ["small", "normal", "large"] },
+        "fullWidth": {
+          "type": "boolean",
+          "description": "Edge-to-edge band instead of the padded content column."
+        },
+        "divider": { "type": "boolean", "description": "Hairline rule under the block." }
+      },
+      "additionalProperties": false,
+      "description": "Per-block appearance. Every field is optional; an absent field inherits from the brand kit's palette and the block's own default."
+    },
+    "LetterBlock": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique within its document." },
+        "type": { "type": "string", "enum": ["letter"] },
+        "hidden": {
+          "type": "boolean",
+          "description": "Left out of the email (and folded on the canvas) without being deleted."
+        },
+        "style": { "$ref": "#/definitions/BlockStyle" },
+        "source": {
+          "type": "string",
+          "description": "Id of the `DataSource` that fills this block's `items`. Absent: written by hand. A template can name a source the host has not registered; the block then simply stays manual."
+        },
+        "heading": { "type": "string" },
+        "body": {
+          "type": "string",
+          "description": "Plain text; a blank line starts a new paragraph."
+        },
+        "signature": { "type": "string" },
+        "photo": { "$ref": "#/definitions/ImageRef" }
+      },
+      "required": ["id", "type", "hidden", "heading", "body", "signature"],
+      "additionalProperties": false,
+      "description": "A personal note with an optional portrait and a signature."
+    },
+    "ImageRef": {
+      "type": "object",
+      "properties": { "url": { "type": "string" }, "assetId": { "type": "string" } },
+      "required": ["url"],
+      "additionalProperties": false,
+      "description": "An image the host application stores. `url` must be absolute (https) to survive in an inbox; `assetId` is the host's own handle for the file (a Convex storage id, an S3 key…), kept so the host can re-resolve `url` through `RenderOptions.resolveImageUrl` if its URLs expire."
+    },
+    "EventTilesBlock": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique within its document." },
+        "type": { "type": "string", "enum": ["event_tiles"] },
+        "hidden": {
+          "type": "boolean",
+          "description": "Left out of the email (and folded on the canvas) without being deleted."
+        },
+        "style": { "$ref": "#/definitions/BlockStyle" },
+        "source": {
+          "type": "string",
+          "description": "Id of the `DataSource` that fills this block's `items`. Absent: written by hand. A template can name a source the host has not registered; the block then simply stays manual."
+        },
+        "heading": { "type": "string" },
+        "items": { "type": "array", "items": { "$ref": "#/definitions/EventTileItem" } }
+      },
+      "required": ["id", "type", "hidden", "heading", "items"],
+      "additionalProperties": false,
+      "description": "Up to four big date tiles on a dark band (\"at a glance\")."
+    },
+    "EventTileItem": {
+      "type": "object",
+      "properties": {
+        "ref": {
+          "type": "string",
+          "description": "The data source's own id for the record this item copies. Absent: written by hand."
+        },
+        "title": { "type": "string" },
+        "date": {
+          "type": "string",
+          "description": "Calendar date `YYYY-MM-DD`, already in the organisation's own time zone.",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+        },
+        "time": { "type": "string", "description": "Display time, e.g. \"6:30 PM\"." },
+        "location": { "type": "string" },
+        "url": { "type": "string" }
+      },
+      "required": ["title", "date"],
+      "additionalProperties": false
+    },
+    "SponsorsBlock": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique within its document." },
+        "type": { "type": "string", "enum": ["sponsors"] },
+        "hidden": {
+          "type": "boolean",
+          "description": "Left out of the email (and folded on the canvas) without being deleted."
+        },
+        "style": { "$ref": "#/definitions/BlockStyle" },
+        "source": {
+          "type": "string",
+          "description": "Id of the `DataSource` that fills this block's `items`. Absent: written by hand. A template can name a source the host has not registered; the block then simply stays manual."
+        },
+        "heading": { "type": "string" },
+        "items": { "type": "array", "items": { "$ref": "#/definitions/SponsorItem" } }
+      },
+      "required": ["id", "type", "hidden", "heading", "items"],
+      "additionalProperties": false,
+      "description": "Logo-and-message rows thanking sponsors or partners."
+    },
+    "SponsorItem": {
+      "type": "object",
+      "properties": {
+        "ref": {
+          "type": "string",
+          "description": "The data source's own id for the record this item copies. Absent: written by hand."
+        },
+        "name": { "type": "string" },
+        "message": { "type": "string" },
+        "logo": { "$ref": "#/definitions/ImageRef" },
+        "url": { "type": "string" }
+      },
+      "required": ["name", "message"],
+      "additionalProperties": false
+    },
+    "NameListBlock": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique within its document." },
+        "type": { "type": "string", "enum": ["name_list"] },
+        "hidden": {
+          "type": "boolean",
+          "description": "Left out of the email (and folded on the canvas) without being deleted."
+        },
+        "style": { "$ref": "#/definitions/BlockStyle" },
+        "source": {
+          "type": "string",
+          "description": "Id of the `DataSource` that fills this block's `items`. Absent: written by hand. A template can name a source the host has not registered; the block then simply stays manual."
+        },
+        "heading": { "type": "string" },
+        "intro": { "type": "string" },
+        "items": { "type": "array", "items": { "$ref": "#/definitions/NameListItem" } }
+      },
+      "required": ["id", "type", "hidden", "heading", "intro", "items"],
+      "additionalProperties": false,
+      "description": "A numbered list of names, e.g. welcoming new members."
+    },
+    "NameListItem": {
+      "type": "object",
+      "properties": {
+        "ref": {
+          "type": "string",
+          "description": "The data source's own id for the record this item copies. Absent: written by hand."
+        },
+        "name": { "type": "string" },
+        "detail": {
+          "type": "string",
+          "description": "Second line, e.g. \"Bakery · Joined Sept. 3\"."
+        },
+        "url": { "type": "string" }
+      },
+      "required": ["name"],
+      "additionalProperties": false
+    },
+    "CalloutBlock": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique within its document." },
+        "type": { "type": "string", "enum": ["callout"] },
+        "hidden": {
+          "type": "boolean",
+          "description": "Left out of the email (and folded on the canvas) without being deleted."
+        },
+        "style": { "$ref": "#/definitions/BlockStyle" },
+        "source": {
+          "type": "string",
+          "description": "Id of the `DataSource` that fills this block's `items`. Absent: written by hand. A template can name a source the host has not registered; the block then simply stays manual."
+        },
+        "heading": { "type": "string" },
+        "body": { "type": "string" },
+        "ctaLabel": { "type": "string" },
+        "ctaUrl": { "type": "string" }
+      },
+      "required": ["id", "type", "hidden", "heading", "body", "ctaLabel", "ctaUrl"],
+      "additionalProperties": false,
+      "description": "A short heading, a paragraph and a button: \"Have news to share?\"."
+    },
+    "PostListBlock": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique within its document." },
+        "type": { "type": "string", "enum": ["post_list"] },
+        "hidden": {
+          "type": "boolean",
+          "description": "Left out of the email (and folded on the canvas) without being deleted."
+        },
+        "style": { "$ref": "#/definitions/BlockStyle" },
+        "source": {
+          "type": "string",
+          "description": "Id of the `DataSource` that fills this block's `items`. Absent: written by hand. A template can name a source the host has not registered; the block then simply stays manual."
+        },
+        "heading": { "type": "string" },
+        "items": { "type": "array", "items": { "$ref": "#/definitions/PostItem" } }
+      },
+      "required": ["id", "type", "hidden", "heading", "items"],
+      "additionalProperties": false,
+      "description": "Up to three recent posts or articles, each linking out."
+    },
+    "PostItem": {
+      "type": "object",
+      "properties": {
+        "ref": {
+          "type": "string",
+          "description": "The data source's own id for the record this item copies. Absent: written by hand."
+        },
+        "title": { "type": "string" },
+        "excerpt": { "type": "string" },
+        "url": { "type": "string" },
+        "kicker": {
+          "type": "string",
+          "description": "Small label above the title, e.g. \"Announcement\"."
+        }
+      },
+      "required": ["title", "excerpt", "url"],
+      "additionalProperties": false
+    },
+    "ArticleBlock": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique within its document." },
+        "type": { "type": "string", "enum": ["article"] },
+        "hidden": {
+          "type": "boolean",
+          "description": "Left out of the email (and folded on the canvas) without being deleted."
+        },
+        "style": { "$ref": "#/definitions/BlockStyle" },
+        "source": {
+          "type": "string",
+          "description": "Id of the `DataSource` that fills this block's `items`. Absent: written by hand. A template can name a source the host has not registered; the block then simply stays manual."
+        },
+        "kicker": {
+          "type": "string",
+          "description": "Small label above the title, e.g. \"Member toolbox\"."
+        },
+        "title": { "type": "string" },
+        "body": { "type": "string" },
+        "image": { "$ref": "#/definitions/ImageRef" },
+        "linkLabel": { "type": "string" },
+        "linkUrl": { "type": "string" }
+      },
+      "required": ["id", "type", "hidden", "kicker", "title", "body"],
+      "additionalProperties": false,
+      "description": "A feature article with a kicker, an image beside it and an optional link."
+    },
+    "DatedListBlock": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique within its document." },
+        "type": { "type": "string", "enum": ["dated_list"] },
+        "hidden": {
+          "type": "boolean",
+          "description": "Left out of the email (and folded on the canvas) without being deleted."
+        },
+        "style": { "$ref": "#/definitions/BlockStyle" },
+        "source": {
+          "type": "string",
+          "description": "Id of the `DataSource` that fills this block's `items`. Absent: written by hand. A template can name a source the host has not registered; the block then simply stays manual."
+        },
+        "heading": { "type": "string" },
+        "subheading": { "type": "string" },
+        "items": { "type": "array", "items": { "$ref": "#/definitions/DatedItem" } }
+      },
+      "required": ["id", "type", "hidden", "heading", "subheading", "items"],
+      "additionalProperties": false,
+      "description": "\"Sept. 5 · Farmers market | Town square\" lines: a community calendar."
+    },
+    "DatedItem": {
+      "type": "object",
+      "properties": {
+        "ref": {
+          "type": "string",
+          "description": "The data source's own id for the record this item copies. Absent: written by hand."
+        },
+        "date": {
+          "type": "string",
+          "description": "Display date, e.g. \"Sept. 5\". Free text, so \"Every Saturday\" is fine too."
+        },
+        "text": { "type": "string" },
+        "sortDate": {
+          "type": "string",
+          "description": "`YYYY-MM-DD`, for ordering; items without one keep their place after dated ones.",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+        }
+      },
+      "required": ["date", "text"],
+      "additionalProperties": false
+    },
+    "TextBlock": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique within its document." },
+        "type": { "type": "string", "enum": ["text"] },
+        "hidden": {
+          "type": "boolean",
+          "description": "Left out of the email (and folded on the canvas) without being deleted."
+        },
+        "style": { "$ref": "#/definitions/BlockStyle" },
+        "source": {
+          "type": "string",
+          "description": "Id of the `DataSource` that fills this block's `items`. Absent: written by hand. A template can name a source the host has not registered; the block then simply stays manual."
+        },
+        "heading": { "type": "string" },
+        "body": { "type": "string" },
+        "format": {
+          "type": "string",
+          "enum": ["plain", "html"],
+          "description": "`html`: the body is rich HTML (sanitised and inlined at render). Declared rather than guessed — a plain body that happens to mention \"<b>\" is text, and escaping it is the point."
+        }
+      },
+      "required": ["id", "type", "hidden", "body"],
+      "additionalProperties": false
+    },
+    "ImageBlock": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique within its document." },
+        "type": { "type": "string", "enum": ["image"] },
+        "hidden": {
+          "type": "boolean",
+          "description": "Left out of the email (and folded on the canvas) without being deleted."
+        },
+        "style": { "$ref": "#/definitions/BlockStyle" },
+        "source": {
+          "type": "string",
+          "description": "Id of the `DataSource` that fills this block's `items`. Absent: written by hand. A template can name a source the host has not registered; the block then simply stays manual."
+        },
+        "image": { "$ref": "#/definitions/ImageRef" },
+        "alt": { "type": "string" },
+        "caption": { "type": "string" },
+        "linkUrl": { "type": "string" }
+      },
+      "required": ["id", "type", "hidden", "alt"],
+      "additionalProperties": false
+    },
+    "ImageTextBlock": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique within its document." },
+        "type": { "type": "string", "enum": ["image_text"] },
+        "hidden": {
+          "type": "boolean",
+          "description": "Left out of the email (and folded on the canvas) without being deleted."
+        },
+        "style": { "$ref": "#/definitions/BlockStyle" },
+        "source": {
+          "type": "string",
+          "description": "Id of the `DataSource` that fills this block's `items`. Absent: written by hand. A template can name a source the host has not registered; the block then simply stays manual."
+        },
+        "image": { "$ref": "#/definitions/ImageRef" },
+        "alt": { "type": "string" },
+        "heading": { "type": "string" },
+        "body": { "type": "string" },
+        "imageSide": { "type": "string", "enum": ["left", "right"] },
+        "linkLabel": { "type": "string" },
+        "linkUrl": { "type": "string" }
+      },
+      "required": ["id", "type", "hidden", "alt", "heading", "body", "imageSide"],
+      "additionalProperties": false
+    },
+    "ColumnsBlock": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique within its document." },
+        "type": { "type": "string", "enum": ["columns"] },
+        "hidden": {
+          "type": "boolean",
+          "description": "Left out of the email (and folded on the canvas) without being deleted."
+        },
+        "style": { "$ref": "#/definitions/BlockStyle" },
+        "source": {
+          "type": "string",
+          "description": "Id of the `DataSource` that fills this block's `items`. Absent: written by hand. A template can name a source the host has not registered; the block then simply stays manual."
+        },
+        "columns": { "type": "array", "items": { "$ref": "#/definitions/ColumnItem" } }
+      },
+      "required": ["id", "type", "hidden", "columns"],
+      "additionalProperties": false,
+      "description": "Two or three columns."
+    },
+    "ColumnItem": {
+      "type": "object",
+      "properties": {
+        "heading": { "type": "string" },
+        "body": { "type": "string" },
+        "image": { "$ref": "#/definitions/ImageRef" },
+        "alt": { "type": "string" },
+        "linkLabel": { "type": "string" },
+        "linkUrl": { "type": "string" }
+      },
+      "required": ["body"],
+      "additionalProperties": false
+    },
+    "BannerBlock": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique within its document." },
+        "type": { "type": "string", "enum": ["banner"] },
+        "hidden": {
+          "type": "boolean",
+          "description": "Left out of the email (and folded on the canvas) without being deleted."
+        },
+        "style": { "$ref": "#/definitions/BlockStyle" },
+        "source": {
+          "type": "string",
+          "description": "Id of the `DataSource` that fills this block's `items`. Absent: written by hand. A template can name a source the host has not registered; the block then simply stays manual."
+        },
+        "image": { "$ref": "#/definitions/ImageRef" },
+        "alt": { "type": "string" },
+        "heading": { "type": "string" },
+        "subheading": { "type": "string" },
+        "ctaLabel": { "type": "string" },
+        "ctaUrl": { "type": "string" },
+        "overlay": { "type": "boolean" }
+      },
+      "required": ["id", "type", "hidden", "alt", "overlay"],
+      "additionalProperties": false,
+      "description": "A hero image, optionally with text over it (falls back to the ink band in Outlook)."
+    },
+    "ButtonBlock": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique within its document." },
+        "type": { "type": "string", "enum": ["button"] },
+        "hidden": {
+          "type": "boolean",
+          "description": "Left out of the email (and folded on the canvas) without being deleted."
+        },
+        "style": { "$ref": "#/definitions/BlockStyle" },
+        "source": {
+          "type": "string",
+          "description": "Id of the `DataSource` that fills this block's `items`. Absent: written by hand. A template can name a source the host has not registered; the block then simply stays manual."
+        },
+        "label": { "type": "string" },
+        "url": { "type": "string" },
+        "variant": { "type": "string", "enum": ["solid", "outline"] }
+      },
+      "required": ["id", "type", "hidden", "label", "url", "variant"],
+      "additionalProperties": false
+    },
+    "DividerBlock": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique within its document." },
+        "type": { "type": "string", "enum": ["divider"] },
+        "hidden": {
+          "type": "boolean",
+          "description": "Left out of the email (and folded on the canvas) without being deleted."
+        },
+        "style": { "$ref": "#/definitions/BlockStyle" },
+        "source": {
+          "type": "string",
+          "description": "Id of the `DataSource` that fills this block's `items`. Absent: written by hand. A template can name a source the host has not registered; the block then simply stays manual."
+        },
+        "thickness": { "type": "string", "enum": ["hairline", "thick"] }
+      },
+      "required": ["id", "type", "hidden", "thickness"],
+      "additionalProperties": false
+    },
+    "SpacerBlock": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique within its document." },
+        "type": { "type": "string", "enum": ["spacer"] },
+        "hidden": {
+          "type": "boolean",
+          "description": "Left out of the email (and folded on the canvas) without being deleted."
+        },
+        "style": { "$ref": "#/definitions/BlockStyle" },
+        "source": {
+          "type": "string",
+          "description": "Id of the `DataSource` that fills this block's `items`. Absent: written by hand. A template can name a source the host has not registered; the block then simply stays manual."
+        },
+        "size": { "type": "string", "enum": ["small", "medium", "large"] }
+      },
+      "required": ["id", "type", "hidden", "size"],
+      "additionalProperties": false
+    },
+    "QuoteBlock": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique within its document." },
+        "type": { "type": "string", "enum": ["quote"] },
+        "hidden": {
+          "type": "boolean",
+          "description": "Left out of the email (and folded on the canvas) without being deleted."
+        },
+        "style": { "$ref": "#/definitions/BlockStyle" },
+        "source": {
+          "type": "string",
+          "description": "Id of the `DataSource` that fills this block's `items`. Absent: written by hand. A template can name a source the host has not registered; the block then simply stays manual."
+        },
+        "quote": { "type": "string" },
+        "attribution": { "type": "string" }
+      },
+      "required": ["id", "type", "hidden", "quote"],
+      "additionalProperties": false
+    },
+    "StatsBlock": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique within its document." },
+        "type": { "type": "string", "enum": ["stats"] },
+        "hidden": {
+          "type": "boolean",
+          "description": "Left out of the email (and folded on the canvas) without being deleted."
+        },
+        "style": { "$ref": "#/definitions/BlockStyle" },
+        "source": {
+          "type": "string",
+          "description": "Id of the `DataSource` that fills this block's `items`. Absent: written by hand. A template can name a source the host has not registered; the block then simply stays manual."
+        },
+        "items": { "type": "array", "items": { "$ref": "#/definitions/StatItem" } }
+      },
+      "required": ["id", "type", "hidden", "items"],
+      "additionalProperties": false,
+      "description": "Two to four big numbers with labels."
+    },
+    "StatItem": {
+      "type": "object",
+      "properties": { "value": { "type": "string" }, "label": { "type": "string" } },
+      "required": ["value", "label"],
+      "additionalProperties": false
+    },
+    "PhotoGridBlock": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique within its document." },
+        "type": { "type": "string", "enum": ["photo_grid"] },
+        "hidden": {
+          "type": "boolean",
+          "description": "Left out of the email (and folded on the canvas) without being deleted."
+        },
+        "style": { "$ref": "#/definitions/BlockStyle" },
+        "source": {
+          "type": "string",
+          "description": "Id of the `DataSource` that fills this block's `items`. Absent: written by hand. A template can name a source the host has not registered; the block then simply stays manual."
+        },
+        "photos": { "type": "array", "items": { "$ref": "#/definitions/PhotoItem" } }
+      },
+      "required": ["id", "type", "hidden", "photos"],
+      "additionalProperties": false,
+      "description": "Two to six photos in rows of two or three."
+    },
+    "PhotoItem": {
+      "type": "object",
+      "properties": {
+        "image": { "$ref": "#/definitions/ImageRef" },
+        "alt": { "type": "string" },
+        "caption": { "type": "string" }
+      },
+      "required": ["alt"],
+      "additionalProperties": false
+    },
+    "FooterBlock": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique within its document." },
+        "type": { "type": "string", "enum": ["footer"] },
+        "hidden": {
+          "type": "boolean",
+          "description": "Left out of the email (and folded on the canvas) without being deleted."
+        },
+        "style": { "$ref": "#/definitions/BlockStyle" },
+        "source": {
+          "type": "string",
+          "description": "Id of the `DataSource` that fills this block's `items`. Absent: written by hand. A template can name a source the host has not registered; the block then simply stays manual."
+        },
+        "address": { "type": "string" },
+        "phone": { "type": "string" },
+        "email": { "type": "string" },
+        "social": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/SocialLink" },
+          "description": "Empty: the brand kit's social links."
+        },
+        "links": { "type": "array", "items": { "$ref": "#/definitions/Link" } },
+        "complianceText": {
+          "type": "string",
+          "description": "Why the reader is receiving this, e.g. \"You're receiving this because you joined…\"."
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "hidden",
+        "address",
+        "phone",
+        "email",
+        "social",
+        "links",
+        "complianceText"
+      ],
+      "additionalProperties": false,
+      "description": "Contact details, links and the compliance line. Blank contact fields fall back to the brand kit, so one brand kit edit updates every issue that has not overridden them. The renderer keeps exactly one footer, visible and last, and appends the preference and unsubscribe links from `RenderOptions` after `complianceText`."
+    },
+    "SocialLink": {
+      "type": "object",
+      "properties": {
+        "network": {
+          "type": "string",
+          "enum": [
+            "facebook",
+            "instagram",
+            "linkedin",
+            "x",
+            "youtube",
+            "tiktok",
+            "github",
+            "website"
+          ]
+        },
+        "url": { "type": "string" }
+      },
+      "required": ["network", "url"],
+      "additionalProperties": false
+    },
+    "Link": {
+      "type": "object",
+      "properties": { "label": { "type": "string" }, "url": { "type": "string" } },
+      "required": ["label", "url"],
+      "additionalProperties": false
+    }
+  }
+}

@@ -1,0 +1,103 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://raw.githubusercontent.com/Subterra-Technologies/blockletter/main/packages/core/schema/brand-kit.json",
+  "title": "Blockletter brand kit",
+  "description": "One organisation's look and identity, applied to every document it renders. Generated from the TypeScript types in `@subterra-technologies/blockletter`. A brand kit that matches this schema must still pass `validateBrandKit()` from that package, the source of truth for the rules this schema leaves out: a name that is not blank, the length of each field, an email address that looks like one, and a logo address that is an http(s) URL, or blank beside an `assetId` the host resolves.",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Organisation name: the footer's first line and the logo's fallback text."
+    },
+    "logo": { "$ref": "#/definitions/ImageRef" },
+    "colors": {
+      "type": "object",
+      "properties": {
+        "ink": {
+          "type": "string",
+          "description": "Text, headings, and the dark bands (event tiles, footer).",
+          "pattern": "^#[0-9a-fA-F]{6}$"
+        },
+        "accent": {
+          "type": "string",
+          "description": "Buttons, kickers and numbers.",
+          "pattern": "^#[0-9a-fA-F]{6}$"
+        },
+        "highlight": {
+          "type": "string",
+          "description": "Event-tile day numbers.",
+          "pattern": "^#[0-9a-fA-F]{6}$"
+        },
+        "page": {
+          "type": "string",
+          "description": "Background behind the 600px card, and the soft section background.",
+          "pattern": "^#[0-9a-fA-F]{6}$"
+        }
+      },
+      "required": ["ink", "accent", "highlight", "page"],
+      "additionalProperties": false
+    },
+    "fonts": {
+      "type": "object",
+      "properties": {
+        "heading": {
+          "type": "string",
+          "enum": ["Georgia", "Helvetica", "Arial", "Verdana", "Trebuchet MS", "Times New Roman"]
+        },
+        "body": {
+          "type": "string",
+          "enum": ["Georgia", "Helvetica", "Arial", "Verdana", "Trebuchet MS", "Times New Roman"]
+        }
+      },
+      "required": ["heading", "body"],
+      "additionalProperties": false
+    },
+    "contact": {
+      "type": "object",
+      "properties": {
+        "address": { "type": "string" },
+        "phone": { "type": "string" },
+        "email": { "type": "string" },
+        "website": {
+          "type": "string",
+          "description": "The organisation's site, shown under the card."
+        }
+      },
+      "required": ["address", "phone", "email", "website"],
+      "additionalProperties": false
+    },
+    "social": { "type": "array", "items": { "$ref": "#/definitions/SocialLink" } }
+  },
+  "required": ["name", "colors", "fonts", "contact", "social"],
+  "additionalProperties": false,
+  "definitions": {
+    "ImageRef": {
+      "type": "object",
+      "properties": { "url": { "type": "string" }, "assetId": { "type": "string" } },
+      "required": ["url"],
+      "additionalProperties": false,
+      "description": "An image the host application stores. `url` must be absolute (https) to survive in an inbox; `assetId` is the host's own handle for the file (a Convex storage id, an S3 key…), kept so the host can re-resolve `url` through `RenderOptions.resolveImageUrl` if its URLs expire."
+    },
+    "SocialLink": {
+      "type": "object",
+      "properties": {
+        "network": {
+          "type": "string",
+          "enum": [
+            "facebook",
+            "instagram",
+            "linkedin",
+            "x",
+            "youtube",
+            "tiktok",
+            "github",
+            "website"
+          ]
+        },
+        "url": { "type": "string" }
+      },
+      "required": ["network", "url"],
+      "additionalProperties": false
+    }
+  }
+}

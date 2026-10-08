@@ -13,15 +13,18 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
+    "./schema/*.json": "./schema/*.json",
     "./package.json": "./package.json"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "files": [
-    "dist"
+    "dist",
+    "schema"
   ],
   "scripts": {
     "build": "tsup",
+    "schema": "node scripts/schema.ts",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run"
   },
@@ -41,6 +44,10 @@
     "newsletter",
     "email-builder",
     "html-email",
-    "blocks"
-  ]
+    "blocks",
+    "json-schema"
+  ],
+  "devDependencies": {
+    "ts-json-schema-generator": "^2.9.0"
+  }
 }

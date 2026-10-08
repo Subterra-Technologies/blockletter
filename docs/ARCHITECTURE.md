@@ -16,7 +16,8 @@ how it renders, and how a person edits it.
 
 Inside the repo, packages import each other's **source** through the `blockletter-source` export
 condition (`tsconfig.base.json` `customConditions`, Vite/Vitest `resolve.conditions`), so tests,
-typechecks and the playground never need a prior build. Published consumers get `dist/`.
+typechecks and the playground never need a prior build. Published consumers get `dist/`, and the
+JSON Schemas in `schema/`.
 
 ## Principles
 
@@ -198,6 +199,40 @@ Refresh rules: `event_tiles` takes the source's first `limit` items; `sponsors`,
 and `post_list` replace previously sourced items (those with `ref`) and keep hand-written ones;
 `dated_list` keeps hand-written lines, adds the source's, and orders by `sortDate`. A block that
 gains items is un-hidden; assembly hides sourced blocks that come back empty.
+
+### Documents from other languages and LLMs
+
+```ts
+import documentSchema from '@subterra-technologies/blockletter/schema/newsletter-document.json';
+import templateSchema from '@subterra-technologies/blockletter/schema/newsletter-template.json';
+import brandKitSchema from '@subterra-technologies/blockletter/schema/brand-kit.json';
+```
+
+JSON Schema draft-07, for programs in other languages and for LLM structured output, published
+from `packages/core/schema/`. `scripts/schema.ts` generates them from `src/types.ts` with
+ts-json-schema-generator, a dev dependency: TSDoc becomes `description`, and `@pattern` tags in
+the types add the colour and date patterns. After changing a type, run
+`npm run schema -w packages/core`; `test/schema.test.ts` fails while a committed schema is stale.
+
+The schemas describe shape. `validateDocument()` and `validateBrandKit()` stay the source of
+truth for semantics: limits, real calendar dates, image addresses, unique block ids and text that
+may not be blank. A schema asks for the canonical form in two places where the validators are
+more forgiving: it rejects properties the types do not declare, and an empty string for an
+optional colour or sort date, which the editor leaves out instead. Tests pin every direction: the
+schema rejects a wrong block type, a missing field or a wrong field type just as
+`validateDocument()` does, accepts what only `validateDocument()` can refuse, and refuses what
+only it is strict about.
+
+The output is shaped for the subset of JSON Schema that structured-output APIs accept: the root
+is an object, every object sets `additionalProperties: false`, no `$ref` carries sibling keywords
+(scalar types such as `HexColor` are written out where they are used), constants are one-value
+`enum`s, patterns are plain, and the block list is a single `anyOf` of 21 `$ref`s. It uses no
+`format`, length or item-count keywords, `allOf`, `oneOf` or `if`/`then`. A whole document
+(about 25 KB minified) is still more than some strict, grammar-enforced modes take: it has
+dozens of optional properties, where some of those modes require every property and some cap
+the optional ones. Pass it where it guides rather than binds the model (strict mode off, or a
+tool's input schema), and check the reply with Ajv and `validateDocument()`. A host's own blocks
+join the schema as definitions listed in `definitions.BuiltInBlock.anyOf`.
 
 ## React package API (`@subterra-technologies/blockletter-react`)
 

@@ -27,6 +27,10 @@ const { html, text, warnings } = renderEmail(issue, {
 - `DataSource`s fill list blocks from your own records.
 - Brand kits with a contrast-checked palette, templates with `{{monthYear}}`-style tokens, issue
   periods, and runtime validation for untrusted documents.
+- JSON Schemas for documents, templates and brand kits
+  (`@subterra-technologies/blockletter/schema/newsletter-document.json` and siblings), so programs
+  in other languages and LLM structured output can produce them. A document that matches must
+  still pass `validateDocument()`.
 
 See the [main README](https://github.com/Subterra-Technologies/blockletter#readme) for the
 editor, a live demo, and the full guide, and the
