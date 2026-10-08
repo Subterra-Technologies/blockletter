@@ -2,6 +2,8 @@ name: Release
 
 # Changesets on main become a "Version packages" pull request; merging it publishes to npm.
 # Each job gets only the permissions it needs, and only the publish job can mint an npm token.
+# The Changesets actions are pinned to a commit, as third-party code with write access should be;
+# Dependabot moves the pins and their version comments together.
 # See docs/RELEASING.md for the one-time npm setup.
 
 on:
@@ -33,7 +35,7 @@ jobs:
           cache: npm
       - run: npm ci
       - id: select-mode
-        uses: changesets/action/select-mode@v2
+        uses: changesets/action/select-mode@ae32849d5ba541f9ae29e40e22a623bc13562f51 # v2.1.2
 
   version:
     if: needs.select-mode.outputs.mode == 'version'
@@ -51,7 +53,7 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
-      - uses: changesets/action/version@v2
+      - uses: changesets/action/version@ae32849d5ba541f9ae29e40e22a623bc13562f51 # v2.1.2
         with:
           script: npm run version-packages
           commit-message: 'chore: version packages'
@@ -81,7 +83,7 @@ jobs:
       - run: npm test
       - run: npm run build -w packages/core && npm run build -w packages/react
       - id: pack
-        uses: changesets/action/pack@v2
+        uses: changesets/action/pack@ae32849d5ba541f9ae29e40e22a623bc13562f51 # v2.1.2
         with:
           publish-plan-artifact-id: ${{ needs.select-mode.outputs.publish-plan-artifact-id }}
 
@@ -101,7 +103,7 @@ jobs:
           node-version: 24
           registry-url: https://registry.npmjs.org
       - run: npm ci
-      - uses: changesets/action/publish@v2
+      - uses: changesets/action/publish@ae32849d5ba541f9ae29e40e22a623bc13562f51 # v2.1.2
         with:
           pack-dir-artifact-id: ${{ needs.pack.outputs.pack-dir-artifact-id }}
         env:

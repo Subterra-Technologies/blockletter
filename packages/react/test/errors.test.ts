@@ -21,4 +21,18 @@ describe('errorMessage', () => {
       ),
     ).toBe('Fallback.');
   });
+
+  it('still recognises a stack trace by its indented frames', () => {
+    const trace = 'Something broke.\n    at render (editor.js:10:5)\n\tat run (main.js:2:1)';
+    expect(errorMessage(new Error(trace), 'Fallback.')).toBe('Fallback.');
+    expect(errorMessage(new Error('at handler (x.js:1:1)'), 'Fallback.')).toBe('Fallback.');
+  });
+
+  it('reads a message of thousands of blank lines in linear time', () => {
+    // With `\s` in the frame pattern, each newline restarted a scan of the whole run.
+    const message = `Odd.${'\n'.repeat(60_000)}x`;
+    const start = performance.now();
+    expect(errorMessage(new Error(message), 'Fallback.')).toBe(message.trim());
+    expect(performance.now() - start).toBeLessThan(1500);
+  });
 });

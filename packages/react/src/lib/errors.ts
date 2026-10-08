@@ -8,7 +8,12 @@
  * connection ("Failed to fetch"), or a message that reads like a server log (a request id, a
  * validator dump). Nobody can act on those, and they may say more than the host intended.
  */
-const TECHNICAL = /\[CONVEX|Request ID|ArgumentValidationError|^\s*at\s|\n\s+at\s/i;
+/**
+ * Text that belongs to a stack trace or a backend's internals rather than to a person. A frame's
+ * indent is spaces and tabs only: with `\s`, a run of blank lines could be rescanned from each of
+ * its newlines.
+ */
+const TECHNICAL = /\[CONVEX|Request ID|ArgumentValidationError|^[ \t]*at\s|\n[ \t]+at\s/i;
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null;

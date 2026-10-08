@@ -7,6 +7,18 @@ updates:
       interval: weekly
       day: monday
     open-pull-requests-limit: 5
+    ignore:
+      # Major versions that need a migration of their own, not a bump: TypeScript 7; ESLint 10,
+      # which eslint-plugin-jsx-a11y does not support yet; and the Node types, which follow the
+      # oldest Node the packages support (22).
+      - dependency-name: typescript
+        update-types: ['version-update:semver-major']
+      - dependency-name: eslint
+        update-types: ['version-update:semver-major']
+      - dependency-name: '@eslint/js'
+        update-types: ['version-update:semver-major']
+      - dependency-name: '@types/node'
+        update-types: ['version-update:semver-major']
     groups:
       development:
         dependency-type: development
@@ -14,6 +26,21 @@ updates:
       production:
         dependency-type: production
         update-types: [minor, patch]
+    commit-message:
+      prefix: chore
+      include: scope
+
+  # The examples are not workspaces; they track their frameworks monthly, in one pull request.
+  # Their Blockletter ranges move with each release (`npm run version-packages`), not here.
+  - package-ecosystem: npm
+    directories: ['/examples/node', '/examples/nextjs', '/examples/convex']
+    schedule:
+      interval: monthly
+    ignore:
+      - dependency-name: '@subterra-technologies/*'
+    groups:
+      examples:
+        patterns: ['*']
     commit-message:
       prefix: chore
       include: scope

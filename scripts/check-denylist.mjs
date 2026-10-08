@@ -7,7 +7,7 @@
  * nothing: every word and pair of adjacent words in a file is hashed the same way and compared.
  */
 import { createHash } from 'node:crypto';
-import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -71,13 +71,16 @@ const CODE_DIRS = ['packages/', 'apps/', 'examples/'];
 const findings = [];
 
 function walk(dir) {
-  for (const name of readdirSync(dir)) {
+  // The entries' own types, so a path is never checked and then opened as two separate steps.
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const { name } = entry;
     const path = join(dir, name);
     const rel = relative(root, path);
-    if (statSync(path).isDirectory()) {
+    if (entry.isDirectory()) {
       if (!SKIP_DIRS.has(name)) walk(path);
       continue;
     }
+    if (!entry.isFile()) continue;
     if (SKIP_FILES.has(rel) || !TEXT.test(name)) continue;
     const inCode = CODE_DIRS.some((prefix) => rel.startsWith(prefix));
     readFileSync(path, 'utf8')
