@@ -35,9 +35,9 @@ export function nextFrame(run: () => void): () => void {
 /**
  * Moves focus once a confirmation has finished closing.
  *
- * When the answer removes the control that asked (Delete takes its own row away, Convert swaps the
- * preview for a text area), focus has nowhere to go and falls to the page. This focuses `target()`,
- * the control that now stands where the old one was, once the confirmation is gone.
+ * When the answer removes the control that asked (Delete takes its own card or row away), focus
+ * has nowhere to go and falls to the page. This focuses `target()`, the control that now stands
+ * where the old one was, once the confirmation is gone.
  */
 export function focusAfterConfirm(target: () => HTMLElement | null | undefined): void {
   afterConfirmCloses(() => {

@@ -60,6 +60,8 @@ export interface EditHistory<D> {
    * any it has not passed back yet.
    */
   readonly emitted: readonly D[];
+  /** The newest step takes no more edits by key: the next one is a step of its own (`endStep`). */
+  readonly ended?: boolean;
 }
 
 export interface RecordOptions<D> {
@@ -102,7 +104,10 @@ export function record<D>(
   const joins =
     last !== undefined &&
     (continues === last ||
-      (step.key !== undefined && step.key === last.key && step.at - last.at <= coalesceMs));
+      (!history.ended &&
+        step.key !== undefined &&
+        step.key === last.key &&
+        step.at - last.at <= coalesceMs));
   if (last && joins) {
     const earlier = history.past.slice(0, -1);
     if (same(last.before, step.after)) return { past: earlier, future: [], emitted };
@@ -116,7 +121,19 @@ export function record<D>(
   return { past: [...history.past, step].slice(-limit), future: [], emitted };
 }
 
-/** The newest step taken back, its `before` handed out; undefined when there is none. */
+/**
+ * The history with its newest step closed to edits that would join it by key, however soon they
+ * come: a field's own command (bold, a list) is a step apart from the typing either side of it.
+ * The rest of a change it continues still folds in.
+ */
+export function endStep<D>(history: EditHistory<D>): EditHistory<D> {
+  return history.past.length && !history.ended ? { ...history, ended: true } : history;
+}
+
+/**
+ * The newest step taken back, its `before` handed out; undefined when there is none. What is
+ * typed next is a step of its own, never part of the one before.
+ */
 export function undo<D>(
   history: EditHistory<D>,
   limit: number = HISTORY_LIMIT,
@@ -129,11 +146,12 @@ export function undo<D>(
       past: history.past.slice(0, -1),
       future: [...history.future, step],
       emitted: handOut(history.emitted, step.before, limit),
+      ended: true,
     },
   };
 }
 
-/** The step undone last put back, its `after` handed out; undefined when there is none. */
+/** The step undone last put back, its `after` handed out, and closed as `undo` leaves it. */
 export function redo<D>(
   history: EditHistory<D>,
   limit: number = HISTORY_LIMIT,
@@ -146,6 +164,7 @@ export function redo<D>(
       past: [...history.past, step],
       future: history.future.slice(0, -1),
       emitted: handOut(history.emitted, step.after, limit),
+      ended: true,
     },
   };
 }

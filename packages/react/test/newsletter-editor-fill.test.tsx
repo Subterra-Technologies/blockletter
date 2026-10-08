@@ -178,7 +178,10 @@ describe('NewsletterEditor fill', () => {
     const body = screen.getByRole('textbox', { name: 'Text' });
     await user.clear(body);
     await user.type(body, 'Doors open at eight.');
-    expect(latest().blocks[1]).toMatchObject({ body: 'Doors open at eight.' });
+    expect(latest().blocks[1]).toMatchObject({
+      body: '<p>Doors open at eight.</p>',
+      format: 'html',
+    });
 
     await user.click(screen.getByRole('button', { name: 'Back to canvas' }));
     expect(panel('Canvas')).toBeVisible();

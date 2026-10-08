@@ -4,6 +4,7 @@ import {
   HISTORY_LIMIT,
   canRedo,
   canUndo,
+  endStep,
   receive,
   record,
   redo,
@@ -137,6 +138,50 @@ describe('the undo history', () => {
       continues: withDates.past.at(-1),
     });
     expect(late.past).toHaveLength(3);
+  });
+
+  it('ends a step on request, so typing straight after it is a step of its own', () => {
+    // A command in a field (bold, say) between two bursts of typing, all in the same second:
+    // the field closes the step before the command, and the command's own.
+    let history = record(startHistory(doc('a')), typed(doc('a'), 'ab', 0));
+    history = endStep(history);
+    expect(endStep(history)).toBe(history);
+    history = endStep(record(history, typed(doc('ab'), 'aB', 10)));
+    history = record(history, typed(doc('aB'), 'aBc', 20));
+    history = record(history, typed(doc('aBc'), 'aBcd', 30));
+    expect(texts(history)).toEqual([
+      ['a', 'ab'],
+      ['ab', 'aB'],
+      ['aB', 'aBcd'],
+    ]);
+    // The rest of a change it continues still folds in.
+    const start = doc('September');
+    const dates = { before: start, after: doc('October'), label: 'updated the period', at: 0 };
+    const ended = endStep(record(startHistory(start), dates));
+    const folded = record(ended, {
+      ...dates,
+      before: dates.after,
+      after: doc('October, refreshed'),
+      at: 5_000,
+      continues: ended.past.at(-1),
+    });
+    expect(texts(folded)).toEqual([['September', 'October, refreshed']]);
+  });
+
+  it('starts a new step for typing straight after an undo or a redo', () => {
+    // Typed, bolded, the bold undone, and typing again, all within the same second.
+    let history = record(startHistory(doc('a')), typed(doc('a'), 'ab', 0));
+    history = endStep(record(endStep(history), typed(doc('ab'), 'aB', 10)));
+    history = undo(history)!.history;
+    history = record(history, typed(doc('ab'), 'abc', 20));
+    expect(texts(history)).toEqual([
+      ['a', 'ab'],
+      ['ab', 'abc'],
+    ]);
+    history = undo(history)!.history;
+    history = redo(history)!.history;
+    history = record(history, typed(doc('abc'), 'abcd', 30));
+    expect(texts(history)).toHaveLength(3);
   });
 
   it('clears what could be redone when a new change is made', () => {

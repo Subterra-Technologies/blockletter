@@ -29,6 +29,7 @@ export {
   useEditorContext,
   useEditorDefinition,
   type EditorContextValue,
+  type EditorHistoryHandle,
 } from './editor/context';
 
 // Blocks: the registry and the plugin API
@@ -103,5 +104,6 @@ export {
   TextField,
   type Choice,
 } from './inspector/editor-fields';
+export { RichTextField, type RichTextFieldProps } from './rich-text/rich-text-field';
 
 export { cn } from './lib/cn';

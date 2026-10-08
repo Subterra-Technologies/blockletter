@@ -317,6 +317,34 @@ describe('undo and redo', () => {
     expect(result.current.canUndo).toBe(false);
   });
 
+  it('joins a text block’s first rich edit, which also sets its format, with the typing after it', () => {
+    const { result } = setup(doc([TEXT, FOOTER]));
+    const text = () => result.current.document.blocks[0]!;
+    const changed = (changes: Partial<typeof TEXT>) => ({ ...text(), ...changes });
+    const type = (body: string) =>
+      act(() => result.current.update(changed({ body, format: 'html' })));
+    type('<p>D</p>');
+    type('<p>Do</p>');
+    type('<p>Doors</p>');
+    act(() => result.current.undo());
+    expect(text()).toBe(TEXT);
+    expect(result.current.canUndo).toBe(false);
+  });
+
+  it('ends a step on request, so the edit straight after it undoes on its own', () => {
+    const { result } = setup(doc([TEXT, FOOTER]));
+    const text = () => result.current.document.blocks[0]!;
+    const changed = (changes: Partial<typeof TEXT>) => ({ ...text(), ...changes });
+    const type = (body: string) => act(() => result.current.update(changed({ body })));
+    type('Doors');
+    act(() => result.current.endStep());
+    type('Doors open');
+    act(() => result.current.undo());
+    expect(text()).toMatchObject({ body: 'Doors' });
+    act(() => result.current.undo());
+    expect(text()).toBe(TEXT);
+  });
+
   it('joins typing in the subject and the preview line, each a step of its own', () => {
     const { result } = setup(doc([FOOTER]));
     for (const subject of ['D', 'De', 'Dec']) act(() => result.current.setSubject(subject));

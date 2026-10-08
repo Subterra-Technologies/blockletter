@@ -1,5 +1,5 @@
 import AxeBuilder from '@axe-core/playwright';
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, type Locator, type Page } from '@playwright/test';
 
 /**
  * The demo as a visitor meets it: the built site, a fresh browser profile per test, and the
@@ -37,6 +37,45 @@ async function expectAccessible(page: Page) {
     .exclude('iframe')
     .analyze();
   expect(results.violations.map((violation) => `${violation.id}: ${violation.help}`)).toEqual([]);
+}
+
+/** Selects `words` in a text box, the way a double-click or a drag would. */
+async function selectWords(box: Locator, words: string) {
+  await box.evaluate((root, words) => {
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+      const start = node.textContent?.indexOf(words) ?? -1;
+      if (start < 0) continue;
+      const range = document.createRange();
+      range.setStart(node, start);
+      range.setEnd(node, start + words.length);
+      getSelection()?.removeAllRanges();
+      getSelection()?.addRange(range);
+      return;
+    }
+    throw new Error(`No text holds “${words}”`);
+  }, words);
+}
+
+/** Focuses a text box and puts the caret at the very end of its text. */
+async function caretAtEnd(box: Locator) {
+  await box.focus();
+  await box.evaluate((root) => {
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    let last: Node | null = null;
+    for (let node = walker.nextNode(); node; node = walker.nextNode()) last = node;
+    if (last) getSelection()?.collapse(last, last.textContent?.length ?? 0);
+  });
+}
+
+/** The Field Notes text block's form: beside the canvas when wide, its Edit pane when narrow. */
+async function openTextBlock(page: Page) {
+  await openDemo(page, '/?block=text');
+  const edit = page.getByRole('tab', { name: 'Edit', exact: true });
+  if (await edit.isVisible()) await edit.click();
+  const text = page.getByRole('textbox', { name: 'Text', exact: true });
+  await expect(text).toBeVisible();
+  return { text, tools: page.getByRole('toolbar', { name: 'Text formatting' }) };
 }
 
 for (const width of WIDTHS) {
@@ -77,6 +116,131 @@ for (const [width, height] of [
     expect(fit.bottom).toBeLessThanOrEqual(height);
   });
 }
+
+for (const width of WIDTHS) {
+  test(`keeps the text formatting tools accessible and on the screen at ${width}px`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height: 900 });
+    const { text, tools } = await openTextBlock(page);
+    await text.click();
+    await selectWords(text, 'patterns');
+    await tools.getByRole('button', { name: 'Link' }).click();
+    await expect(page.getByRole('group', { name: 'Add a link' })).toBeVisible();
+    await expectNoSidewaysScroll(page);
+    await expectAccessible(page);
+  });
+}
+
+test('bolds a word in a text block with Ctrl+B', async ({ page }) => {
+  const { text, tools } = await openTextBlock(page);
+  await text.click();
+  await selectWords(text, 'patterns');
+  await page.keyboard.press('ControlOrMeta+B');
+  await expect(tools.getByRole('button', { name: 'Bold' })).toHaveAttribute('aria-pressed', 'true');
+  await previewControl(page).click();
+  await expect(page.locator('iframe')).toHaveAttribute('srcdoc', /<strong>patterns<\/strong>/);
+});
+
+test('adds a link and a bulleted list from the formatting toolbar', async ({ page }) => {
+  const { text, tools } = await openTextBlock(page);
+  await text.click();
+  await selectWords(text, 'custom builds');
+  await tools.getByRole('button', { name: 'Link' }).click();
+  const form = page.getByRole('group', { name: 'Add a link' });
+  await form.getByRole('textbox', { name: 'Link address' }).fill('https://example.org/builds');
+  await form.getByRole('button', { name: 'Add link' }).click();
+  await expect(form).toBeHidden();
+  await expect(text).toBeFocused();
+  await expect(tools.getByRole('button', { name: 'Edit link' })).toBeVisible();
+
+  const bulleted = tools.getByRole('button', { name: 'Bulleted list' });
+  await bulleted.click();
+  await expect(bulleted).toHaveAttribute('aria-pressed', 'true');
+  // The canvas draws the list with its bullets, as the email does, despite the editor's reset.
+  const drawing = page.locator('[data-block-id]').filter({ hasText: 'Each one born' });
+  await expect(drawing.locator('ul')).toHaveCSS('list-style-type', 'disc');
+
+  await previewControl(page).click();
+  const frame = page.locator('iframe');
+  await expect(frame).toHaveAttribute(
+    'srcdoc',
+    /<a href="https:\/\/example\.org\/builds" rel="noopener" target="_blank"[^>]*>custom builds<\/a>/,
+  );
+  await expect(frame).toHaveAttribute('srcdoc', /<ul[^>]*><li[^>]*>Each one born/);
+});
+
+test('formats text from the keyboard alone', async ({ page }) => {
+  const { text, tools } = await openTextBlock(page);
+  // Focused rather than clicked, the caret starts at the beginning of the text.
+  await text.focus();
+  for (let step = 0; step < 4; step += 1) await page.keyboard.press('Shift+ArrowRight');
+  await page.keyboard.press('ControlOrMeta+K');
+  const address = page.getByRole('textbox', { name: 'Link address' });
+  await expect(address).toBeFocused();
+  await address.fill('example.org');
+  await address.press('Enter');
+  await expect(text).toBeFocused();
+
+  // Into the toolbar, a single tab stop, and along it with the arrow keys.
+  await page.keyboard.press('Shift+Tab');
+  await expect(tools.getByRole('button', { name: 'Bold' })).toBeFocused();
+  for (let step = 0; step < 3; step += 1) await page.keyboard.press('ArrowRight');
+  const bulleted = tools.getByRole('button', { name: 'Bulleted list' });
+  await expect(bulleted).toBeFocused();
+  await page.keyboard.press('Enter');
+  await expect(bulleted).toHaveAttribute('aria-pressed', 'true');
+  await page.keyboard.press('Tab');
+  await expect(text).toBeFocused();
+  // Back in the text, the selection is where it was left.
+  expect(await page.evaluate(() => getSelection()?.toString())).toBe('Each');
+
+  await previewControl(page).click();
+  const frame = page.locator('iframe');
+  await expect(frame).toHaveAttribute(
+    'srcdoc',
+    /<ul[^>]*><li[^>]*><a href="https:\/\/example\.org" rel="noopener" target="_blank"[^>]*>Each<\/a>/,
+  );
+});
+
+test('undoes typing in formatted text a burst at a time, from the keys and the top bar', async ({
+  page,
+}) => {
+  const { text } = await openTextBlock(page);
+  await caretAtEnd(text);
+  await page.keyboard.type(' First words.');
+  // Typing joins one undo step until it pauses for longer than a second.
+  await page.waitForTimeout(1_200);
+  await page.keyboard.type(' Second words.');
+  await expect(text).toHaveText(/custom builds\. First words\. Second words\.$/);
+
+  // One press takes back exactly the last burst, and leaves the caret where it came out.
+  await page.keyboard.press('ControlOrMeta+z');
+  await expect(text).toHaveText(/custom builds\. First words\.$/);
+  await expect(text).toBeFocused();
+  const caret = await page.evaluate(() => {
+    const selection = getSelection();
+    return selection?.anchorNode?.textContent?.slice(0, selection.anchorOffset);
+  });
+  expect(caret).toMatch(/First words\.$/);
+
+  // The top bar's Undo and Redo walk the same history.
+  const undo = page.getByRole('button', { name: 'Undo', exact: true });
+  const redo = page.getByRole('button', { name: 'Redo', exact: true });
+  await undo.click();
+  await expect(text).toHaveText(/custom builds\.$/);
+  await redo.click();
+  await expect(text).toHaveText(/custom builds\. First words\.$/);
+  await redo.click();
+  await expect(text).toHaveText(/custom builds\. First words\. Second words\.$/);
+  await expect(redo).toBeDisabled();
+
+  // A selection put in the text from outside (a script, assistive technology) takes the focus
+  // there with it, and is the one formatted, not the caret the field last had.
+  await selectWords(text, 'patterns');
+  await page.keyboard.press('ControlOrMeta+B');
+  await expect(text.locator('strong')).toHaveText('patterns');
+});
 
 test('goes to the docs and back with the editor as it was left', async ({ page }) => {
   await openDemo(page);

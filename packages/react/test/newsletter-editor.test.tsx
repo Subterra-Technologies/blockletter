@@ -186,7 +186,11 @@ describe('NewsletterEditor', () => {
     await user.type(body, 'Doors open at eight.');
 
     expect(latest()).toMatchObject({ subject: 'September at the book club', period: SEPTEMBER });
-    expect(latest().blocks[1]).toMatchObject({ id: TEXT.id, body: 'Doors open at eight.' });
+    expect(latest().blocks[1]).toMatchObject({
+      id: TEXT.id,
+      body: '<p>Doors open at eight.</p>',
+      format: 'html',
+    });
     expect(canvas().getByText('Doors open at eight.')).toBeInTheDocument();
   });
 
@@ -364,7 +368,11 @@ describe('NewsletterEditor', () => {
     await user.keyboard('{Alt>}{ArrowUp}{/Alt}');
 
     await user.click(blockTab('Text'));
-    expect(screen.getByRole('textbox', { name: 'Text' })).toBeDisabled();
+    expect(screen.getByRole('textbox', { name: 'Text' })).toHaveAttribute('aria-disabled', 'true');
+    expect(screen.getByRole('textbox', { name: 'Text' })).toHaveAttribute(
+      'contenteditable',
+      'false',
+    );
     await user.click(inspectorTab('Settings'));
     expect(screen.getByRole('textbox', { name: 'Subject' })).toBeDisabled();
     expect(onChange).not.toHaveBeenCalled();
@@ -539,7 +547,9 @@ describe('NewsletterEditor', () => {
 
     expect(blockTab('Text')).toHaveAttribute('aria-selected', 'true');
     expect(screen.getByRole('toolbar', { name: 'Text block' })).toBeInTheDocument();
-    expect(screen.getByRole('textbox', { name: 'Text' })).toHaveValue('Join us Friday at nine.');
+    expect(screen.getByRole('textbox', { name: 'Text' })).toHaveTextContent(
+      'Join us Friday at nine.',
+    );
     // A frame later, once the editor has settled on its layout. With the page as the only
     // scroller here, the block is scrolled into view the page's way.
     await waitFor(() => expect(scrolled.mock.contexts).toContain(blockTab('Text')));
@@ -562,6 +572,38 @@ describe('NewsletterEditor undo and redo', () => {
   const undoButton = () => screen.getByRole('button', { name: 'Undo' });
   const redoButton = () => screen.getByRole('button', { name: 'Redo' });
   const ctrl = (key: string) => `{Control>}${key}{/Control}`;
+  /** The Text block's rich-text body. */
+  const textBody = () => screen.getByRole('textbox', { name: 'Text' });
+  /** The first text node in `body` holding `words`, or its first text node. */
+  const textIn = (body: HTMLElement, words = ''): Text => {
+    const walker = document.createTreeWalker(body, NodeFilter.SHOW_TEXT);
+    for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+      if (node.textContent?.includes(words)) return node as Text;
+    }
+    throw new Error(`No text holds “${words}”`);
+  };
+  /** Focuses the body and puts the caret `offset` characters into its first paragraph. */
+  const caretAt = (body: HTMLElement, offset: number) => {
+    act(() => body.focus());
+    act(() => document.getSelection()?.collapse(textIn(body), offset));
+  };
+  /** Focuses the body and puts the caret at the end of its last text. */
+  const caretAtEnd = (body: HTMLElement) => {
+    act(() => body.focus());
+    const walker = document.createTreeWalker(body, NodeFilter.SHOW_TEXT);
+    let last: Text | null = null;
+    for (let node = walker.nextNode(); node; node = walker.nextNode()) last = node as Text;
+    if (!last) throw new Error('The body has no text');
+    const end = last;
+    act(() => document.getSelection()?.collapse(end, end.length));
+  };
+  const selectWords = (body: HTMLElement, words: string) => {
+    act(() => body.focus());
+    const node = textIn(body, words);
+    const start = node.data.indexOf(words);
+    act(() => document.getSelection()?.setBaseAndExtent(node, start, node, start + words.length));
+  };
+  const caretOffset = () => document.getSelection()?.anchorOffset;
 
   it('has Undo and Redo in the top bar, each unavailable until there is something to do', async () => {
     const { user, onChange, types } = renderEditor(issue([HEADER, TEXT, FOOTER]));
@@ -620,30 +662,111 @@ describe('NewsletterEditor undo and redo', () => {
   it('takes Ctrl+Z in a text field for the issue’s undo, a burst of typing at a time', async () => {
     const { user, latest } = renderEditor(issue([HEADER, TEXT, FOOTER]));
     await user.click(blockTab('Text'));
-    const body = screen.getByRole<HTMLTextAreaElement>('textbox', { name: 'Text' });
+    const body = textBody();
     // Into the middle of the text, just before its full stop.
-    await user.type(body, ' sharp', { initialSelectionStart: 22, initialSelectionEnd: 22 });
+    caretAt(body, 22);
+    await user.keyboard(' sharp');
     vi.setSystemTime(new Date(Date.now() + 5_000));
-    await user.type(body, ' Bring a friend.');
-    expect(body).toHaveValue('Join us Friday at nine sharp. Bring a friend.');
+    caretAtEnd(body);
+    await user.keyboard(' Bring a friend.');
+    expect(body.textContent).toBe('Join us Friday at nine sharp. Bring a friend.');
 
     await user.keyboard(ctrl('z'));
-    expect(body).toHaveValue('Join us Friday at nine sharp.');
+    expect(body.textContent).toBe('Join us Friday at nine sharp.');
+    // The first keystroke also made the body rich text; it is still one step with the rest.
     await user.keyboard(ctrl('z'));
-    expect(body).toHaveValue('Join us Friday at nine.');
+    expect(body.textContent).toBe('Join us Friday at nine.');
+    expect(latest().blocks[1]).toEqual(TEXT);
     expect(body).toHaveFocus();
     // The caret is where the words came out, as the browser's own undo leaves it.
-    expect(body.selectionStart).toBe(22);
+    expect(caretOffset()).toBe(22);
     await user.keyboard('{Control>}{Shift>}z{/Shift}{/Control}');
-    expect(body).toHaveValue('Join us Friday at nine sharp.');
-    expect(body.selectionStart).toBe(28);
-    expect(latest().blocks[1]).toMatchObject({ body: 'Join us Friday at nine sharp.' });
+    expect(body.textContent).toBe('Join us Friday at nine sharp.');
+    expect(caretOffset()).toBe(28);
+    expect(latest().blocks[1]).toMatchObject({
+      body: '<p>Join us Friday at nine sharp.</p>',
+      format: 'html',
+    });
+  });
+
+  it('undoes the text field’s formatting with one press, as the top bar’s Undo does', async () => {
+    const { user, latest, onChange } = renderEditor(issue([HEADER, TEXT, FOOTER]));
+    await user.click(blockTab('Text'));
+    const body = textBody();
+    selectWords(body, 'Friday');
+    await user.keyboard(ctrl('b'));
+    const bold = { body: '<p>Join us <strong>Friday</strong> at nine.</p>', format: 'html' };
+    expect(latest().blocks[1]).toMatchObject(bold);
+
+    const calls = onChange.mock.calls.length;
+    await user.keyboard(ctrl('z'));
+    // One press, one undo: the field's own history does not take a turn as well.
+    expect(onChange).toHaveBeenCalledTimes(calls + 1);
+    expect(latest().blocks[1]).toEqual(TEXT);
+    expect(body.querySelector('strong')).toBeNull();
+    expect(undoButton()).toHaveAttribute('aria-disabled', 'true');
+
+    await user.click(redoButton());
+    expect(latest().blocks[1]).toMatchObject(bold);
+    expect(within(body).getByText('Friday').tagName).toBe('STRONG');
+    await user.click(undoButton());
+    expect(latest().blocks[1]).toEqual(TEXT);
+    expect(body.querySelector('strong')).toBeNull();
+  });
+
+  it('keeps a command in the text field apart from the typing either side of it', async () => {
+    const { user, latest } = renderEditor(issue([HEADER, TEXT, FOOTER]));
+    await user.click(blockTab('Text'));
+    const body = textBody();
+    // All in the same instant: only the command between them keeps the two bursts apart.
+    caretAtEnd(body);
+    await user.keyboard(' See you');
+    selectWords(body, 'Friday');
+    await user.click(screen.getByRole('button', { name: 'Bold' }));
+    caretAtEnd(body);
+    await user.keyboard(' there');
+    expect(latest().blocks[1]).toMatchObject({
+      body: '<p>Join us <strong>Friday</strong> at nine. See you there</p>',
+    });
+
+    await user.click(undoButton());
+    expect(latest().blocks[1]).toMatchObject({
+      body: '<p>Join us <strong>Friday</strong> at nine. See you</p>',
+    });
+    await user.click(undoButton());
+    expect(latest().blocks[1]).toMatchObject({ body: '<p>Join us Friday at nine. See you</p>' });
+    await user.click(undoButton());
+    expect(latest().blocks[1]).toEqual(TEXT);
+  });
+
+  it('hands the browser’s own Undo in the text field to the issue’s history, once', async () => {
+    const { user, latest, onChange } = renderEditor(issue([HEADER, TEXT, FOOTER]));
+    await user.click(blockTab('Text'));
+    const body = textBody();
+    caretAtEnd(body);
+    await user.keyboard(' Bring a friend.');
+    const calls = onChange.mock.calls.length;
+    let left = true;
+    act(() => {
+      left = body.dispatchEvent(
+        new InputEvent('beforeinput', {
+          inputType: 'historyUndo',
+          bubbles: true,
+          cancelable: true,
+        }),
+      );
+    });
+    expect(left).toBe(false);
+    expect(onChange).toHaveBeenCalledTimes(calls + 1);
+    expect(latest().blocks[1]).toEqual(TEXT);
+    expect(body.textContent).toBe('Join us Friday at nine.');
   });
 
   it('moves the focus to the form it brings back when an undo takes away the one in use', async () => {
     const { user } = renderEditor(issue([HEADER, TEXT, FOOTER]));
     await user.click(blockTab('Text'));
-    await user.type(screen.getByRole('textbox', { name: 'Text' }), ' Bring a friend.');
+    caretAtEnd(textBody());
+    await user.keyboard(' Bring a friend.');
     await user.click(blockTab('Header'));
     const title = screen.getByRole('textbox', { name: 'Title' });
     await user.click(title);
@@ -651,7 +774,7 @@ describe('NewsletterEditor undo and redo', () => {
     // The last change was the Text block's: undoing it chooses Text, and the Header form goes.
     await user.keyboard(ctrl('z'));
     expect(blockTab('Text')).toHaveAttribute('aria-selected', 'true');
-    expect(screen.getByRole('textbox', { name: 'Text' })).toHaveValue('Join us Friday at nine.');
+    expect(textBody().textContent).toBe('Join us Friday at nine.');
     expect(screen.getByRole('heading', { level: 2, name: 'Text' })).toHaveFocus();
   });
 

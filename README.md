@@ -75,6 +75,9 @@ The rule it was built on: _if I entered it once, I shouldn't have to enter it ag
 - **Undo for every change.** Adding, moving, deleting, editing or refreshing a block, and changing
   the issue's settings, can all be undone and redone from the top bar or with Ctrl+Z (⌘Z), typing
   a burst at a time. Deleting a block asks nothing first: its toast offers Undo.
+- **Formatted writing.** Text blocks take bold, italics, links and bulleted or numbered lists, from
+  a toolbar or with Ctrl/⌘ + B, I and K. Pasted text keeps those and loses the rest, so what is
+  stored is always a few tags the sanitiser passes. `RichTextField` gives your own blocks the same.
 - **Your backend, your workflow.** `NewsletterEditor` is a controlled React component. You store
   the documents, images and brand kits, and you decide who approves an issue and how it is sent.
 - **Brand kits and templates.** Logo, colours, fonts and contact details restyle every block, and

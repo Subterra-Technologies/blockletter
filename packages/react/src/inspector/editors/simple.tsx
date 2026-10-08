@@ -1,7 +1,5 @@
-import { useId, useRef } from 'react';
 import {
-  htmlToText,
-  sanitizeHtml,
+  plainTextToHtml,
   type CalloutBlock,
   type FooterBlock,
   type HeaderBlock,
@@ -9,19 +7,9 @@ import {
 } from '@subterra-technologies/blockletter';
 import { useEditorContext } from '../../editor/context';
 import type { BlockEditorProps } from '../../editor/types';
-import { focusAfterConfirm } from '../../lib/focus';
-import { Button } from '../../ui/button';
-import { useConfirm } from '../../ui/confirm';
+import { RichTextField } from '../../rich-text/rich-text-field';
 import { blockEditor, withOptional } from '../editor-base';
-import {
-  AreaField,
-  EditorFields,
-  FieldPair,
-  GroupLabel,
-  Hint,
-  Note,
-  TextField,
-} from '../editor-fields';
+import { AreaField, EditorFields, FieldPair, Note, TextField } from '../editor-fields';
 import { ItemList } from '../item-list';
 import { SocialLinksField } from '../social-links-field';
 
@@ -85,31 +73,13 @@ export function CalloutEditor({ block, onChange, readOnly }: BlockEditorProps<Ca
 // --- Text ----------------------------------------------------------------------------------------
 
 /**
- * Plain text in a text area. A body stored as HTML (from a template or another editor) is shown
- * as it will read, cleaned the way the renderer cleans it, until it is converted: this editor
- * has no way to change formatting, and must not quietly drop it by editing the markup as text.
+ * The heading, and the body in a rich-text field. A body stored as plain text is shown as the
+ * paragraphs it renders as, and becomes HTML (`plainTextToHtml`, then `format: 'html'`) only the
+ * first time it is edited here, so an issue nobody edits renders exactly as it did.
  */
 export function TextEditor({ block, onChange, readOnly }: BlockEditorProps<TextBlock>) {
   const { commit } = blockEditor(block, onChange);
-  const confirm = useConfirm();
-  const id = useId();
-  const labelId = `${id}-label`;
-  const noteId = `${id}-note`;
-  const bodyRef = useRef<HTMLTextAreaElement>(null);
-
-  async function convert(): Promise<void> {
-    const ok = await confirm({
-      title: 'Convert this text to plain text?',
-      description: 'Its formatting (bold, italics, links and lists) is removed. The words stay.',
-      confirmLabel: 'Convert to plain text',
-    });
-    if (!ok) return;
-    const next: TextBlock = { ...block, body: htmlToText(block.body) };
-    delete next.format;
-    commit(next);
-    focusAfterConfirm(() => bodyRef.current);
-  }
-
+  const body = block.format === 'html' ? block.body : plainTextToHtml(block.body);
   return (
     <EditorFields readOnly={readOnly}>
       <TextField
@@ -117,41 +87,12 @@ export function TextEditor({ block, onChange, readOnly }: BlockEditorProps<TextB
         value={block.heading ?? ''}
         onChange={(heading) => commit(withOptional(block, 'heading', heading))}
       />
-      {block.format === 'html' ? (
-        <div className="bl:flex bl:min-w-0 bl:flex-col bl:gap-2">
-          <GroupLabel id={labelId}>Text</GroupLabel>
-          <div
-            role="group"
-            aria-labelledby={labelId}
-            aria-describedby={noteId}
-            className="bl:max-h-80 bl:overflow-y-auto bl:rounded-md bl:border bl:bg-muted bl:px-3 bl:py-2 bl:text-sm bl:leading-relaxed bl:break-words bl:[&_a]:underline bl:[&_blockquote]:border-l-2 bl:[&_blockquote]:pl-3 bl:[&_h1]:font-semibold bl:[&_h2]:font-semibold bl:[&_h3]:font-semibold bl:[&_ol]:list-decimal bl:[&_ol]:pl-5 bl:[&_ul]:list-disc bl:[&_ul]:pl-5 bl:[&>*+*]:mt-2"
-            // Cleaned by the same sanitiser the renderer uses: no scripts, handlers or unsafe links.
-            dangerouslySetInnerHTML={{ __html: sanitizeHtml(block.body) }}
-          />
-          <Hint id={noteId}>
-            This text has formatting this editor can’t change. Convert it to plain text to edit it
-            here.
-          </Hint>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="bl:self-start"
-            onClick={() => void convert()}
-          >
-            Convert to plain text
-          </Button>
-        </div>
-      ) : (
-        <AreaField
-          label="Text"
-          rows={6}
-          help="Leave a blank line between paragraphs."
-          value={block.body}
-          textareaRef={bodyRef}
-          onChange={(body) => commit({ ...block, body })}
-        />
-      )}
+      <RichTextField
+        label="Text"
+        rows={6}
+        value={body}
+        onChange={(html) => commit({ ...block, body: html, format: 'html' })}
+      />
     </EditorFields>
   );
 }

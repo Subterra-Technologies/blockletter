@@ -1,4 +1,12 @@
-import { useId, type ChangeEvent, type KeyboardEvent, type ReactNode, type Ref } from 'react';
+import {
+  createContext,
+  useContext,
+  useId,
+  type ChangeEvent,
+  type KeyboardEvent,
+  type ReactNode,
+  type Ref,
+} from 'react';
 import { PlusIcon, UploadIcon } from 'lucide-react';
 import { cn } from '../lib/cn';
 import { Button, buttonVariants } from '../ui/button';
@@ -19,11 +27,19 @@ import { Textarea } from '../ui/textarea';
  * editors on one page never share one.
  */
 
+const FieldsReadOnly = createContext(false);
+
+/**
+ * Whether the `EditorFields` around a control is read-only. The fieldset disables form controls
+ * by itself; a control it cannot reach, such as the rich-text field's editable text, asks here.
+ */
+export const useFieldsReadOnly = (): boolean => useContext(FieldsReadOnly);
+
 /** The editor body. A read-only issue disables every control in it at once. */
 export function EditorFields({ readOnly, children }: { readOnly: boolean; children: ReactNode }) {
   return (
     <fieldset disabled={readOnly} className="bl:flex bl:min-w-0 bl:flex-col bl:gap-4">
-      {children}
+      <FieldsReadOnly value={readOnly}>{children}</FieldsReadOnly>
     </fieldset>
   );
 }

@@ -44,6 +44,7 @@ import { useToasts } from '../ui/toast';
 import {
   canRedo as canRedoIn,
   canUndo as canUndoIn,
+  endStep as endStepIn,
   receive,
   record,
   redo as redoIn,
@@ -136,6 +137,12 @@ export interface NewsletterEditorApi<B extends BlockBase = BuiltInBlock> {
   undo: () => void;
   /** Puts back the change undone last. A new change clears whatever could be redone. */
   redo: () => void;
+  /**
+   * Closes the newest step, so the next change is a step of its own even where it would have
+   * joined it as typing: for a field's own command, such as making words bold, which should undo
+   * apart from the typing either side of it.
+   */
+  endStep: () => void;
   /** There is a change to undo. Never while read-only. */
   canUndo: boolean;
   /** There is an undone change to redo. Never while read-only. */
@@ -353,6 +360,10 @@ export function useNewsletterEditor<B extends BlockBase = BuiltInBlock>({
     restore(step.after, result.history, step.selection?.after, `Redid: ${step.label}.`);
   }, [readOnly, restore]);
 
+  const endStep = useCallback(() => {
+    history.current = endStepIn(history.current);
+  }, []);
+
   /** The newest `undo`, for a toast's Undo, which outlives the render that made it. */
   const latestUndo = useRef(undo);
   useLayoutEffect(() => {
@@ -504,17 +515,25 @@ export function useNewsletterEditor<B extends BlockBase = BuiltInBlock>({
       const previous = doc.blocks.find((item) => item.id === block.id);
       const blocks = updateBlockIn<BlockBase>(doc.blocks, block);
       if (!previous || blocks === doc.blocks) return;
-      // Where the edit landed: typing on in the same field joins the same step.
+      // Where the edit landed: typing on in the same field joins the same step. So does typing
+      // after a first keystroke that set more besides (a plain text block's first edit also sets
+      // its `format`): an edit to some of the newest step's paths is in the same field.
       const paths = changedPaths(previous, block);
       const look =
         paths.length > 0 && paths.every((path) => path === 'style' || path.startsWith('style.'));
+      const field = `block:${block.id}:`;
+      const newest = history.current.past.at(-1)?.key;
+      const within = newest?.startsWith(field) ? newest.slice(field.length).split(' ') : [];
       commit(
         { ...doc, blocks },
         {
           label: look
             ? `changed the ${name(block.type)} block’s appearance`
             : `edited the ${name(block.type)} block`,
-          key: `block:${block.id}:${paths.join(' ')}`,
+          key:
+            newest && paths.every((path) => within.includes(path))
+              ? newest
+              : field + paths.join(' '),
           selection: { before: block.id, after: block.id },
         },
       );
@@ -659,6 +678,7 @@ export function useNewsletterEditor<B extends BlockBase = BuiltInBlock>({
     setPreheader,
     undo,
     redo,
+    endStep,
     canUndo: undoable && !readOnly,
     canRedo: redoable && !readOnly,
   };

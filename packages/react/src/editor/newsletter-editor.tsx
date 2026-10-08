@@ -273,7 +273,13 @@ function Workspace<B extends BlockBase>({
     defaultMode,
     defaultSelectedId,
   });
-  const { document, selected, insertTarget, mode, canvasRef, canUndo, canRedo } = editor;
+  const { document, selected, insertTarget, mode, canvasRef, canUndo, canRedo, endStep } = editor;
+  // The keys and the browser's own Undo are answered here (`onHistoryKey`, `onBrowserHistory`),
+  // so the fields inside are told to leave them alone: see `EditorContextValue.history`.
+  const historyContext = useMemo<Partial<EditorContextValue>>(
+    () => (readOnly ? {} : { history: { endStep } }),
+    [readOnly, endStep],
+  );
   const ids = useId();
   const paletteHeadingId = `${ids}-palette`;
   const inspectorId = `${ids}-inspector`;
@@ -711,7 +717,7 @@ function Workspace<B extends BlockBase>({
     </Tabs>
   );
 
-  return (
+  const workspaceContent = (
     // Undo and redo's keys, from anywhere inside the editor (`onHistoryKey`): the controls inside
     // are the interactive elements, and this only listens to keys bubbling up from them. Laid out
     // as if it were not there, so the editor's root lays out the bar and the panes itself.
@@ -897,6 +903,8 @@ function Workspace<B extends BlockBase>({
       ) : null}
     </div>
   );
+
+  return <EditorProvider value={historyContext}>{workspaceContent}</EditorProvider>;
 }
 
 /**
