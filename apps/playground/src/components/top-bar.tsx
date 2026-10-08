@@ -1,7 +1,9 @@
+import editorPackage from '@subterra-technologies/blockletter-react/package.json';
 import type { View } from '../route';
 import { SUBTERRA_SITE_URL } from '../sample/subterra';
 
 const REPOSITORY_URL = 'https://github.com/Subterra-Technologies/blockletter';
+const NPM_URL = 'https://www.npmjs.com/package/@subterra-technologies/blockletter-react';
 
 /** GitHub's mark, from Octicons (MIT). */
 function GitHubMark() {
@@ -46,7 +48,10 @@ export function TopBar({ view }: { view: View }) {
           </ul>
         </nav>
         <div className="pg-bar__end">
-          <p className="pg-bar__note">Pre-release · not on npm yet</p>
+          {/* The version the demo was built with, read from the package so it never goes stale. */}
+          <a className="pg-bar__note" href={NPM_URL}>
+            v{editorPackage.version} on npm
+          </a>
           <a className="pg-bar__source" href={REPOSITORY_URL}>
             <GitHubMark />
             <span className="pg-bar__source-label">

@@ -39,17 +39,15 @@ a release, a rename means publishing new packages and deprecating the old ones.
 pull requests, first in the organisation's settings (it overrides the repository's) and then in
 this repository's. Without it, the version job fails.
 
-### 3. The first publish
+### 3. The first publish (done: `0.1.0`, 2026-10-08)
 
 npm's trusted publishing, which needs no stored credential, can only be set up on a package that
-already exists. So the first release uses a short-lived token:
-
-1. On npmjs.com, create a **granular access token** with read and write access to the
-   `@subterra-technologies` scope, the shortest expiry that works for you, and permission to
-   bypass two-factor authentication for publishing.
-2. In this repository, **Settings → Environments → npm** (create it if the workflow has not), add
-   the token as the secret `NPM_TOKEN`.
-3. Merge the open **Version packages** pull request. The workflow publishes `0.1.0`.
+already exists, and npm no longer lets a token that bypasses two-factor authentication publish. So
+a maintainer published the first release by hand: an npm account with two-factor authentication
+on, `npm login`, then `npm publish -w packages/core` and `npm publish -w packages/react` from an
+up-to-date `main`, approving each with two-factor authentication, and finally a GitHub release for
+each package's tag. A package published this way carries no provenance attestation; releases from
+the workflow do.
 
 ### 4. Switch to trusted publishing
 
@@ -62,25 +60,25 @@ For each package on npmjs.com, **Settings → Trusted publisher → GitHub Actio
 | Workflow filename | `release.yml`           |
 | Environment       | `npm`                   |
 
-Then, under **Publishing access**, require two-factor authentication and disallow tokens. Revoke the
-granular token on npm and delete the `NPM_TOKEN` secret. From here on, the workflow authenticates
-with a short-lived credential GitHub issues for that one job.
-
-### 5. After the first release
-
-- Remove the pre-release note from `README.md` and the demo's top bar
-  (`apps/playground/src/components/top-bar.tsx`), and the "Once the packages are published" line
-  in the README's install section.
-- Add an npm version badge beside the CI badge in the README.
+Then, under **Publishing access**, require two-factor authentication and disallow tokens, and
+revoke any access tokens left over. From here on, the workflow authenticates with a short-lived
+credential GitHub issues for that one job, and every release it publishes carries a provenance
+attestation. Until this is done, the workflow's publish job fails, and a release has to be
+published by hand as above.
 
 ## If CI cannot publish
 
 Prefer fixing the workflow: a release published from a laptop has no provenance attestation. If
-it cannot wait, from an up-to-date `main` with the version pull request merged:
+it cannot wait, from an up-to-date `main` with the version pull request merged, logged in to npm
+with two-factor authentication:
 
 ```sh
 npm ci
-npm login
-npm run release   # builds, then publishes any version not yet on npm, and tags it
-git push --follow-tags
+npm run build -w packages/core && npm run build -w packages/react
+npm publish -w packages/core     # npm asks you to approve with two-factor authentication
+npm publish -w packages/react
 ```
+
+Then create a GitHub release for each package's tag (`@subterra-technologies/blockletter@<version>`
+and `@subterra-technologies/blockletter-react@<version>`), with that version's changelog section as
+its notes.

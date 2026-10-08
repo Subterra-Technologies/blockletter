@@ -258,7 +258,7 @@ A zinc greyscale with a single deep navy voice and a quiet three-colour code hig
 - **Lede** (400, 1.0625rem, 1.6): the one paragraph under the docs H1, in Body Zinc, max 68ch. The wordmark shares its size at 700 with -0.01em tracking.
 - **Body** (400, 16px, 1.6): prose, max 62ch in sections.
 - **Body Small** (0.875rem): controls, view and section links, tabs, meta, tables, footer, the credit link.
-- **Label** (500, 0.8125rem): field labels, the reset sentence, code-panel titles, quiet and tool buttons, the pre-release pill. Sentence case, no tracking.
+- **Label** (500, 0.8125rem): field labels, the reset sentence, code-panel titles, quiet and tool buttons, the npm version pill. Sentence case, no tracking.
 - **Code** (0.8125rem, 1.65): code panels; rendered output at 0.78125rem/1.6.
 
 ### Named Rules
@@ -275,7 +275,7 @@ The page is a flex column at least the screen tall. Both views share the top bar
 
 **Docs view.** The page scrolls. The top bar sticks at the top and the section nav sticks under it at 56px; in-page jumps use `scroll-padding-top` of bar + nav + 16px (120px). Content sits in the 1200px reading column, `min(100% - 2 × gutter, 1200px)` with the gutter at `clamp(16px, 4vw, 40px)`, beginning with a short intro (H1, lede, stacked sample controls). Each section carries a 1px top rule and `--pg-section-pad` (`clamp(56px, 8vw, 96px)`) of vertical padding, with a negative `scroll-margin-top` of `12px - pad` so a jump lands its heading just under the two bars. Sections split prose 5fr and live panel 7fr from 1024px, gap 56px; stacked with a 40px gap below. The block catalog flows into two columns from 720px. The footer appears in this view only.
 
-**Breakpoints in use:** 360px (the credit link drops from the bar), 400px (the sample toggle's "Sample" label is visually hidden), 600px (the sheet caps at 32rem and centres), 640px (the source link becomes icon-only, the credit stacks under the name, stacked controls go full width, tables tighten), 720px (section nav scrolls sideways with a fade mask; catalog columns), 1024px (sample bar inline, pre-release note shown, docs split), 1280px (the reset sentence returns).
+**Breakpoints in use:** 360px (the credit link drops from the bar), 400px (the sample toggle's "Sample" label is visually hidden), 600px (the sheet caps at 32rem and centres), 640px (the source link becomes icon-only, the credit stacks under the name, stacked controls go full width, tables tighten), 720px (section nav scrolls sideways with a fade mask; catalog columns), 1024px (sample bar inline, npm version pill shown, docs split), 1280px (the reset sentence returns).
 
 Spacing steps run 4, 8, 12, 16, 20px inside components; panels pad 20px horizontally. No horizontal page scroll at 320px in either view.
 
@@ -295,7 +295,7 @@ Depth is tonal and ruled: white surfaces on the paper ground, divided by hairlin
 
 ## Shapes
 
-Gently rounded, never pill-heavy. Panels, the editor frame and the loading placeholder use 12px; code panels 10px; buttons, selects, the source link, the sample toggle and icon buttons 8px; tool buttons and swatches 6px; inline code and kbd 5px. The bottom sheet alone takes a 16px top radius, square at the screen's bottom edge. Full pills are limited to small status marks (the pre-release note, the data tag). Borders are always 1px, except `kbd`, whose 2px bottom edge reads as a keycap.
+Gently rounded, never pill-heavy. Panels, the editor frame and the loading placeholder use 12px; code panels 10px; buttons, selects, the source link, the sample toggle and icon buttons 8px; tool buttons and swatches 6px; inline code and kbd 5px. The bottom sheet alone takes a 16px top radius, square at the screen's bottom edge. Full pills are limited to small status marks (the npm version pill, the data tag). Borders are always 1px, except `kbd`, whose 2px bottom edge reads as a keycap.
 
 ## Components
 
@@ -327,7 +327,7 @@ Quiet, bordered, editor-sized.
 
 ### Navigation
 
-- **Top bar:** 56px, white, hairline below. The navy bold wordmark with a muted "by Subterra Technologies" credit link, underlined in Hairline Strong and turning navy under the pointer; under 640px the credit stacks beneath the name, and under 360px it leaves the bar. Then the view links, and on the right the pre-release pill (from 1024px) and the GitHub source link.
+- **Top bar:** 56px, white, hairline below. The navy bold wordmark with a muted "by Subterra Technologies" credit link, underlined in Hairline Strong and turning navy under the pointer; under 640px the credit stacks beneath the name, and under 360px it leaves the bar. Then the view links, and on the right the npm version pill (from 1024px) and the GitHub source link.
 - **View links:** Editor and Docs, 55px tall to sit on the bar's bottom rule, Body Small/500, Muted Zinc turning Ink on hover and when current. The current view carries a 2px navy underline laid over the bar's hairline. It is static; it does not slide.
 - **Source link:** a 36px bordered button with the GitHub mark and "GitHub", hover Zinc Wash; under 640px a 36px square with the mark alone, its name kept for screen readers.
 - **Section nav (Docs):** sticky under the top bar, Paper Ground fill, 48px links in Body Small/500, Muted Zinc turning Ink on hover and when current. A 2px navy indicator slides under the current link (320ms on `--pg-ease`), static under reduced motion. Above the first section nothing is current and the indicator has no width. Under 720px the list scrolls sideways behind a fade mask and keeps the current link in view.

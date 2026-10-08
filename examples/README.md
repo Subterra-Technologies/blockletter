@@ -53,16 +53,9 @@ npm install --no-save ../.packs/blockletter.tgz ../.packs/blockletter-react.tgz
 ```
 
 npm takes those packages from the tarballs and everything else from the registry. `--no-save`
-writes neither `package.json` nor a lockfile, so the example keeps the version range it will
-install from npm once the packages are published, and there is nothing to undo when they are.
-Packing again and reinstalling picks up any change to the packages.
-
-While the packages are unpublished, two things follow from that:
-
-- `npm ls` calls the Blockletter packages `invalid`: the tarballs say `0.0.0`, outside `^0.1.0`.
-  It is harmless.
-- A plain `npm install` in an example asks the registry for them and fails. To add a dependency,
-  write it into the example's `package.json` and run the tarball install again.
+writes neither `package.json` nor a lockfile, so the example keeps its published version range,
+and a plain `npm install` puts the published packages back. Packing again and reinstalling picks
+up any further change to the packages.
 
 A tarball holds only what a package publishes: `dist/`, and a `package.json` with its `exports`,
 types and dependencies. So an example installed from one finds the same packaging problems a user

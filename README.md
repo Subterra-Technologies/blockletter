@@ -12,6 +12,7 @@ JavaScript does, and blocks that fill themselves from your own records.
 [Architecture](docs/ARCHITECTURE.md) · [Email clients](docs/COMPATIBILITY.md) ·
 [Roadmap](docs/PLAN.md) · [Contributing](CONTRIBUTING.md)
 
+[![npm](https://img.shields.io/npm/v/@subterra-technologies/blockletter.svg?label=npm)](https://www.npmjs.com/package/@subterra-technologies/blockletter)
 [![CI](https://github.com/Subterra-Technologies/blockletter/actions/workflows/ci.yml/badge.svg)](https://github.com/Subterra-Technologies/blockletter/actions/workflows/ci.yml)
 [![Licence: MIT](https://img.shields.io/badge/licence-MIT-blue.svg)](LICENSE)
 
@@ -21,9 +22,10 @@ JavaScript does, and blocks that fill themselves from your own records.
 
 </div>
 
-> **Status: pre-release.** The [live demo](https://subterra-technologies.github.io/blockletter/)
-> runs everything shown here. The packages are not on npm yet; they publish with the first release.
-> Until then, clone the repository to build with them.
+> **Status: 0.1.** Both packages are on npm:
+> [`@subterra-technologies/blockletter`](https://www.npmjs.com/package/@subterra-technologies/blockletter) and
+> [`@subterra-technologies/blockletter-react`](https://www.npmjs.com/package/@subterra-technologies/blockletter-react). Until 1.0, a minor version may change
+> the API; each package's changelog says how.
 
 ---
 
@@ -209,7 +211,7 @@ source's ids, so rendering never needs a database and refreshing is always expli
 
 ## Getting started
 
-Once the packages are published:
+Install both packages; the core alone is enough to render emails on a server:
 
 ```sh
 npm install @subterra-technologies/blockletter @subterra-technologies/blockletter-react
@@ -396,9 +398,9 @@ README:
   saved, the editor's data source as a query, and an action that renders and sends, with a small
   Vite + React client.
 
-Each is its own npm project that depends on the published packages. Until they are published,
-install an example against tarballs packed from this repository, which are exactly what npm users
-will get:
+Each is its own npm project: `npm install` in its folder gets the published packages. To try an
+example against a change you are making to the packages, install it against tarballs packed from
+this repository, which hold exactly what npm would publish:
 
 ```sh
 npm run examples:pack      # build both packages and pack them into examples/.packs

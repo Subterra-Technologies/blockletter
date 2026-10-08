@@ -105,8 +105,8 @@ jobs:
         with:
           pack-dir-artifact-id: ${{ needs.pack.outputs.pack-dir-artifact-id }}
         env:
-          # npm prefers trusted publishing when it is configured for the package. Until then (the
-          # very first publish), it falls back to this token; delete the secret once trusted
-          # publishing is on. Either way, the packages carry a provenance attestation.
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          # npm's trusted publishing authenticates this job with a short-lived credential GitHub
+          # issues for it, so no npm token is stored anywhere; it is configured for each package on
+          # npmjs.com (docs/RELEASING.md). Every package it publishes carries a provenance
+          # attestation.
           NPM_CONFIG_PROVENANCE: 'true'

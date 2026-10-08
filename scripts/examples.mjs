@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * The examples install Blockletter the way an app does: from npm once the packages are published,
- * and until then from the tarballs `npm pack` makes of this repository's packages. A tarball holds
+ * The examples install Blockletter the way an app does: from npm, or, to try a change to the
+ * packages before it is released, from the tarballs `npm pack` makes of them. A tarball holds
  * exactly the files `npm publish` would upload, so an example exercises the `exports`, the types,
  * the stylesheet and the dependencies a user gets, not the workspace source.
  *
@@ -12,7 +12,7 @@
  * `install` runs `npm install --no-save <tarballs>` in an example, for the Blockletter packages its
  * package.json lists. npm takes those packages from the tarballs and everything else from the
  * registry, and writes neither package.json nor a lockfile, so the example keeps the version ranges
- * it will install from npm once the packages are published.
+ * it installs from npm.
  */
 import { spawnSync } from 'node:child_process';
 import {
