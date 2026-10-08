@@ -112,7 +112,6 @@ Dogfooding proves the API in real products.
 
 ### 7 — Gaps to close before 1.0
 
-- Rich text in text blocks (bold, italic, links, lists) — the source only rendered rich HTML.
 - Click-to-select from the preview ([#2](https://github.com/Subterra-Technologies/blockletter/issues/2)).
 - Outlook VML for background images ([#3](https://github.com/Subterra-Technologies/blockletter/issues/3)), optional dark-mode email styles
   ([#4](https://github.com/Subterra-Technologies/blockletter/issues/4)). (Mobile-responsive email is done.)

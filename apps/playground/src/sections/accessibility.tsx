@@ -13,6 +13,13 @@ const KEYS = [
   { keys: [['Esc']], action: 'Cancel an insertion point set from a block’s toolbar' },
   {
     keys: [
+      ['Ctrl', 'B'],
+      ['⌘', 'B'],
+    ],
+    action: 'Bold in a text block’s text; with I, italics, and with K, a link',
+  },
+  {
+    keys: [
       ['Ctrl', 'Z'],
       ['⌘', 'Z'],
     ],

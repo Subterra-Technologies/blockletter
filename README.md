@@ -470,7 +470,9 @@ at four widths on every change, and nothing scrolls sideways at 320px.
 
 Anywhere in the editor, <kbd>Ctrl</kbd> + <kbd>Z</kbd> undoes and <kbd>Ctrl</kbd> +
 <kbd>Shift</kbd> + <kbd>Z</kbd> or <kbd>Ctrl</kbd> + <kbd>Y</kbd> redoes; on a Mac, <kbd>⌘</kbd> +
-<kbd>Z</kbd> and <kbd>⌘</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd>. Insertions, moves, refreshes,
+<kbd>Z</kbd> and <kbd>⌘</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd>. In a text block's text,
+<kbd>Ctrl</kbd> or <kbd>⌘</kbd> with <kbd>B</kbd>, <kbd>I</kbd> and <kbd>K</kbd> make words bold,
+italic or a link. Insertions, moves, refreshes,
 undos and redos are announced to screen readers, focus follows the work (to the inspector when a
 block is picked, back to the canvas when a dialog closes), and the brand kit warns when a colour
 pair is too faint to read.
