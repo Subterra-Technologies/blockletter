@@ -215,6 +215,9 @@ Once the packages are published:
 npm install @subterra-technologies/blockletter @subterra-technologies/blockletter-react
 ```
 
+Both packages are ES modules only, for bundlers and modern Node (`import`, not `require`). The
+editor needs React 19.2 or newer; the core runs anywhere JavaScript does, with no dependencies.
+
 To see every piece below working together in an app, start from one of the
 [examples](#examples): a Node script, a Next.js app, and a Convex backend with a React client.
 

@@ -7,6 +7,7 @@
  *
  *   node scripts/examples.mjs pack               build both packages and pack them into examples/.packs
  *   node scripts/examples.mjs install [name...]  install every example, or the ones named, against them
+ *   node scripts/examples.mjs sync-versions      point every example at the packages' current version
  *
  * `install` runs `npm install --no-save <tarballs>` in an example, for the Blockletter packages its
  * package.json lists. npm takes those packages from the tarballs and everything else from the
@@ -14,7 +15,15 @@
  * it will install from npm once the packages are published.
  */
 import { spawnSync } from 'node:child_process';
-import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, rmSync } from 'node:fs';
+import {
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  readFileSync,
+  renameSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs';
 import { join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -107,12 +116,42 @@ function install(names) {
   }
 }
 
+/**
+ * Run by `npm run version-packages`, after `changeset version`: every example's range moves to the
+ * version just made, so once it is published a plain `npm install` in an example gets the release
+ * its code was written against. Changesets cannot do this itself, as the examples are not
+ * workspaces. The two packages always share a version, so the core's stands for both.
+ */
+function syncVersions() {
+  const { version } = JSON.parse(readFileSync(join(root, 'packages/core/package.json'), 'utf8'));
+  const range = `^${version}`;
+  for (const example of examples()) {
+    const file = join(examplesDir, example, 'package.json');
+    const manifest = JSON.parse(readFileSync(file, 'utf8'));
+    let changed = false;
+    for (const field of ['dependencies', 'devDependencies']) {
+      for (const { name } of PACKAGES) {
+        if (manifest[field]?.[name] && manifest[field][name] !== range) {
+          manifest[field][name] = range;
+          changed = true;
+        }
+      }
+    }
+    if (changed) {
+      writeFileSync(file, `${JSON.stringify(manifest, null, 2)}\n`);
+      console.log(`${example}: Blockletter ${range}`);
+    }
+  }
+}
+
 const [command, ...args] = process.argv.slice(2);
 if (command === 'pack') {
   pack();
 } else if (command === 'install') {
   install(args);
+} else if (command === 'sync-versions') {
+  syncVersions();
 } else {
-  console.error('Usage: node scripts/examples.mjs pack | install [example...]');
+  console.error('Usage: node scripts/examples.mjs pack | install [example...] | sync-versions');
   process.exit(1);
 }

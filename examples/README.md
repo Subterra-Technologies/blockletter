@@ -22,6 +22,10 @@ depends on the packages by their published version range:
 "@subterra-technologies/blockletter-react": "^0.1.0"
 ```
 
+Each release moves those ranges to the version it makes (`npm run version-packages` runs
+`node scripts/examples.mjs sync-versions`), so an example always asks npm for the release its code
+was written against.
+
 ### Once the packages are on npm
 
 Install as you would any project, in place or after copying the example anywhere:
