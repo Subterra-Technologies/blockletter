@@ -1,0 +1,45 @@
+name: Dependabot auto-merge
+
+# Dependabot patch updates, security fixes included, merge by themselves once the branch's
+# required checks pass. Minor and major updates, and the packages listed below, wait for a
+# person.
+#
+# It never checks out or runs the pull request's code: it reads Dependabot's metadata and asks
+# GitHub to merge when the branch rules allow. The job's permissions below are what let a
+# Dependabot-started run merge.
+on: pull_request
+
+permissions: {}
+
+jobs:
+  auto-merge:
+    if: github.event.pull_request.user.login == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      # Its outputs stay empty unless every commit on the branch is Dependabot's own, so a push
+      # by anyone else to a Dependabot branch turns auto-merge off for that pull request.
+      - id: metadata
+        uses: dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98 # v3.1.0
+      - env:
+          ECOSYSTEM: ${{ steps.metadata.outputs.package-ecosystem }}
+          UPDATE: ${{ steps.metadata.outputs.update-type }}
+          NAMES: ${{ steps.metadata.outputs.dependency-names }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          [ "$ECOSYSTEM" = npm_and_yarn ] && [ "$UPDATE" = version-update:semver-patch ] || exit 0
+          IFS=', ' read -ra names <<<"$NAMES"
+          for name in "${names[@]}"; do
+            case $name in
+              typescript)
+                echo "$name waits for a person."
+                exit 0
+                ;;
+            esac
+          done
+          gh pr merge --auto --squash "$PR_URL"
