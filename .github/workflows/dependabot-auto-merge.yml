@@ -4,10 +4,10 @@ name: Dependabot auto-merge
 # required checks pass. Minor and major updates, and the packages listed below, wait for a
 # person.
 #
-# pull_request_target, because a pull_request run started by Dependabot only gets a read-only
-# token. It never checks out or runs the pull request's code: it reads Dependabot's metadata
-# and asks GitHub to merge when the branch rules allow.
-on: pull_request_target # zizmor: ignore[dangerous-triggers]
+# It never checks out or runs the pull request's code: it reads Dependabot's metadata and asks
+# GitHub to merge when the branch rules allow. The job's permissions below are what let a
+# Dependabot-started run merge.
+on: pull_request
 
 permissions: {}
 
