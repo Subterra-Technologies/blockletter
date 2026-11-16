@@ -49,8 +49,9 @@ Done when One deletes its patch and its header and footer overrides, and every n
 source platform made since the extraction is in core.
 
 1. **Rich-text sanitiser (S).** Bring it level with the source platform's hardening since the
-   extraction. It is security work, so it goes first, and its details stay out of this file (see
-   [SECURITY.md](../SECURITY.md)). Port that platform's list of hostile inputs as tests.
+   extraction: only the styles and classes formatting uses, `https:` images, quoted values read
+   whole, links closed. Security work, so it goes first, with that platform's list of hostile
+   inputs ported as tests ([#41](https://github.com/Subterra-Technologies/blockletter/pull/41)).
 2. **Relative links in rich text (S).** A `/events` link in a text block is dropped today, even
    with `baseUrl` set, and nothing warns. Resolve it against `baseUrl` like every other link.
 3. **Frame and fonts (S).** `RenderOptions.frame: 'card' | 'plain'` for the boxed card or a
