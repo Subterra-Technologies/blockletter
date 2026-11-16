@@ -119,6 +119,8 @@ export {
   isSafeLinkHref,
   plainTextToHtml,
   sanitizeHtml,
+  type SanitizeOptions,
+  type SanitizeStyles,
 } from './rich-text';
 
 // Periods, tokens and templates

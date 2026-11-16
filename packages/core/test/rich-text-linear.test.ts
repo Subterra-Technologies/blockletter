@@ -28,6 +28,10 @@ describe('rich text on hostile input', () => {
     ['tags left open', '<b '.repeat(N)],
     ['links never closed', '<a href="https://example.test">'.repeat(N)],
     ['a long run of spaces in a tag', `<p${' '.repeat(N * 4)}x>`],
+    ['quotes left open in tags', '<p title="'.repeat(N)],
+    ['single quotes left open in tags', "<p title='".repeat(N)],
+    ['styles with many declarations', `<p style="${'color:red;'.repeat(N)}">t</p>`],
+    ['links never closed, without addresses', '<a>'.repeat(N)],
   ])('sanitises %s in linear time', (_, html) => {
     const { ms } = timed(() => sanitizeHtml(html));
     expect(ms).toBeLessThan(BOUND_MS);
@@ -80,9 +84,9 @@ describe('rich text constructs left open', () => {
     expect(htmlToText('1 < 2')).toBe('1 < 2');
   });
 
-  it('pairs each link with its own closing tag, and leaves one with no closing tag alone', () => {
+  it('pairs each link with its own closing tag, and closes one left open', () => {
     expect(sanitizeHtml('<a href="https://a.test">a</a> <a href="https://b.test">b')).toBe(
-      '<a href="https://a.test" rel="noopener" target="_blank">a</a> <a href="https://b.test">b',
+      '<a href="https://a.test" rel="noopener" target="_blank">a</a> <a href="https://b.test" rel="noopener" target="_blank">b</a>',
     );
   });
 });

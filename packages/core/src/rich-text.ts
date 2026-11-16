@@ -90,25 +90,142 @@ const ALLOWED_ATTRIBUTES = new Set([
   'width',
 ]);
 
-/** A tag left open at the end of the input runs to the end, as a browser reads it. */
-const TAG = /<(\/?)([a-zA-Z][a-zA-Z0-9]*)\b([^>]*)(?:>|$)/g;
+/**
+ * A tag, reading quoted values whole so a `>` inside one does not end it. A tag or a quote left
+ * open at the end of the input runs to the end, as a browser reads it, so every attempt succeeds
+ * on its first try and none rescans the input.
+ */
+const TAG = /<(\/?)([a-zA-Z][a-zA-Z0-9]*)\b((?:[^>"']|"[^"]*(?:"|$)|'[^']*(?:'|$))*)(?:>|$)/g;
 const ATTRIBUTE = /([^\s"'>/=]+)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]+)))?/g;
-/** Runs on rebuilt HTML, where no tag holds a `<` (attribute values escape it). */
+/** Runs on rebuilt HTML, where no tag holds a `<` or `>` (attribute values escape both). */
 const ANCHORS = /<a\b([^<>]*)>([\s\S]*?)<\/a\s*>/gi;
+/** Every link's opening and closing tag in rebuilt HTML. */
+const ANCHOR_TAGS = /<a\b[^<>]*>|<\/a>/g;
 /** `(?<!\s)` starts the match at the beginning of a run of spaces, never inside it. */
 const HREF_ATTRIBUTE = /(?<!\s)\s+href\s*=\s*("([^"]*)"|'([^']*)'|([^\s>]+))/i;
 const SAFE_LINK = /^(https?:\/\/|mailto:)/i;
-const SAFE_IMAGE = /^https?:\/\//i;
+/**
+ * An image rich text may show: `https:` only, with a host. Not `http:`, which the editor shows as
+ * mixed content and an inbox fetches in the clear; not `data:` or a relative path, which no inbox
+ * can load.
+ */
+const SAFE_IMAGE = /^https:\/\/[^/\\?#\s]/i;
+/** An image the renderer drew: `http:` and `https:`, as `RenderContext.image` allows. */
+const SAFE_RENDERED_IMAGE = /^https?:\/\/[^/\\?#\s]/i;
 
-/** Escapes an attribute value without escaping the entities already in it. */
+/**
+ * Which styles and classes `sanitizeHtml` keeps.
+ *
+ * - `formatting` (the default), for text a person typed or pasted or an assistant wrote: the
+ *   inline styles formatted writing uses (colour, highlight, alignment, weight, slant and
+ *   decoration, each with a plain value) and Quill's alignment and indent classes. Nothing that
+ *   can move, cover or resize what is around it.
+ * - `email`, for HTML the renderer wrote, such as a host's block drawn on the editor's canvas
+ *   from its email HTML: the layout styles and classes an email is made of, without anything that
+ *   can run or hide what it does (`expression()`, script URLs, CSS escapes, comments, bindings).
+ */
+export type SanitizeStyles = 'formatting' | 'email';
+
+export interface SanitizeOptions {
+  /** Default `formatting`. */
+  styles?: SanitizeStyles;
+}
+
+/** A plain colour: hex, `rgb()`/`rgba()` with numbers, or a named colour. */
+const COLOR_VALUE =
+  /^(#[0-9a-f]{3,8}|rgba?\(\s*\d{1,3}%?\s*,\s*\d{1,3}%?\s*,\s*\d{1,3}%?\s*(,\s*(0|1|0?\.\d+|\d{1,3}%)\s*)?\)|[a-z]{3,30})$/i;
+
+/** The inline styles formatted writing uses, each with the values it may take. */
+const FORMATTING_STYLES: Readonly<Record<string, RegExp>> = {
+  color: COLOR_VALUE,
+  'background-color': COLOR_VALUE,
+  'text-align': /^(left|right|center|justify|start|end)$/i,
+  'font-weight': /^(normal|bold|bolder|lighter|[1-9]00)$/i,
+  'font-style': /^(normal|italic|oblique)$/i,
+  'text-decoration':
+    /^(none|underline|line-through|overline)(\s+(underline|line-through|overline))*$/i,
+};
+
+/** Quill's alignment and indent classes, which `inlineRichTextStyles` turns into inline styles. */
+const FORMATTING_CLASS = /^ql-(align-(center|right|justify)|indent-[1-9])$/;
+/** A class name the renderer writes (the phone layout's, say). */
+const EMAIL_CLASS = /^[a-z][a-z0-9_-]{0,63}$/i;
+
+/** What can run, load or hide inside a style the renderer wrote. */
+const UNSAFE_CSS =
+  /expression\s*\(|javascript:|vbscript:|behavior\s*:|-moz-binding|@import|\\|\/\*|position\s*:\s*(fixed|sticky)/i;
+/** The character references the renderer writes in a style; any other means a value is hiding. */
+const STYLE_REFERENCES = /&#39;|&#x27;|&quot;|&apos;|&amp;/gi;
+const CSS_URL = /url\(\s*['"]?\s*([^'")\s]*)/gi;
+
+/** The attributes whose values have a fixed form, and that form. Others are free text. */
+const ATTRIBUTE_VALUES: Readonly<Record<string, RegExp>> = {
+  align: /^(left|center|right|justify)$/i,
+  colspan: /^\d{1,3}$/,
+  dir: /^(ltr|rtl|auto)$/i,
+  height: /^\d{1,4}%?$/,
+  rowspan: /^\d{1,3}$/,
+  start: /^\d{1,6}$/,
+  target: /^_blank$/i,
+  type: /^(1|a|i|disc|circle|square)$/i,
+  width: /^\d{1,4}%?$/,
+};
+
+/**
+ * Escapes an attribute value without escaping the entities already in it. `>` and `'` are escaped
+ * too, so no later pass that reads tags with a pattern can end a tag or a value inside one.
+ */
 const escapeAttribute = (value: string): string =>
   value
     .replace(/&(?!(?:[a-z][a-z0-9]*|#\d+|#x[0-9a-f]+);)/gi, '&amp;')
     .replace(/"/g, '&quot;')
-    .replace(/</g, '&lt;');
+    .replace(/'/g, '&#39;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
 
 /** True when rich text may link to the address: web pages and mail addresses only. */
 export const isSafeLinkHref = (href: string): boolean => SAFE_LINK.test(href.trim());
+
+/** The declarations of a `style` attribute that `styles` keeps, as written, or '' for none. */
+function cleanStyle(value: string, styles: SanitizeStyles): string {
+  // The renderer writes quotes and ampersands as references (`url(&#39;…&#39;)`); read them as
+  // the browser will before splitting on `;`, and leave every other reference to fail the checks.
+  const source =
+    styles === 'email'
+      ? value.replace(STYLE_REFERENCES, (reference) =>
+          reference.toLowerCase() === '&amp;' ? '&' : "'",
+        )
+      : value;
+  const kept: string[] = [];
+  for (const raw of source.split(';')) {
+    const declaration = raw.trim();
+    const colon = declaration.indexOf(':');
+    if (colon <= 0) continue;
+    const property = declaration.slice(0, colon).trim().toLowerCase();
+    const propertyValue = declaration.slice(colon + 1).trim();
+    if (styles === 'formatting') {
+      if (FORMATTING_STYLES[property]?.test(propertyValue)) kept.push(declaration);
+      continue;
+    }
+    if (
+      /&#|&[a-z]+;/i.test(declaration) ||
+      UNSAFE_CSS.test(declaration) ||
+      !/^[a-z-]+$/.test(property)
+    ) {
+      continue;
+    }
+    const urls = [...declaration.matchAll(CSS_URL)].map((match) => match[1] ?? '');
+    if (urls.every((url) => SAFE_RENDERED_IMAGE.test(url))) kept.push(declaration);
+  }
+  return kept.join(';');
+}
+
+/** The class names `styles` keeps, or '' for none. */
+const cleanClass = (value: string, styles: SanitizeStyles): string =>
+  value
+    .split(/\s+/)
+    .filter((name) => (styles === 'formatting' ? FORMATTING_CLASS : EMAIL_CLASS).test(name))
+    .join(' ');
 
 /** Repeats a replacement until nothing changes, so a removal cannot reassemble what it removed. */
 function untilStable(html: string, step: (value: string) => string): string {
@@ -121,19 +238,56 @@ function untilStable(html: string, step: (value: string) => string): string {
   return current;
 }
 
-function cleanAttributes(raw: string): string {
+/**
+ * The attributes of one tag that survive, rebuilt. The first of a repeated attribute is the one
+ * judged, as a browser reads it, and one that fails is not retried with a later copy.
+ */
+function cleanAttributes(raw: string, styles: SanitizeStyles): string {
   const seen = new Set<string>();
   let out = '';
   for (const match of raw.matchAll(ATTRIBUTE)) {
     const name = (match[1] ?? '').toLowerCase();
     if (!ALLOWED_ATTRIBUTES.has(name) || seen.has(name)) continue;
-    const value = match[2] ?? match[3] ?? match[4] ?? '';
-    if (name === 'src' && !SAFE_IMAGE.test(value.trim())) continue;
-    if (name === 'href' && !isSafeLinkHref(value)) continue;
     seen.add(name);
+    let value = (match[2] ?? match[3] ?? match[4] ?? '').trim();
+    if (name === 'src') {
+      // An address with a space in it is not one an image loads from.
+      if (/\s/.test(value)) continue;
+      if (!(styles === 'email' ? SAFE_RENDERED_IMAGE : SAFE_IMAGE).test(value)) continue;
+    } else if (name === 'href') {
+      if (!isSafeLinkHref(value)) continue;
+      // A browser would send spaces as %20; written that way, no part of the address reads as
+      // another attribute to anything that looks at the tag later.
+      value = value.replace(/\s+/g, '%20');
+    } else if (name === 'style') {
+      value = cleanStyle(value, styles);
+    } else if (name === 'class') {
+      value = cleanClass(value, styles);
+    } else if (ATTRIBUTE_VALUES[name] && !ATTRIBUTE_VALUES[name].test(value)) {
+      continue;
+    }
+    if ((name === 'style' || name === 'class') && !value) continue;
     out += ` ${name}="${escapeAttribute(value)}"`;
   }
   return out;
+}
+
+/**
+ * Drops a closing `</a>` with no link open, and closes every link still open at the end: a link
+ * left open would carry on into whatever the HTML is placed before.
+ */
+function balanceAnchors(html: string): string {
+  let open = 0;
+  const balanced = html.replace(ANCHOR_TAGS, (tag) => {
+    if (tag !== '</a>') {
+      open += 1;
+      return tag;
+    }
+    if (open === 0) return '';
+    open -= 1;
+    return tag;
+  });
+  return balanced + '</a>'.repeat(open);
 }
 
 /**
@@ -228,9 +382,11 @@ function lastClosingTagEnd(lower: string, name: string): number {
 /**
  * Removes anything executable from rich text: scripts, styles, frames, forms and their contents;
  * comments; tags formatted writing does not use (their text survives); event handlers and every
- * other attribute outside a short allowlist; image sources that are not http(s); unsafe links.
+ * other attribute outside a short allowlist; styles and classes beyond what `options.styles`
+ * keeps; images without a usable address; unsafe links. A link left open is closed.
  */
-export function sanitizeHtml(html: string): string {
+export function sanitizeHtml(html: string, options: SanitizeOptions = {}): string {
+  const styles: SanitizeStyles = options.styles === 'email' ? 'email' : 'formatting';
   const withoutBlocked = untilStable(html, (value) =>
     removeBlockedElements(value.replace(COMMENTS, '')),
   );
@@ -239,10 +395,14 @@ export function sanitizeHtml(html: string): string {
     (_, slash: string, rawName: string, rawAttrs: string) => {
       const name = rawName.toLowerCase();
       if (!ALLOWED_TAGS.has(name)) return '';
-      return slash ? `</${name}>` : `<${name}${cleanAttributes(rawAttrs)}>`;
+      if (slash) return `</${name}>`;
+      const attributes = cleanAttributes(rawAttrs, styles);
+      // An image with no address it may load shows nothing but a broken frame.
+      if (name === 'img' && !/\ssrc="/.test(attributes)) return '';
+      return `<${name}${attributes}>`;
     },
   );
-  return sanitizeAnchors(rebuilt);
+  return sanitizeAnchors(balanceAnchors(rebuilt));
 }
 
 /**
