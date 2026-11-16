@@ -473,6 +473,22 @@ describe('undo and redo', () => {
 });
 
 describe('refreshing from a data source', () => {
+  it('connects a list block added from the palette to the one source that fills it', async () => {
+    const { result } = setup(doc([FOOTER]));
+    act(() => result.current.insert('event_tiles'));
+    const added = () => result.current.document.blocks[0] as typeof EVENTS;
+    expect(added().source).toBe('events');
+    await waitFor(() => expect(added().items).toHaveLength(3));
+    expect(added().items[0]?.title).toBe('Author reading night');
+  });
+
+  it('leaves the choice to the writer when more than one source could fill it', () => {
+    const other: DataSource<'event_tiles'> = { ...TEST_SOURCES.events, id: 'library-events' };
+    const { result } = setup(doc([FOOTER]), { sources: [TEST_SOURCES.events, other] });
+    act(() => result.current.insert('event_tiles'));
+    expect(result.current.document.blocks[0]?.source).toBeUndefined();
+  });
+
   it('fills a block from its source and says so', async () => {
     const { result } = setup(doc([EVENTS, FOOTER]));
     await act(() => result.current.refresh(EVENTS.id));

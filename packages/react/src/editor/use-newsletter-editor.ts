@@ -406,6 +406,9 @@ export function useNewsletterEditor<B extends BlockBase = BuiltInBlock>({
     setRefreshing(new Set(running.current));
   }, []);
 
+  // `refresh` is declared further down; `insert` reaches it through this, once rendering is done.
+  const refreshLater = useRef<(id: string) => Promise<void>>(undefined);
+
   const insert = useCallback(
     (type: string, index?: number) => {
       const doc = latest.current;
@@ -416,7 +419,14 @@ export function useNewsletterEditor<B extends BlockBase = BuiltInBlock>({
       }
       // A document without dates still gets this month's in a fresh header's `{{monthYear}}`.
       const period = doc.period ?? suggestPeriod(todayInZone(undefined));
-      const block = fillBlockTokens(createBlock(type, definitions), periodTokens(period, brand));
+      // A list block only one of the host's sources can fill starts filled from it, so a block
+      // added from the palette needs no template to be connected to the host's data.
+      const fillers = sources.filter((source) => source.blockType === type);
+      const created = createBlock(type, definitions);
+      const block = fillBlockTokens(
+        fillers.length === 1 && fillers[0] ? { ...created, source: fillers[0].id } : created,
+        periodTokens(period, brand),
+      );
       const footerAt = doc.blocks.findIndex((item) => item.type === 'footer');
       const lastSlot = footerAt < 0 ? doc.blocks.length : footerAt;
       const at =
@@ -432,8 +442,9 @@ export function useNewsletterEditor<B extends BlockBase = BuiltInBlock>({
       setSelectedId(block.id);
       setMode('canvas');
       pendingFocus.current = block.id;
+      if (block.source) void refreshLater.current?.(block.id);
     },
-    [brand, commit, definitions, maxBlocks, readOnly],
+    [brand, commit, definitions, maxBlocks, readOnly, sources],
   );
 
   const move = useCallback(
@@ -603,6 +614,9 @@ export function useNewsletterEditor<B extends BlockBase = BuiltInBlock>({
     },
     [commit, readOnly, setRunning, sources, toast],
   );
+  useEffect(() => {
+    refreshLater.current = refresh;
+  }, [refresh]);
 
   const updatePeriod = useCallback(
     async (period: IssuePeriod) => {

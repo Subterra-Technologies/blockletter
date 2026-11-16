@@ -215,6 +215,10 @@ export interface EditorMessages {
     tabs: { block: string; appearance: string; settings: string; brand: string };
     chooseBlock: string;
     filledFrom: Phrase<[source: string]>;
+    /** A list block's choice of the host's sources that can fill it, or none. */
+    fillFrom: string;
+    fillFromNone: string;
+    fillFromHelp: string;
     readOnly: string;
     noEditor: Phrase<[type: string]>;
   };

@@ -7,6 +7,7 @@ import {
   defineBlock,
   type BlockBase,
   type BuiltInBlockType,
+  type DataSource,
 } from '@subterra-technologies/blockletter';
 import type { EditorBlockDefinition } from '../../src/editor/types';
 import { BlockInspector, type BlockInspectorHandle } from '../../src/inspector/block-inspector';
@@ -74,6 +75,50 @@ describe('BlockInspector', () => {
     renderInspector(HEADER);
     expect(screen.queryByText('Hidden from email')).toBeNull();
     expect(screen.queryByText(/^Filled from/)).toBeNull();
+  });
+
+  it('lets a list block take on, change or drop a source that can fill it', async () => {
+    const other: DataSource<'event_tiles'> = {
+      ...TEST_SOURCES.events,
+      id: 'library',
+      label: 'Library events',
+    };
+    const { onChange } = renderInspector(
+      testBlock('event_tiles'),
+      {},
+      { context: { sources: [TEST_SOURCES.events, other, TEST_SOURCES.members] } },
+    );
+    const fillFrom = screen.getByRole('combobox', { name: 'Fill from' });
+    await userEvent.click(fillFrom);
+    const listbox = await screen.findByRole('listbox');
+    // Only the sources that fill this type of block, and writing it by hand.
+    expect(
+      within(listbox)
+        .getAllByRole('option')
+        .map((option) => option.textContent),
+    ).toEqual(['Nothing: I’ll write it', 'Club events', 'Library events']);
+    await userEvent.click(within(listbox).getByRole('option', { name: 'Library events' }));
+    expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ source: 'library' }));
+  });
+
+  it('drops the source when the writer takes the block over', async () => {
+    const { onChange } = renderInspector(
+      testBlock('event_tiles', { source: 'events' }),
+      {},
+      { context: { sources: [TEST_SOURCES.events] } },
+    );
+    await userEvent.click(screen.getByRole('combobox', { name: 'Fill from' }));
+    await userEvent.click(
+      within(await screen.findByRole('listbox')).getByRole('option', {
+        name: 'Nothing: I’ll write it',
+      }),
+    );
+    expect(onChange.mock.lastCall?.[0]).not.toHaveProperty('source');
+  });
+
+  it('offers no source choice for a block no source fills', () => {
+    renderInspector(HEADER, {}, { context: { sources: [TEST_SOURCES.events] } });
+    expect(screen.queryByRole('combobox', { name: 'Fill from' })).toBeNull();
   });
 
   it('says nothing about a source the host has not registered', () => {

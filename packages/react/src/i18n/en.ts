@@ -151,6 +151,9 @@ export const enMessages: EditorMessages = frozen<EditorMessages>({
     tabs: { block: 'Block', appearance: 'Appearance', settings: 'Settings', brand: 'Brand kit' },
     chooseBlock: 'Choose a block on the canvas to edit what it says.',
     filledFrom: (source) => `Filled from ${source}`,
+    fillFrom: 'Fill from',
+    fillFromNone: 'Nothing: I’ll write it',
+    fillFromHelp: 'Refresh it on the canvas, or pick its items below, to fill it from your data.',
     readOnly: 'This issue is read-only, so its content can’t be changed.',
     noEditor: (type) =>
       `There is no editor for “${type}” blocks, so this block’s content can’t be changed here. It is kept as it is.`,
