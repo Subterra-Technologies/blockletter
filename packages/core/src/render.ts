@@ -98,6 +98,12 @@ export interface RenderOptions {
   unsubscribeUrl?: string;
   /** `data-block-id` on each block's row, for an editor's preview. Never for sent mail. */
   annotate?: boolean;
+  /**
+   * `card` (the default) draws the email as a bordered card with rounded corners on the brand's
+   * page colour. `plain` drops the card: the content sits on the card colour from edge to edge,
+   * for a brand whose own header and footer frame the email.
+   */
+  frame?: RenderFrame;
   /** A credit under the card: "Powered by <a>label</a>". Default none. */
   poweredBy?: { label: string; url: string };
   /** First on the line under the card, e.g. "September 2026 issue". */
@@ -107,6 +113,8 @@ export interface RenderOptions {
   /** Words the renderer writes itself; anything left out is English. */
   labels?: Partial<RenderLabels>;
 }
+
+export type RenderFrame = 'card' | 'plain';
 
 export interface RenderedEmail {
   html: string;
@@ -480,6 +488,12 @@ export function renderEmail<B extends BlockBase = BuiltInBlock>(
     ? `<span style="display:none !important;visibility:hidden;opacity:0;color:transparent;height:0;width:0;max-height:0;max-width:0;overflow:hidden;mso-hide:all;font-size:1px;line-height:1px;">${escapeHtml(doc.preheader)}${'&nbsp;&zwnj;'.repeat(40)}</span>`
     : '';
   const below = belowCard(state);
+  // Without the card, the page takes the card's colour, so the content runs edge to edge.
+  const plain = options.frame === 'plain';
+  const page = plain ? palette.card : palette.page;
+  const card = plain
+    ? `width:100%;background:${palette.card};`
+    : `width:100%;background:${palette.card};border:1px solid ${palette.border};border-radius:10px;overflow:hidden;`;
 
   const html =
     `<!DOCTYPE html>\n` +
@@ -488,14 +502,14 @@ export function renderEmail<B extends BlockBase = BuiltInBlock>(
     `<meta http-equiv="X-UA-Compatible" content="IE=edge">\n<meta name="x-apple-disable-message-reformatting">\n` +
     `<meta name="color-scheme" content="light">\n` +
     `<title>${escapeHtml(doc.subject)}</title>\n${RESPONSIVE_STYLE}\n</head>\n` +
-    `<body style="margin:0;padding:0;background:${palette.page};-webkit-text-size-adjust:100%;">\n` +
+    `<body style="margin:0;padding:0;background:${page};-webkit-text-size-adjust:100%;">\n` +
     preheader +
-    `<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:${palette.page};">\n<tr><td align="center" style="padding:24px 12px;">\n` +
+    `<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:${page};">\n<tr><td align="center" style="padding:${plain ? '8px 0 24px' : '24px 12px'};">\n` +
     // Fluid up to 600px for every client that reads max-width; a fixed 600px ghost table for
     // Outlook on Windows, which does not, so it lays the card out exactly as before.
     `<!--[if mso]><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="${WIDTH}" align="center"><tr><td><![endif]-->\n` +
     `<div style="max-width:${WIDTH}px;margin:0 auto;">\n` +
-    `<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="width:100%;background:${palette.card};border:1px solid ${palette.border};border-radius:10px;overflow:hidden;">\n` +
+    `<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="${card}">\n` +
     sections +
     `\n</table>\n` +
     below.html +

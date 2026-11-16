@@ -186,6 +186,18 @@ describe('NewsletterCanvas', () => {
     expect((window as { __shouted?: boolean }).__shouted).toBeUndefined();
   });
 
+  it('draws the email’s frame: a bordered card, or none for a plain frame', () => {
+    const sheet = () => screen.getByRole('tablist');
+    const { unmount } = renderCanvas();
+    expect(sheet().style.border).not.toBe('');
+    unmount();
+    renderInEditor(<NewsletterCanvas blocks={BLOCKS} />, {
+      context: { definitions: CANVAS_DEFINITIONS, renderOptions: { frame: 'plain' } },
+    });
+    expect(sheet().style.border).toBe('');
+    expect(sheet().className).not.toContain('rounded');
+  });
+
   it('says so when a host block’s email shows nothing yet', () => {
     renderCanvas(
       { blocks: [shout('   ')] },

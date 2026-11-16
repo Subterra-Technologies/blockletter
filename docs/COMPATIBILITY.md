@@ -19,7 +19,10 @@ go in the [verification table](#verification) as they come in.
   (class selectors, no comments, every declaration terminated), because Gmail drops a whole
   `<style>` block over one error. A client that ignores it shows the desktop layout, scaled down.
 - **Web-safe fonts only.** Georgia, Times New Roman, Helvetica, Arial, Verdana and Trebuchet MS,
-  each with fallbacks. No web fonts, so nothing depends on a font download.
+  each with fallbacks, and System: the device's own interface face. No web fonts, so nothing
+  depends on a font download. System's stack starts with Segoe UI because Outlook for Windows
+  reads only the first font and falls back to Times New Roman when it is missing; other clients
+  skip it and take San Francisco on Apple devices or Roboto on Android.
 - **The head every client expects.** `lang`, `X-UA-Compatible`, `x-apple-disable-message-reformatting`,
   `color-scheme: light`, and a hidden preheader (`display:none`, `mso-hide:all`) for the inbox
   preview line.

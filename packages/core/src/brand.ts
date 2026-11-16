@@ -29,6 +29,11 @@ export const FONT_STACKS: Readonly<Record<BrandFont, string>> = deepFreeze({
   Arial: 'Arial, Helvetica, sans-serif',
   Verdana: 'Verdana, Geneva, sans-serif',
   'Trebuchet MS': "'Trebuchet MS', Tahoma, Geneva, sans-serif",
+  // Segoe UI first: Outlook for Windows reads only the first font of a stack and falls back to
+  // Times New Roman when it is missing, and every Windows has Segoe UI. Elsewhere it is missing
+  // and the next face that exists wins: San Francisco on Apple devices, Roboto on Android.
+  System:
+    "'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, 'Helvetica Neue', Helvetica, Arial, sans-serif",
 });
 
 const isBrandFont = (value: unknown): value is BrandFont =>

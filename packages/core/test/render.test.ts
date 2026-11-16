@@ -3,6 +3,7 @@ import {
   DEFAULT_BRAND,
   createDocument,
   renderEmail,
+  resolvePalette,
   type BrandKit,
   type BuiltInBlock,
   type RenderOptions,
@@ -339,6 +340,31 @@ describe('the line under the card', () => {
 
   it('says which issue it is when asked', () => {
     expect(plain({ issueLabel: 'September 2026 issue' }).html).toContain('September 2026 issue');
+  });
+});
+
+describe('the frame', () => {
+  const email = (options: RenderOptions = {}) =>
+    renderEmail(createDocument({ subject: 'Moved', blocks: [block('text', 'b1')] }), {
+      unsubscribeUrl: 'https://example.test/u',
+      ...options,
+    });
+  const palette = resolvePalette(DEFAULT_BRAND);
+
+  it('draws a bordered card on the page colour by default', () => {
+    const { html } = email();
+    expect(html).toContain(`<body style="margin:0;padding:0;background:${palette.page};`);
+    expect(html).toContain(`border:1px solid ${palette.border};border-radius:10px;`);
+  });
+
+  it('drops the card for a plain frame, the content on the card colour edge to edge', () => {
+    const { html } = email({ frame: 'plain' });
+    expect(html).toContain(`<body style="margin:0;padding:0;background:${palette.card};`);
+    expect(html).not.toContain('border-radius:10px');
+    expect(html).not.toContain(`border:1px solid ${palette.border};border-radius`);
+    // Still 600px wide in Outlook and fluid elsewhere.
+    expect(html).toContain('<!--[if mso]><table role="presentation"');
+    expect(html).toContain('max-width:600px');
   });
 });
 

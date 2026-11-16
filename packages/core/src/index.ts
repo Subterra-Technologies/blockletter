@@ -89,6 +89,7 @@ export {
   renderEmail,
   type RenderedBlock,
   type RenderedEmail,
+  type RenderFrame,
   type RenderLabels,
   type RenderOptions,
   type RenderWarning,
