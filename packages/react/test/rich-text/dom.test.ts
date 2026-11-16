@@ -35,6 +35,12 @@ describe('reading HTML from elsewhere', () => {
     );
   });
 
+  it('keeps a link to a page on the host’s own site, which the renderer resolves', () => {
+    expect(
+      stored('<p>See <a href="/events">our events</a> or <a href="//x.test">this</a>.</p>'),
+    ).toBe('<p>See <a href="/events" rel="noopener" target="_blank">our events</a> or this.</p>');
+  });
+
   it('removes what is dangerous, through sanitizeHtml, keeping the words around it', () => {
     const html = stored(
       '<p onclick="steal()">Hi <a href="javascript:alert(1)">there</a></p><script>alert(1)</script><style>p{}</style><img src="https://example.test/x.png" onerror="alert(1)"><iframe src="https://example.test"></iframe>',

@@ -163,6 +163,8 @@ validateBrandKit(input: unknown): ValidationIssue[];
 
 ```ts
 sanitizeHtml(html): string;              // strips scripts, handlers, unsafe URLs
+isSafeLinkHref(href, { relative? }): boolean; // web and mail links; with relative, site paths too
+resolveRichTextLinks(html, resolve): string;  // each link through resolve (e.g. ctx.url)
 inlineRichTextStyles(html, palette?): string; // editor classes → inline styles
 htmlToText(html): string; plainTextToHtml(text): string;
 ```

@@ -183,8 +183,31 @@ const escapeAttribute = (value: string): string =>
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
 
-/** True when rich text may link to the address: web pages and mail addresses only. */
-export const isSafeLinkHref = (href: string): boolean => SAFE_LINK.test(href.trim());
+/**
+ * A path on the host's own site (`/events`, `news/2026?page=2`), with nothing that could hide a
+ * scheme: no character reference but `&amp;` (so `jav&#x61;script:` cannot pass), no colon, no
+ * backslash, no space or control character, and not `//` (another host) or a bare `#fragment`.
+ */
+function isRelativeLinkHref(href: string): boolean {
+  const value = href.replace(/&amp;/gi, '&');
+  return (
+    value !== '' &&
+    !/&#|&[a-z][a-z0-9]*;/i.test(value) &&
+    !/[:\\\s\p{Cc}]/u.test(value) &&
+    !value.startsWith('//') &&
+    !value.startsWith('#')
+  );
+}
+
+/**
+ * True when rich text may link to the address: web pages and mail addresses, and with
+ * `relative: true` also a path on the host's own site, which the renderer resolves against
+ * `baseUrl` (and warns about when there is none).
+ */
+export const isSafeLinkHref = (href: string, options: { relative?: boolean } = {}): boolean => {
+  const trimmed = href.trim();
+  return SAFE_LINK.test(trimmed) || (options.relative === true && isRelativeLinkHref(trimmed));
+};
 
 /** The declarations of a `style` attribute that `styles` keeps, as written, or '' for none. */
 function cleanStyle(value: string, styles: SanitizeStyles): string {
@@ -255,7 +278,7 @@ function cleanAttributes(raw: string, styles: SanitizeStyles): string {
       if (/\s/.test(value)) continue;
       if (!(styles === 'email' ? SAFE_RENDERED_IMAGE : SAFE_IMAGE).test(value)) continue;
     } else if (name === 'href') {
-      if (!isSafeLinkHref(value)) continue;
+      if (!isSafeLinkHref(value, { relative: true })) continue;
       // A browser would send spaces as %20; written that way, no part of the address reads as
       // another attribute to anything that looks at the tag later.
       value = value.replace(/\s+/g, '%20');
@@ -299,7 +322,7 @@ function sanitizeAnchors(html: string): string {
   return replaceBefore(html, '</a>', ANCHORS, (_, rawAttrs: string, inner: string) => {
     const match = HREF_ATTRIBUTE.exec(rawAttrs);
     const href = (match?.[2] ?? match?.[3] ?? match?.[4] ?? '').trim();
-    if (!href || !isSafeLinkHref(href)) return inner;
+    if (!href || !isSafeLinkHref(href, { relative: true })) return inner;
     return `<a href="${escapeAttribute(href)}" rel="noopener" target="_blank">${inner}</a>`;
   });
 }
@@ -403,6 +426,18 @@ export function sanitizeHtml(html: string, options: SanitizeOptions = {}): strin
     },
   );
   return sanitizeAnchors(balanceAnchors(rebuilt));
+}
+
+/**
+ * `sanitizeHtml` output with each link's address passed through `resolve`, such as
+ * `RenderContext.url`, which makes a relative link absolute against `baseUrl` and warns when there
+ * is none. Only for sanitised HTML, where every link starts `<a href="` with an escaped address.
+ */
+export function resolveRichTextLinks(html: string, resolve: (href: string) => string): string {
+  return html.replace(
+    /<a href="([^"]*)"/g,
+    (_, written: string) => `<a href="${escapeAttribute(resolve(decodeEntities(written)))}"`,
+  );
 }
 
 /**

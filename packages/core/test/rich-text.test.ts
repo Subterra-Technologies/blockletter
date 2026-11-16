@@ -6,6 +6,7 @@ import {
   isSafeLinkHref,
   plainTextToHtml,
   resolvePalette,
+  resolveRichTextLinks,
   sanitizeHtml,
   DEFAULT_BRAND,
 } from '../src';
@@ -93,6 +94,34 @@ describe('sanitizeHtml', () => {
     expect(isSafeLinkHref('mailto:a@example.test')).toBe(true);
     expect(isSafeLinkHref('/relative')).toBe(false);
     expect(isSafeLinkHref('javascript:alert(1)')).toBe(false);
+  });
+
+  it('says which paths on the host’s own site rich text may link to', () => {
+    const relative = (href: string) => isSafeLinkHref(href, { relative: true });
+    expect(relative('/events')).toBe(true);
+    expect(relative('news/2026?page=2&amp;sort=new')).toBe(true);
+    expect(relative('https://example.test')).toBe(true);
+    // Nothing that could carry a scheme or leave the site.
+    expect(relative('jav&#x61;script:alert(1)')).toBe(false);
+    expect(relative('javascript&colon;alert(1)')).toBe(false);
+    expect(relative('java\tscript:alert(1)')).toBe(false);
+    expect(relative('a:b')).toBe(false);
+    expect(relative('//evil.test/x')).toBe(false);
+    expect(relative('/\\evil.test')).toBe(false);
+    expect(relative('#top')).toBe(false);
+    expect(relative('/a b')).toBe(false);
+  });
+
+  it('keeps links to the host’s own pages for the renderer to resolve', () => {
+    expect(sanitizeHtml('<p><a href="/events">Events</a> <a href="//evil.test">x</a></p>')).toBe(
+      '<p><a href="/events" rel="noopener" target="_blank">Events</a> x</p>',
+    );
+    expect(
+      resolveRichTextLinks(
+        sanitizeHtml('<a href="/a?b=1&amp;c=2">t</a>'),
+        (href) => `https://example.test${href}`,
+      ),
+    ).toBe('<a href="https://example.test/a?b=1&amp;c=2" rel="noopener" target="_blank">t</a>');
   });
 });
 
