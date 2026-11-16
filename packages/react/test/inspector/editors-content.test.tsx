@@ -1,6 +1,7 @@
 import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
+import { enMessages } from '../../src';
 import { ArticleEditor, ImageEditor, LetterEditor } from '../../src/inspector/editors';
 import { renderEditor } from '../helpers/editor-registry';
 import { testBlock } from '../helpers/fixtures';
@@ -12,13 +13,14 @@ const LETTER = testBlock('letter', {
 });
 
 describe('LetterEditor', () => {
-  it('shows the heading, letter and signature, with the paragraph helper', () => {
+  it('shows the heading, letter and signature, with the paragraph and formatting helpers', () => {
     renderEditor(LetterEditor, LETTER);
     expect(screen.getByLabelText('Heading')).toHaveValue(LETTER.heading);
     expect(screen.getByLabelText('Letter')).toHaveValue(LETTER.body);
     expect(screen.getByLabelText('Letter')).toHaveAccessibleDescription(
-      'Leave a blank line between paragraphs. An empty letter is left out of the email.',
+      `Leave a blank line between paragraphs. An empty letter is left out of the email. ${enMessages.markdown.hint}`,
     );
+    expect(screen.getByRole('toolbar', { name: 'Letter formatting' })).toBeInTheDocument();
     expect(screen.getByLabelText('Signature')).toHaveValue(LETTER.signature);
   });
 

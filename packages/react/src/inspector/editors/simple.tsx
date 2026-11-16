@@ -1,5 +1,5 @@
 import {
-  plainTextToHtml,
+  markdownToHtml,
   type CalloutBlock,
   type FooterBlock,
   type HeaderBlock,
@@ -8,6 +8,7 @@ import {
 import { useEditorContext } from '../../editor/context';
 import type { BlockEditorProps } from '../../editor/types';
 import { useEditorMessages } from '../../i18n/context';
+import { MarkdownField } from '../../markdown/markdown-field';
 import { RichTextField } from '../../rich-text/rich-text-field';
 import { blockEditor, withOptional } from '../editor-base';
 import { AreaField, ChoiceField, EditorFields, FieldPair, Note, TextField } from '../editor-fields';
@@ -76,7 +77,7 @@ export function CalloutEditor({ block, onChange, readOnly }: BlockEditorProps<Ca
         value={block.heading}
         onChange={(heading) => patch({ heading })}
       />
-      <AreaField
+      <MarkdownField
         label={fields.text}
         rows={3}
         value={block.body}
@@ -102,14 +103,14 @@ export function CalloutEditor({ block, onChange, readOnly }: BlockEditorProps<Ca
 // --- Text ----------------------------------------------------------------------------------------
 
 /**
- * The heading, and the body in a rich-text field. A body stored as plain text is shown as the
- * paragraphs it renders as, and becomes HTML (`plainTextToHtml`, then `format: 'html'`) only the
- * first time it is edited here, so an issue nobody edits renders exactly as it did.
+ * The heading, and the body in a rich-text field. A body stored as plain text is Markdown, shown
+ * with the formatting it renders with, and becomes HTML (`markdownToHtml`, then `format: 'html'`)
+ * only the first time it is edited here, so an issue nobody edits renders exactly as it did.
  */
 export function TextEditor({ block, onChange, readOnly }: BlockEditorProps<TextBlock>) {
   const { fields } = useEditorMessages();
   const { commit } = blockEditor(block, onChange);
-  const body = block.format === 'html' ? block.body : plainTextToHtml(block.body);
+  const body = block.format === 'html' ? block.body : markdownToHtml(block.body);
   return (
     <EditorFields readOnly={readOnly}>
       <TextField

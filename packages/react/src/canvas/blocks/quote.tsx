@@ -2,6 +2,7 @@ import type { QuoteBlock } from '@subterra-technologies/blockletter';
 import type { BlockCanvasProps } from '../../editor/types';
 import { useEditorMessages } from '../../i18n/context';
 import { blockBackground } from '../canvas-theme';
+import { ShortMarkdown } from './markdown';
 import { CanvasSection, CanvasNote, smallStyle } from './shared';
 
 /** One pull quote in large italic type beside an accent rule, with its attribution. */
@@ -10,6 +11,14 @@ export function QuoteCanvas(canvas: BlockCanvasProps<QuoteBlock>) {
   const { block, palette, fonts, px } = canvas;
   const quote = block.quote.trim();
   const attribution = block.attribution?.trim() ?? '';
+  const quoteStyle = {
+    margin: 0,
+    fontFamily: fonts.heading,
+    fontSize: px(21),
+    lineHeight: 1.45,
+    fontStyle: 'italic',
+    color: palette.heading,
+  } as const;
   return (
     <CanvasSection canvas={canvas} background={palette.soft}>
       {quote ? (
@@ -19,18 +28,14 @@ export function QuoteCanvas(canvas: BlockCanvasProps<QuoteBlock>) {
             style={{ width: '4px', flex: '0 0 4px', backgroundColor: palette.accent }}
           />
           <div className="bl:min-w-0 bl:flex-1" style={{ paddingLeft: '18px' }}>
-            <p
-              style={{
-                margin: 0,
-                fontFamily: fonts.heading,
-                fontSize: px(21),
-                lineHeight: 1.45,
-                fontStyle: 'italic',
-                color: palette.heading,
-              }}
-            >
-              &ldquo;{quote}&rdquo;
-            </p>
+            <ShortMarkdown
+              canvas={canvas}
+              source={quote}
+              style={quoteStyle}
+              bodyStyle={{ ...quoteStyle, margin: '0 0 10px 0' }}
+              before={<>&ldquo;</>}
+              after={<>&rdquo;</>}
+            />
             {attribution ? (
               <p style={{ ...smallStyle(canvas), marginTop: '10px' }}>&mdash; {attribution}</p>
             ) : null}

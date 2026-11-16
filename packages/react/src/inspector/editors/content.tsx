@@ -2,13 +2,13 @@ import type { ArticleBlock, ImageBlock, LetterBlock } from '@subterra-technologi
 import type { BlockEditorProps } from '../../editor/types';
 import { useEditorMessages } from '../../i18n/context';
 import { blockEditor, withImage, withOptional } from '../editor-base';
-import { AreaField, EditorFields, FieldPair, TextField } from '../editor-fields';
+import { MarkdownField } from '../../markdown/markdown-field';
+import { EditorFields, FieldPair, TextField } from '../editor-fields';
 import { ImageField } from '../image-field';
 
 /**
  * The long-form block editors that carry an image: a letter, a feature article and a standalone
- * image. Plain text areas, not a rich-text editor: the renderer turns blank lines into
- * paragraphs and nothing more.
+ * image. Their bodies are plain text with Markdown in it, written in a `MarkdownField`.
  */
 
 // --- Letter --------------------------------------------------------------------------------------
@@ -24,7 +24,7 @@ export function LetterEditor({ block, onChange, readOnly }: BlockEditorProps<Let
         value={block.heading}
         onChange={(heading) => patch({ heading })}
       />
-      <AreaField
+      <MarkdownField
         label={words.letter}
         rows={10}
         help={words.letterHelp}
@@ -65,7 +65,7 @@ export function ArticleEditor({ block, onChange, readOnly }: BlockEditorProps<Ar
         value={block.title}
         onChange={(title) => patch({ title })}
       />
-      <AreaField
+      <MarkdownField
         label={words.article}
         rows={7}
         value={block.body}

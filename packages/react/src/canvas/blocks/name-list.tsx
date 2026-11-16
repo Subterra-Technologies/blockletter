@@ -2,6 +2,7 @@ import { readable, type NameListBlock } from '@subterra-technologies/blockletter
 import type { BlockCanvasProps } from '../../editor/types';
 import { useEditorMessages } from '../../i18n/context';
 import { blockBackground } from '../canvas-theme';
+import { ShortMarkdown } from './markdown';
 import { CanvasSection, CanvasNote, bodyStyle, headingStyle, smallStyle } from './shared';
 
 /** A numbered list of names, each with an optional second line, on the soft background. */
@@ -13,7 +14,9 @@ export function NameListCanvas(canvas: BlockCanvasProps<NameListBlock>) {
   return (
     <CanvasSection canvas={canvas} background={palette.soft}>
       {heading ? <p style={headingStyle(canvas)}>{block.heading}</p> : null}
-      {block.intro.trim() ? <p style={bodyStyle(canvas)}>{block.intro}</p> : null}
+      {block.intro.trim() ? (
+        <ShortMarkdown canvas={canvas} source={block.intro} style={bodyStyle(canvas)} />
+      ) : null}
       {block.items.length === 0 ? (
         <CanvasNote canvas={canvas} background={background}>
           {words.emptyCanvas}

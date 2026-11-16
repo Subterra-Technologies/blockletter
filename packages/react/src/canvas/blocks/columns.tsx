@@ -2,14 +2,8 @@ import { LIMITS, type ColumnsBlock } from '@subterra-technologies/blockletter';
 import type { BlockCanvasProps } from '../../editor/types';
 import { useEditorMessages } from '../../i18n/context';
 import { blockBackground } from '../canvas-theme';
-import {
-  CanvasSection,
-  EmailImage,
-  CanvasNote,
-  EmailLink,
-  EmailParagraphs,
-  bodyStyle,
-} from './shared';
+import { EmailMarkdown } from './markdown';
+import { CanvasSection, EmailImage, CanvasNote, EmailLink, bodyStyle } from './shared';
 
 /** Two or three cards side by side (stacked on a narrow canvas), each with an optional picture. */
 export function ColumnsCanvas(canvas: BlockCanvasProps<ColumnsBlock>) {
@@ -49,7 +43,7 @@ export function ColumnsCanvas(canvas: BlockCanvasProps<ColumnsBlock>) {
                   {column.heading}
                 </p>
               ) : null}
-              <EmailParagraphs
+              <EmailMarkdown
                 canvas={canvas}
                 body={column.body}
                 style={{ ...bodyStyle(canvas), margin: '0 0 8px 0' }}

@@ -2,7 +2,8 @@ import type { CalloutBlock } from '@subterra-technologies/blockletter';
 import type { BlockCanvasProps } from '../../editor/types';
 import { useEditorMessages } from '../../i18n/context';
 import { blockBackground } from '../canvas-theme';
-import { CanvasSection, EmailButton, CanvasNote, EmailParagraphs, headingStyle } from './shared';
+import { EmailMarkdown } from './markdown';
+import { CanvasSection, EmailButton, CanvasNote, headingStyle } from './shared';
 
 /** A short heading, a sentence or two, and a button once the button has a link. */
 export function CalloutCanvas(canvas: BlockCanvasProps<CalloutBlock>) {
@@ -24,7 +25,7 @@ export function CalloutCanvas(canvas: BlockCanvasProps<CalloutBlock>) {
           {heading ? (
             <p style={headingStyle(canvas, palette.heading, 20)}>{block.heading}</p>
           ) : null}
-          <EmailParagraphs canvas={canvas} body={block.body} />
+          <EmailMarkdown canvas={canvas} body={block.body} />
           {label && hasLink ? (
             <EmailButton canvas={canvas} label={label} background={background} />
           ) : null}

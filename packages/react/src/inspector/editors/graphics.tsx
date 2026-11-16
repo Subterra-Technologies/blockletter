@@ -9,8 +9,8 @@ import {
 import type { BlockEditorProps } from '../../editor/types';
 import { useEditorMessages } from '../../i18n/context';
 import { blockEditor, withImage, withOptional } from '../editor-base';
+import { MarkdownField } from '../../markdown/markdown-field';
 import {
-  AreaField,
   CheckField,
   ChoiceField,
   EditorFields,
@@ -64,7 +64,7 @@ export function ImageTextEditor({ block, onChange, readOnly }: BlockEditorProps<
         value={block.heading}
         onChange={(heading) => patch({ heading })}
       />
-      <AreaField
+      <MarkdownField
         label={fields.text}
         rows={5}
         value={block.body}

@@ -731,6 +731,28 @@ export interface EditorMessages {
     unsupported: string;
   };
 
+  /**
+   * A free-text field that holds Markdown (`MarkdownField`). Its toolbar also uses `formatting`'s
+   * words for bold, italic, a link and the lists.
+   */
+  markdown: {
+    /** The heading menu's button, and its tooltip. */
+    heading: string;
+    headingTip: string;
+    large: string;
+    medium: string;
+    small: string;
+    normal: string;
+    strikethrough: string;
+    /** The link form: the words to show, and where they lead. */
+    linkText: string;
+    linkAddress: string;
+    linkPlaceholder: string;
+    invalidAddress: string;
+    /** Under the field, after any help of its own: what it understands. */
+    hint: string;
+  };
+
   /** The editor's short messages, bottom right. */
   toasts: {
     dismiss: string;
