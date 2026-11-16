@@ -62,7 +62,10 @@ export {
   BLOCK_ALIGNMENTS,
   BLOCK_FONT_SIZES,
   BLOCK_PADDINGS,
+  FOOTER_VARIANTS,
   LIMITS,
+  LOGO_SIZES,
+  LOGO_WIDTHS,
   SOCIAL_NETWORKS,
 } from './limits';
 export { assertValidDocument, validateDocument } from './validate-document';

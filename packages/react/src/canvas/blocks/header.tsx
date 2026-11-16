@@ -1,4 +1,4 @@
-import type { HeaderBlock } from '@subterra-technologies/blockletter';
+import { LOGO_WIDTHS, type HeaderBlock } from '@subterra-technologies/blockletter';
 import type { BlockCanvasProps } from '../../editor/types';
 import { useEditorMessages } from '../../i18n/context';
 import { blockBackground } from '../canvas-theme';
@@ -12,6 +12,11 @@ export function HeaderCanvas(canvas: BlockCanvasProps<HeaderBlock>) {
   const name = block.logoText.trim() || brand.name.trim();
   const logo = image(brand.logo);
   const background = blockBackground(block, palette.card);
+  const width = LOGO_WIDTHS[block.logoSize ?? 'medium'] ?? LOGO_WIDTHS.medium;
+  const align = block.style?.align;
+  // Where the email's aligning cell puts the logo.
+  const margin =
+    align === 'center' ? '0 auto 10px auto' : align === 'right' ? '0 0 10px auto' : '0 0 10px 0';
   return (
     <CanvasSection canvas={canvas} background={palette.card} padding="32px 32px 20px 32px">
       {logo ? (
@@ -21,9 +26,9 @@ export function HeaderCanvas(canvas: BlockCanvasProps<HeaderBlock>) {
           style={{
             display: 'block',
             width: '100%',
-            maxWidth: '240px',
+            maxWidth: `${width}px`,
             height: 'auto',
-            margin: '0 0 10px 0',
+            margin,
           }}
         />
       ) : name ? (

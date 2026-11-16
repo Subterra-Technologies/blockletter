@@ -166,7 +166,12 @@ export interface HeaderBlock extends BlockBase<'header'> {
   issueLabel: string;
   /** Shown when the brand kit has no logo, and used as the logo's alt text when it does. */
   logoText: string;
+  /** How wide the logo is drawn (`LOGO_WIDTHS`); default `medium`. */
+  logoSize?: LogoSize;
 }
+
+/** A header logo's width: 160, 240 or 320px. */
+export type LogoSize = 'small' | 'medium' | 'large';
 
 /** A personal note with an optional portrait and a signature. */
 export interface LetterBlock extends BlockBase<'letter'> {
@@ -310,12 +315,24 @@ export interface FooterBlock extends BlockBase<'footer'> {
   address: string;
   phone: string;
   email: string;
+  /** Blank or absent: the brand kit's website. */
+  website?: string;
   /** Empty: the brand kit's social links. */
   social: SocialLink[];
   links: Link[];
-  /** Why the reader is receiving this, e.g. "You're receiving this because you joined…". */
+  /**
+   * Why the reader is receiving this, e.g. "You're receiving this because you joined…". Blank:
+   * the brand kit's `complianceText`.
+   */
   complianceText: string;
+  /**
+   * `band` (the default): the details on a band of the brand's ink. `light`: on the card under a
+   * fine line, in quieter type, for a brand that wants the email to end softly.
+   */
+  variant?: FooterVariant;
 }
+
+export type FooterVariant = 'band' | 'light';
 
 /** Every block Blockletter ships. Hosts add their own through `BlockDefinition`. */
 export type BuiltInBlock =
@@ -454,10 +471,15 @@ export interface BrandKit {
     address: string;
     phone: string;
     email: string;
-    /** The organisation's site, shown under the card. */
+    /** The organisation's site, linked in the footer. */
     website: string;
   };
   social: SocialLink[];
+  /**
+   * The footer's line saying why readers get the email, for every footer that leaves its own
+   * blank. Absent or blank: no such line unless a footer gives one.
+   */
+  complianceText?: string;
 }
 
 // ---------------------------------------------------------------------------

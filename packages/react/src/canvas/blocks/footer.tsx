@@ -1,5 +1,9 @@
 import type { CSSProperties, ReactNode } from 'react';
 import { absoluteUrl, type FooterBlock } from '@subterra-technologies/blockletter';
+
+/** "example.org/news" for `https://example.org/news/`, as the email writes the website. */
+const displayUrl = (url: string): string =>
+  withoutTrailingSlashes(url.replace(/^https?:\/\//i, ''));
 import type { BlockCanvasProps } from '../../editor/types';
 import { useEditorMessages } from '../../i18n/context';
 import { blockBackground } from '../canvas-theme';
@@ -34,8 +38,9 @@ function dotted(items: ReactNode[]): ReactNode[] {
 
 /**
  * The organisation's name (from the brand kit), contact details, links and the compliance line, on
- * the ink. Blank contact fields and an empty social list fall back to the brand kit, as the email
- * does; the preference and unsubscribe links appear when the render options carry their addresses.
+ * the ink or (the light look) on the card under a fine line. Blank contact fields, the website, the
+ * compliance line and an empty social list fall back to the brand kit, as the email does; the
+ * preference and unsubscribe links appear when the render options carry their addresses.
  */
 export function FooterCanvas(canvas: BlockCanvasProps<FooterBlock>) {
   const words = useEditorMessages().blocks.footer;
@@ -44,14 +49,19 @@ export function FooterCanvas(canvas: BlockCanvasProps<FooterBlock>) {
   const address = block.address.trim() || (brand.contact?.address?.trim() ?? '');
   const phone = block.phone.trim() || (brand.contact?.phone?.trim() ?? '');
   const email = block.email.trim() || (brand.contact?.email?.trim() ?? '');
+  const websiteAddress = block.website?.trim() || (brand.contact?.website?.trim() ?? '');
+  const website = websiteAddress ? absoluteUrl(websiteAddress, options.baseUrl) : '';
+  const light = block.variant === 'light';
   const social = (block.social.length ? block.social : (brand.social ?? []))
     .filter((link) => link.url?.trim())
-    .map((link) => {
-      const href = absoluteUrl(link.url, options.baseUrl);
-      return link.network === 'website' ? hostOf(href) : (labels[link.network] ?? hostOf(href));
-    });
+    .map((link) => ({ link, href: absoluteUrl(link.url, options.baseUrl) }))
+    // The website is already on the contact line.
+    .filter(({ href }) => !website || href !== website)
+    .map(({ link, href }) =>
+      link.network === 'website' ? hostOf(href) : (labels[link.network] ?? hostOf(href)),
+    );
   const links = block.links.map((link) => link.label.trim()).filter(Boolean);
-  const compliance = block.complianceText.trim();
+  const compliance = block.complianceText.trim() || (brand.complianceText?.trim() ?? '');
   const optOut = [
     ...(options.preferencesUrl?.trim() ? [labels.managePreferences] : []),
     ...(options.unsubscribeUrl?.trim() ? [labels.unsubscribe] : []),
@@ -59,9 +69,12 @@ export function FooterCanvas(canvas: BlockCanvasProps<FooterBlock>) {
   const contact: ReactNode[] = [
     ...(phone ? [phone] : []),
     ...(email ? [<span style={UNDERLINE}>{email}</span>] : []),
+    ...(website ? [<span style={UNDERLINE}>{displayUrl(website)}</span>] : []),
     ...social.map((label) => <span style={UNDERLINE}>{label}</span>),
   ];
-  const small = smallStyle(canvas, palette.footerText);
+  const textColor = light ? palette.muted : palette.footerText;
+  const surface = light ? palette.card : palette.footer;
+  const small = smallStyle(canvas, textColor);
   const empty =
     !name &&
     !address &&
@@ -71,9 +84,19 @@ export function FooterCanvas(canvas: BlockCanvasProps<FooterBlock>) {
     !optOut.length;
 
   return (
-    <CanvasSection canvas={canvas} background={palette.footer} padding="24px 32px 28px 32px">
+    <CanvasSection
+      canvas={canvas}
+      background={surface}
+      padding={light ? '8px 32px 28px 32px' : '24px 32px 28px 32px'}
+    >
+      {light ? (
+        <div
+          aria-hidden="true"
+          style={{ height: '1px', margin: '0 0 22px 0', backgroundColor: palette.border }}
+        />
+      ) : null}
       {empty ? (
-        <CanvasNote canvas={canvas} background={blockBackground(block, palette.footer)}>
+        <CanvasNote canvas={canvas} background={blockBackground(block, surface)}>
           {words.emptyCanvas}
         </CanvasNote>
       ) : null}
@@ -83,7 +106,7 @@ export function FooterCanvas(canvas: BlockCanvasProps<FooterBlock>) {
             margin: '0 0 6px 0',
             fontFamily: fonts.heading,
             fontSize: px(16),
-            color: palette.footerText,
+            color: light ? palette.heading : palette.footerText,
           }}
         >
           {name}
@@ -98,7 +121,7 @@ export function FooterCanvas(canvas: BlockCanvasProps<FooterBlock>) {
       ) : null}
       {compliance || optOut.length ? (
         <p style={{ ...small, marginTop: '14px', fontSize: px(12), opacity: 0.9 }}>
-          {compliance ? `${block.complianceText.trim()}${optOut.length ? ' ' : ''}` : null}
+          {compliance ? `${compliance}${optOut.length ? ' ' : ''}` : null}
           {dotted(optOut.map((label) => <span style={UNDERLINE}>{label}</span>))}
         </p>
       ) : null}

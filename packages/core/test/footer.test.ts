@@ -3,6 +3,7 @@ import {
   DEFAULT_BRAND,
   createDocument,
   renderEmail,
+  resolvePalette,
   type BrandKit,
   type BuiltInBlock,
   type RenderOptions,
@@ -93,6 +94,66 @@ describe('footer contact details', () => {
   });
 });
 
+describe('the footer’s website, compliance line and look', () => {
+  it('links the brand kit’s website on the contact line, or the footer’s own', () => {
+    const { html, text } = renderFooter(block('footer', 'f'));
+    expect(html).toContain('<a href="https://www.riverside.example/" style="color:');
+    expect(html).toContain('>www.riverside.example</a>');
+    expect(text).toContain('https://www.riverside.example/');
+    const own = renderFooter(block('footer', 'f', { website: 'choir-friends.example' }));
+    expect(own.html).toContain('>choir-friends.example</a>');
+    expect(own.html).not.toContain('www.riverside.example');
+  });
+
+  it('does not repeat the website when a social link already points there', () => {
+    const { html } = renderFooter(
+      block('footer', 'f', {
+        social: [{ network: 'website', url: 'https://www.riverside.example/' }],
+      }),
+    );
+    expect(occurrences(html, /href="https:\/\/www\.riverside\.example\/"/g)).toBe(1);
+  });
+
+  it('says why readers get it in the brand kit’s words when the footer leaves it blank', () => {
+    const kit = { ...brand, complianceText: 'You joined the choir’s mailing list.' };
+    const { html, text } = renderFooter(block('footer', 'f'), { brand: kit });
+    expect(html).toContain('You joined the choir’s mailing list.');
+    expect(text).toContain('You joined the choir’s mailing list.');
+    const own = renderFooter(block('footer', 'f', { complianceText: 'Our own words.' }), {
+      brand: kit,
+    });
+    expect(own.html).toContain('Our own words.');
+    expect(own.html).not.toContain('mailing list');
+    // A fresh footer has no words of its own, so a brand kit without any says nothing.
+    const silent = renderFooter(block('footer', 'f'), {
+      brand: { ...brand, complianceText: undefined },
+    });
+    expect(silent.html).not.toContain('signed up');
+  });
+
+  it('keeps the default brand’s line for a host that passes no brand kit', () => {
+    const { html } = renderEmail(createDocument({ subject: 'S', blocks: [block('footer', 'f')] }));
+    expect(html).toContain(
+      'You&#39;re receiving this email because you signed up for our updates.',
+    );
+  });
+
+  it('ends softly on the card under a fine line in the light look', () => {
+    const palette = resolvePalette(brand);
+    const band = renderFooter(block('footer', 'f')).html;
+    const light = renderFooter(block('footer', 'f', { variant: 'light' })).html;
+    expect(band).toContain(`background:${palette.footer};`);
+    expect(light).not.toContain(`background:${palette.footer};`);
+    expect(light).toContain(
+      `<td height="1" style="height:1px;line-height:1px;font-size:0;background:${palette.border};">`,
+    );
+    expect(light).toContain(`color:${palette.muted};text-decoration:underline;`);
+    expect(light).toMatch(
+      new RegExp(`<p style="margin:0 0 6px 0;[^"]*color:${palette.heading};">Riverside Choir</p>`),
+    );
+  });
+});
+
 describe('the preference and unsubscribe links', () => {
   it('inserts an email service merge tag verbatim, in the HTML and the text', () => {
     const { html, text } = renderFooter(block('footer', 'f'), {
@@ -148,7 +209,7 @@ describe('the line under the card', () => {
     renderEmail(createDocument({ subject: 'S', blocks: [] }), { brand: kit, ...options });
   const line = (html: string) => /<p style="margin:16px 0 0 0;[^"]*">(.*)<\/p>/.exec(html)?.[1];
 
-  it('joins the issue, the website and the credit when all exist', () => {
+  it('joins the issue and the credit when both exist, leaving the website to the footer', () => {
     const { html, text } = below(
       {
         issueLabel: 'September 2026 issue',
@@ -157,25 +218,16 @@ describe('the line under the card', () => {
       brand,
     );
     expect(line(html)).toBe(
-      'September 2026 issue &middot; <a href="https://www.riverside.example/" style="color:#57534e;">www.riverside.example</a> &middot; Powered by <a href="https://blockletter.example" style="color:#57534e;">Blockletter</a>',
+      'September 2026 issue &middot; Powered by <a href="https://blockletter.example" style="color:#57534e;">Blockletter</a>',
     );
     expect(
-      text.endsWith(
-        'September 2026 issue · https://www.riverside.example/ · Powered by Blockletter: https://blockletter.example',
-      ),
+      text.endsWith('September 2026 issue · Powered by Blockletter: https://blockletter.example'),
     ).toBe(true);
+    expect(occurrences(html, />www\.riverside\.example<\/a>/g)).toBe(1);
   });
 
   it('shows each part on its own', () => {
     expect(line(below({ issueLabel: 'Spring issue' }).html)).toBe('Spring issue');
-    expect(
-      line(
-        below(
-          {},
-          { ...DEFAULT_BRAND, contact: { ...DEFAULT_BRAND.contact, website: 'riverside.example' } },
-        ).html,
-      ),
-    ).toBe('<a href="https://riverside.example" style="color:#57534e;">riverside.example</a>');
     expect(line(below({ poweredBy: { label: 'Blockletter', url: '' } }).html)).toBe(
       'Powered by Blockletter',
     );

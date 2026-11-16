@@ -3,7 +3,6 @@ import { DEFAULT_BRAND, fontStack, resolvePalette, type Palette } from './brand'
 import type { BlockDefinition, RenderContext, SectionOptions } from './definition';
 import {
   absoluteUrl,
-  displayUrl,
   escapeHtml,
   isRelativeUrl,
   missingAltText,
@@ -427,21 +426,13 @@ const finished = (state: RenderState, html: string): RenderedEmail => ({
   warningDetails: [...state.warnings],
 });
 
-/** The small line under the card: issue, the organisation's site, and a credit, as there are. */
+/** The small line under the card: the issue and a credit, as there are. The site is in the footer. */
 function belowCard(state: RenderState): { html: string; text: string } {
   const { options, palette, labels } = state;
   const parts: { html: string; text: string }[] = [];
   const linkStyle = `color:${palette.muted};`;
   const issueLabel = options.issueLabel?.trim();
   if (issueLabel) parts.push({ html: escapeHtml(issueLabel), text: issueLabel });
-  const website = state.brand.contact?.website?.trim();
-  if (website) {
-    const href = resolveUrl(state, website);
-    parts.push({
-      html: `<a href="${escapeHtml(href)}" style="${linkStyle}">${escapeHtml(displayUrl(href))}</a>`,
-      text: href,
-    });
-  }
   const credit = options.poweredBy?.label?.trim();
   if (credit) {
     const href = options.poweredBy?.url?.trim() ? resolveUrl(state, options.poweredBy.url) : '';

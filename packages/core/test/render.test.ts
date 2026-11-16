@@ -514,3 +514,33 @@ describe('the document around the blocks', () => {
     expect(html).toContain(`href="${BASE_URL}/join"`);
   });
 });
+
+describe('the header’s logo', () => {
+  const kit: BrandKit = { ...DEFAULT_BRAND, logo: PHOTO };
+  const header = (overrides: Parameters<typeof block<'header'>>[2] = {}) =>
+    render([block('header', 'h', overrides)], { brand: kit }).html;
+
+  it('is drawn 240px wide by default, and at the size the header asks for', () => {
+    expect(header()).toContain('width="240" alt=');
+    expect(header({ logoSize: 'small' })).toContain('width="160" alt=');
+    expect(header({ logoSize: 'large' })).toContain('max-width:320px;');
+  });
+
+  it('sits on the left as a fluid image unless the header is aligned', () => {
+    const html = header();
+    expect(html).toContain('style="display:block;width:100%;max-width:240px;height:auto;');
+    expect(html).not.toMatch(
+      /<td align="(center|right)"><table role="presentation"[^>]*width="240"/,
+    );
+  });
+
+  it('is centred, or set right, in a cell Outlook and browsers both align', () => {
+    for (const align of ['center', 'right'] as const) {
+      const html = header({ style: { align } });
+      expect(html).toContain(`<td align="${align}"><table role="presentation"`);
+      expect(html).toContain('width="240" style="width:240px;max-width:100%;margin:');
+      // Never a table that floats beside the strapline.
+      expect(html).not.toMatch(/<table[^>]* align="right"/);
+    }
+  });
+});

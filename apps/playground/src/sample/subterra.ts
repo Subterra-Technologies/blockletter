@@ -43,6 +43,8 @@ export const SUBTERRA_BRAND: BrandKit = {
     { network: 'facebook', url: 'https://www.facebook.com/profile.php?id=61570437205949' },
     { network: 'tiktok', url: 'https://www.tiktok.com/@subterra_ai' },
   ],
+  complianceText:
+    "You're receiving Field Notes because you subscribed at subterratechnologies.com.",
 };
 
 const POSTS = [

@@ -215,10 +215,41 @@ describe('FooterEditor', () => {
     const compliance = screen.getByLabelText('Compliance text');
     expect(compliance).toHaveValue(footer.complianceText);
     expect(compliance).toHaveAccessibleDescription(
-      'Why readers get this email. The preference and unsubscribe links follow it.',
+      'Why readers get this email. The preference and unsubscribe links follow it. Leave it blank to use the brand kit’s.',
     );
     await userEvent.clear(compliance);
     await userEvent.type(compliance, 'You joined the book club.');
     expect(latest().complianceText).toBe('You joined the book club.');
+  });
+
+  it('shows the brand kit’s website and compliance line where the footer leaves them blank', () => {
+    renderEditor(
+      FooterEditor,
+      { ...footer, complianceText: '', website: '' },
+      {
+        context: {
+          brand: {
+            ...TEST_BRAND,
+            contact: { ...TEST_BRAND.contact, website: 'https://club.example' },
+            complianceText: 'You joined the club.',
+          },
+        },
+      },
+    );
+    expect(screen.getByLabelText('Website')).toHaveAttribute(
+      'placeholder',
+      'Uses the brand kit: https://club.example',
+    );
+    expect(screen.getByLabelText('Compliance text')).toHaveAttribute(
+      'placeholder',
+      'Uses the brand kit: You joined the club.',
+    );
+  });
+
+  it('switches between the band and the light look', async () => {
+    const { latest } = renderEditor(FooterEditor, footer);
+    expect(screen.getByRole('radio', { name: 'Band' })).toBeChecked();
+    await userEvent.click(screen.getByRole('radio', { name: 'Light' }));
+    expect(latest().variant).toBe('light');
   });
 });

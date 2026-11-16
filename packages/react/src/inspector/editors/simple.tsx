@@ -10,7 +10,7 @@ import type { BlockEditorProps } from '../../editor/types';
 import { useEditorMessages } from '../../i18n/context';
 import { RichTextField } from '../../rich-text/rich-text-field';
 import { blockEditor, withOptional } from '../editor-base';
-import { AreaField, EditorFields, FieldPair, Note, TextField } from '../editor-fields';
+import { AreaField, ChoiceField, EditorFields, FieldPair, Note, TextField } from '../editor-fields';
 import { ItemList } from '../item-list';
 import { SocialLinksField } from '../social-links-field';
 
@@ -48,6 +48,18 @@ export function HeaderEditor({ block, onChange, readOnly }: BlockEditorProps<Hea
         onChange={(logoText) => patch({ logoText })}
         help={words.logoTextHelp}
       />
+      {brand.logo ? (
+        <ChoiceField
+          legend={words.logoSize}
+          value={block.logoSize ?? 'medium'}
+          onChange={(logoSize) => patch({ logoSize })}
+          options={[
+            { value: 'small', label: words.logoSizes.small },
+            { value: 'medium', label: words.logoSizes.medium },
+            { value: 'large', label: words.logoSizes.large },
+          ]}
+        />
+      ) : null}
     </EditorFields>
   );
 }
@@ -130,6 +142,15 @@ export function FooterEditor({ block, onChange, readOnly }: BlockEditorProps<Foo
   return (
     <EditorFields readOnly={readOnly}>
       <Note>{words.note}</Note>
+      <ChoiceField
+        legend={words.variant}
+        value={block.variant ?? 'band'}
+        onChange={(variant) => patch({ variant })}
+        options={[
+          { value: 'band', label: words.variants.band },
+          { value: 'light', label: words.variants.light },
+        ]}
+      />
       <TextField
         label={words.address}
         placeholder={brandPlaceholder(brand.contact?.address)}
@@ -152,6 +173,13 @@ export function FooterEditor({ block, onChange, readOnly }: BlockEditorProps<Foo
           onChange={(email) => patch({ email })}
         />
       </FieldPair>
+      <TextField
+        label={words.website}
+        type="url"
+        placeholder={brandPlaceholder(brand.contact?.website)}
+        value={block.website ?? ''}
+        onChange={(website) => patch({ website })}
+      />
       <SocialLinksField
         links={block.social}
         onChange={(social) => patch({ social })}
@@ -178,6 +206,7 @@ export function FooterEditor({ block, onChange, readOnly }: BlockEditorProps<Foo
       <AreaField
         label={words.compliance}
         rows={3}
+        placeholder={brandPlaceholder(brand.complianceText)}
         value={block.complianceText}
         onChange={(complianceText) => patch({ complianceText })}
         help={words.complianceHelp}

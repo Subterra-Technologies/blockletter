@@ -187,6 +187,8 @@ export const enMessages: EditorMessages = frozen<EditorMessages>({
       logoText: 'Logo text',
       logoTextHelp:
         'Shown above the title when the brand kit has no logo, and read out as the logo’s description when it has one. Leave it blank to use the organisation’s name.',
+      logoSize: 'Logo size',
+      logoSizes: { small: 'Small', medium: 'Medium', large: 'Large' },
     },
     letter: {
       label: 'Letter',
@@ -327,8 +329,12 @@ export const enMessages: EditorMessages = frozen<EditorMessages>({
         add: 'Add link',
         empty: 'No footer links yet.',
       },
+      website: 'Website',
       compliance: 'Compliance text',
-      complianceHelp: 'Why readers get this email. The preference and unsubscribe links follow it.',
+      complianceHelp:
+        'Why readers get this email. The preference and unsubscribe links follow it. Leave it blank to use the brand kit’s.',
+      variant: 'Look',
+      variants: { band: 'Band', light: 'Light' },
     },
     columns: {
       label: 'Columns',
@@ -637,6 +643,9 @@ export const enMessages: EditorMessages = frozen<EditorMessages>({
     phone: 'Phone',
     email: 'Email',
     website: 'Website',
+    complianceText: 'Why readers get your emails',
+    complianceTextHelp:
+      'Shown in every footer that does not say it in its own words, before the unsubscribe link. For example: “You’re receiving this because you joined our mailing list.”',
     save: 'Save brand kit',
     discard: 'Discard changes',
     saveFailed: 'The brand kit was not saved. Try again.',

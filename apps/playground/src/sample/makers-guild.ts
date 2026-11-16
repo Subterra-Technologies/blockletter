@@ -34,6 +34,7 @@ export const MAKERS_GUILD_BRAND: BrandKit = {
     { network: 'instagram', url: 'https://instagram.example/makersguild' },
     { network: 'facebook', url: 'https://facebook.example/makersguild' },
   ],
+  complianceText: 'You’re receiving this because you joined the guild’s mailing list.',
 };
 
 export const MAKERS_GUILD_SITE_URL = 'https://makersguild.example';
