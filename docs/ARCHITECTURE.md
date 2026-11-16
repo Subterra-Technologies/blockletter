@@ -67,6 +67,7 @@ interface BlockDefinition<B extends BlockBase = BlockBase> {
 builtInBlocks: readonly BlockDefinition[];          // all 21, in palette order (frozen)
 headerBlock, letterBlock, … statsBlock;              // each built-in definition by name
 defineBlock<B extends BlockBase>(definition: BlockDefinition<B>): BlockDefinition<B>;
+overrideBlock(definition, { render?(block, ctx, base), …parts }): BlockDefinition; // same type
 // Validation helpers for host blocks, the same ones the built-ins use
 validateObject(input, path, options): ObjectValidator; blockValidator(type, build);
 getDefinition(type: string, definitions?): BlockDefinition | undefined;
@@ -340,6 +341,8 @@ its rich-text field: a plain body moves into it through `markdownToHtml`, so its
 survives the first edit.
 
 Editor block definitions extend core ones with UI: `{ ...coreDefinition, icon, Editor, Canvas? }`.
+`overrideEditorBlock(definition, overrides)` replaces parts of one; a new `render` without a new
+`Canvas` drops the built-in drawing, so the canvas shows the new email HTML.
 A custom block with no `Canvas` is drawn on the canvas from its email HTML.
 
 ### Languages

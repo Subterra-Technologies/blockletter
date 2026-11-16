@@ -391,6 +391,43 @@ A block without a canvas drawing of its own is drawn on the canvas from its emai
 text with formatting, render it with `ctx.markdown(block.body)` (HTML, and lines for `ctx.text`),
 edit it in a `MarkdownField`, and draw it with `EmailMarkdown`, as the built-in blocks do.
 
+### Change a built-in block
+
+To draw a built-in block your own way and keep its fields, validation and form, override the parts
+you need. The new `render` is handed the original as `base`, so it can keep its plain-text lines:
+
+```tsx
+import {
+  builtInBlocks,
+  footerBlock,
+  overrideBlock,
+  type FooterBlock,
+  type OverrideRender,
+} from '@subterra-technologies/blockletter';
+import {
+  builtInEditorBlocks,
+  overrideEditorBlock,
+  type EditorBlockDefinition,
+} from '@subterra-technologies/blockletter-react';
+
+const render: OverrideRender<FooterBlock> = (block, ctx, base) => {
+  base(block, ctx); // the plain-text lines; its HTML is not used
+  return ctx.section(block, `<p style="${ctx.smallStyle()}">${ctx.escape(ctx.brand.name)}</p>`);
+};
+
+const footer = overrideBlock(footerBlock, { render });
+const footerEditor = overrideEditorBlock(
+  builtInEditorBlocks.find((d) => d.type === 'footer') as EditorBlockDefinition<FooterBlock>,
+  { render },
+);
+
+renderEmail(doc, { definitions: [...builtInBlocks, footer] });
+<NewsletterEditor definitions={[...builtInEditorBlocks, footerEditor]} /* … */ />;
+```
+
+A later definition of a type replaces an earlier one. With a new `render` and no `Canvas`, the
+editor draws the block from its new email HTML, so the canvas shows what will be sent.
+
 ## Examples
 
 Three small apps in [`examples/`](examples) use Blockletter the way yours would, each with its own

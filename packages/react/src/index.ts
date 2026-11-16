@@ -37,7 +37,12 @@ export {
 } from './editor/context';
 
 // Blocks: the registry and the plugin API
-export { builtInEditorBlocks, defineEditorBlock } from './blocks';
+export {
+  builtInEditorBlocks,
+  defineEditorBlock,
+  overrideEditorBlock,
+  type EditorBlockOverrides,
+} from './blocks';
 export type {
   BlockCanvasProps,
   BlockComponent,

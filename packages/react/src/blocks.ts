@@ -1,4 +1,10 @@
-import { builtInBlocks, type BuiltInBlockType } from '@subterra-technologies/blockletter';
+import {
+  builtInBlocks,
+  overrideBlock,
+  type BlockBase,
+  type BlockOverrides,
+  type BuiltInBlockType,
+} from '@subterra-technologies/blockletter';
 import { BUILT_IN_CANVASES } from './canvas/blocks';
 import { defineEditorBlock, type EditorBlockDefinition } from './editor/types';
 import { BUILT_IN_EDITORS } from './inspector/editors';
@@ -26,3 +32,27 @@ export const builtInEditorBlocks: readonly EditorBlockDefinition[] = Object.free
     });
   }),
 );
+
+/** What `overrideEditorBlock` may replace: `overrideBlock`'s parts, and the icon, form and drawing. */
+export type EditorBlockOverrides<B extends BlockBase> = BlockOverrides<B> &
+  Partial<Pick<EditorBlockDefinition<B>, 'icon' | 'Editor' | 'Canvas'>>;
+
+/**
+ * An editor block definition with some of its parts replaced, as `overrideBlock` does for the core
+ * part. A new `render` without a new `Canvas` drops the original drawing, so the canvas draws the
+ * block from its new email HTML and shows what will be sent; give a `Canvas` to draw it yourself.
+ * Pass the core part of the result (or the result itself) to the renderer as well.
+ */
+export function overrideEditorBlock<B extends BlockBase>(
+  definition: EditorBlockDefinition<B>,
+  overrides: EditorBlockOverrides<B>,
+): EditorBlockDefinition<B> {
+  const { icon, Editor, Canvas, ...core } = overrides;
+  return {
+    ...definition,
+    ...overrideBlock(definition, core),
+    icon: icon ?? definition.icon,
+    Editor: Editor ?? definition.Editor,
+    Canvas: 'Canvas' in overrides ? Canvas : overrides.render ? undefined : definition.Canvas,
+  };
+}

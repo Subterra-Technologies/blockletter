@@ -149,3 +149,36 @@ export function defineBlock<B extends BlockBase>(
 ): BlockDefinition<B> {
   return definition;
 }
+
+/** A replacement `render` that is handed the one it replaces, e.g. for its plain-text lines. */
+export type OverrideRender<B extends BlockBase> = (
+  block: B,
+  ctx: RenderContext,
+  base: (block: B, ctx: RenderContext) => string,
+) => string;
+
+/** What `overrideBlock` may replace: anything but the type, with `render` given the original. */
+export type BlockOverrides<B extends BlockBase> = Partial<
+  Omit<BlockDefinition<B>, 'type' | 'render'>
+> & { render?: OverrideRender<B> };
+
+/**
+ * A block definition with some of its parts replaced: a built-in block drawn in a host's own
+ * style, say, keeping its fields, validation and form. The type stays the same, so registered
+ * after the original (`[...builtInBlocks, ours]`) it replaces it wherever definitions are read. A
+ * replacement `render` is handed the original as `base`, which it can call for the plain-text
+ * lines it writes and ignore the HTML it returns.
+ */
+export function overrideBlock<B extends BlockBase>(
+  definition: BlockDefinition<B>,
+  overrides: BlockOverrides<B>,
+): BlockDefinition<B> {
+  const { render, ...rest } = overrides;
+  const base = definition.render;
+  return {
+    ...definition,
+    ...rest,
+    type: definition.type,
+    render: render ? (block, ctx) => render(block, ctx, base) : base,
+  };
+}
