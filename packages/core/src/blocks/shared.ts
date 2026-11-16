@@ -1,6 +1,7 @@
 import type { RenderContext } from '../definition';
 import type { BlockIssue } from '../issues';
 import { LIMITS, formatCount } from '../limits';
+import { inlineText, parseInline, parseMarkdown } from '../markdown';
 import type { ImageRef } from '../types';
 
 /** Helpers the built-in block definitions share. Not part of the public API. */
@@ -49,6 +50,45 @@ export const missingAlt = (image: ImageRef | undefined, alt: string | undefined)
 export function firstWords(text: string, count = 8): string {
   const words = text.trim().split(/\s+/).filter(Boolean);
   return words.length > count ? `${words.slice(0, count).join(' ')}…` : words.join(' ');
+}
+
+/** A free-text field's words for a one-line summary: its Markdown read, every mark dropped. */
+export const plainWords = (body: string): string =>
+  parseMarkdown(body)
+    .flatMap((block) =>
+      block.kind === 'list' ? block.items : block.kind === 'divider' ? [] : [block.text],
+    )
+    .map((text) => inlineText(parseInline(text), () => ''))
+    .join(' ');
+
+/**
+ * A short field drawn as one paragraph of its own: a pull quote, a thank-you note, a list's
+ * introduction. While it is one paragraph of plain or inline-formatted text it is exactly what it
+ * always was, one `<p style>` holding the text as typed (its line breaks left to the mail client)
+ * between `wrap`'s two halves; once it holds headings, lists, quotes or several paragraphs, it is
+ * drawn as a body is, in `bodyStyle`. `text` is empty for a blank field.
+ */
+export function shortMarkdown(
+  ctx: RenderContext,
+  source: string,
+  style: string,
+  options: {
+    bodyStyle?: string;
+    wrap?: { html: readonly [string, string]; text: readonly [string, string] };
+  } = {},
+): { html: string; text: string[] } {
+  const blocks = parseMarkdown(source);
+  const only = blocks.length === 1 && blocks[0]?.kind === 'paragraph' ? blocks[0] : undefined;
+  if (blocks.length > 0 && !only) return ctx.markdown(source, options.bodyStyle ?? style);
+  // As typed, unless reading a pasted <br> or <p> changed it.
+  const exact = !only || only.text === source.trim();
+  const inline = ctx.inlineMarkdown(exact ? source : only.text);
+  const [before, after] = options.wrap?.html ?? ['', ''];
+  const [textBefore, textAfter] = options.wrap?.text ?? ['', ''];
+  return {
+    html: `<p style="${style}">${before}${exact ? inline.html : inline.html.replace(/\r?\n/g, '<br>')}${after}</p>`,
+    text: source.trim() ? [`${textBefore}${inline.text}${textAfter}`] : [],
+  };
 }
 
 /** "3 columns", "1 photo". */

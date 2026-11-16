@@ -12,6 +12,15 @@ import {
 } from './html';
 import { BLOCK_ALIGNMENTS } from './limits';
 import { ensureFooter } from './list';
+import {
+  inlineHtml,
+  inlineText,
+  markdownBlocksHtml,
+  markdownTextLines,
+  parseInline,
+  parseMarkdown,
+  type MarkdownTheme,
+} from './markdown';
 import { AP_MONTHS } from './period';
 import { getDefinition } from './registry';
 import { RESPONSIVE_CLASSES, RESPONSIVE_STYLE } from './responsive';
@@ -301,6 +310,18 @@ function contextFor(state: RenderState, block: BlockBase): RenderContext {
     `margin:0 0 12px 0;font-family:${fonts.body};font-size:${px(15)}px;line-height:1.55;color:${color};`;
   const smallStyle = (color: string = palette.muted): string =>
     `margin:0;font-family:${fonts.body};font-size:${px(13)}px;line-height:1.5;color:${color};`;
+  // Links in Markdown take the block's own text colour when it has one, so they read on whatever
+  // background its Appearance gave it.
+  const markdownTheme = (paragraph: string): MarkdownTheme => ({
+    paragraph,
+    headingFont: fonts.heading,
+    headingColor: palette.heading,
+    linkColor: isHexColor(textColor) ? textColor : palette.link,
+    quoteRule: palette.accent,
+    dividerColor: palette.border,
+    px,
+    url,
+  });
 
   return {
     palette,
@@ -328,6 +349,17 @@ function contextFor(state: RenderState, block: BlockBase): RenderContext {
             `<p style="${paragraphStyle}">${escapeHtml(part).replace(/\r?\n/g, '<br>')}</p>`,
         )
         .join('');
+    },
+    markdown(body: string, paragraphStyle: string = bodyStyle()) {
+      const blocks = parseMarkdown(body);
+      return {
+        html: markdownBlocksHtml(blocks, markdownTheme(paragraphStyle)),
+        text: markdownTextLines(blocks, url),
+      };
+    },
+    inlineMarkdown(text: string) {
+      const nodes = parseInline(text);
+      return { html: inlineHtml(nodes, markdownTheme(''), false), text: inlineText(nodes, url) };
     },
     bodyStyle,
     smallStyle,

@@ -1,9 +1,16 @@
 import { defineBlock } from '../definition';
-import { splitParagraphs } from '../html';
 import { issuesFrom } from '../issues';
 import type { ImageTextBlock } from '../types';
 import { blockValidator } from '../validate';
-import { ALT_TEXT_ISSUE, TABLE, firstWords, gapCell, missingAlt, tooLong } from './shared';
+import {
+  ALT_TEXT_ISSUE,
+  TABLE,
+  firstWords,
+  gapCell,
+  missingAlt,
+  plainWords,
+  tooLong,
+} from './shared';
 
 const IMAGE_WIDTH = 220;
 
@@ -32,14 +39,15 @@ export const imageTextBlock = defineBlock<ImageTextBlock>({
     ...tooLong('text', block.body),
     ...(missingAlt(block.image, block.alt) ? [ALT_TEXT_ISSUE] : []),
   ]),
-  summary: (block) => block.heading.trim() || firstWords(block.body) || block.alt,
+  summary: (block) => block.heading.trim() || firstWords(plainWords(block.body)) || block.alt,
   render(block, ctx) {
     const image = ctx.imageOrPlaceholder(block.image, block.alt, IMAGE_WIDTH, 160, { fill: true });
     const link = ctx.optionalLink(block.linkLabel, block.linkUrl);
     const heading = block.heading.trim();
+    const body = ctx.markdown(block.body);
     if (heading) ctx.text(heading.toUpperCase());
     if (block.alt.trim()) ctx.text(`[${ctx.labels.image}: ${block.alt.trim()}]`);
-    ctx.text(...splitParagraphs(block.body));
+    ctx.text(...body.text);
     if (link.text) ctx.text(link.text);
     ctx.text('');
     // On a phone the two cells stack in source order, with room under the first.
@@ -50,7 +58,7 @@ export const imageTextBlock = defineBlock<ImageTextBlock>({
     const textCell = (stack: string): string =>
       `<td class="${stack}" valign="top">` +
       (heading ? ctx.heading(block.heading, { size: 20 }) : '') +
-      ctx.paragraphs(block.body) +
+      body.html +
       link.html +
       `</td>`;
     const cells =

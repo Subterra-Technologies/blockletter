@@ -1,5 +1,4 @@
 import { defineBlock } from '../definition';
-import { splitParagraphs } from '../html';
 import { issuesFrom } from '../issues';
 import type { ArticleBlock } from '../types';
 import { blockValidator } from '../validate';
@@ -41,10 +40,11 @@ export const articleBlock = defineBlock<ArticleBlock>({
     const title = block.title.trim();
     const imageUrl = ctx.image(block.image);
     if (!kicker && !title && !block.body.trim() && !imageUrl) return '';
+    const body = ctx.markdown(block.body);
     ctx.text(
       ...(kicker ? [kicker.toUpperCase()] : []),
       ...(title ? [block.title] : []),
-      ...splitParagraphs(block.body),
+      ...body.text,
     );
     const link = ctx.optionalLink(block.linkLabel, block.linkUrl);
     if (link.text) ctx.text(link.text);
@@ -64,7 +64,7 @@ export const articleBlock = defineBlock<ArticleBlock>({
         (image
           ? `<td class="${ctx.classes.stack} ${ctx.classes.space}" width="160" valign="top" style="width:160px;padding-right:20px;">${image}</td>`
           : '') +
-        `<td${image ? ` class="${ctx.classes.stack}"` : ''} valign="top">${title ? ctx.heading(title, { size: 20 }) : ''}${ctx.paragraphs(block.body)}${link.html}</td>` +
+        `<td${image ? ` class="${ctx.classes.stack}"` : ''} valign="top">${title ? ctx.heading(title, { size: 20 }) : ''}${body.html}${link.html}</td>` +
         `</tr></table>`,
     );
   },

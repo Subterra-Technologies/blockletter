@@ -1,5 +1,4 @@
 import { defineBlock } from '../definition';
-import { splitParagraphs } from '../html';
 import { issuesFrom } from '../issues';
 import { LIMITS } from '../limits';
 import type { ColumnsBlock } from '../types';
@@ -65,8 +64,9 @@ export const columnsBlock = defineBlock<ColumnsBlock>({
       .map((column, index) => {
         const link = ctx.optionalLink(column.linkLabel, column.linkUrl);
         const heading = column.heading?.trim() ?? '';
+        const body = ctx.markdown(column.body, `${ctx.bodyStyle()}margin:0 0 8px 0;`);
         if (heading) ctx.text(column.heading ?? '');
-        ctx.text(...splitParagraphs(column.body));
+        ctx.text(...body.text);
         if (link.text) ctx.text(link.text);
         const image = column.image
           ? ctx.imageOrPlaceholder(column.image, column.alt ?? '', columnPx, 110, { fill: true })
@@ -79,7 +79,7 @@ export const columnsBlock = defineBlock<ColumnsBlock>({
           (heading
             ? `<p style="margin:0 0 6px 0;font-family:${ctx.fonts.heading};font-size:${ctx.px(18)}px;line-height:1.3;color:${ctx.palette.heading};">${ctx.escape(column.heading ?? '')}</p>`
             : '') +
-          ctx.paragraphs(column.body, `${ctx.bodyStyle()}margin:0 0 8px 0;`) +
+          body.html +
           link.html +
           `</td>${last ? '' : gapCell(ctx, 16)}`
         );

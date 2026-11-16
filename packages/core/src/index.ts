@@ -128,6 +128,17 @@ export {
   type SanitizeStyles,
 } from './rich-text';
 
+// Markdown in free-text fields
+export {
+  MARKDOWN_HEADING_SIZES,
+  markdownToHtml,
+  markdownToText,
+  parseInline,
+  parseMarkdown,
+  type InlineNode,
+  type MarkdownBlock,
+} from './markdown';
+
 // Periods, tokens and templates
 export {
   AP_MONTHS,

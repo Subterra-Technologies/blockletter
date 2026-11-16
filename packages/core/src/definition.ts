@@ -67,6 +67,21 @@ export interface RenderContext {
   heading(text: string, options?: { color?: string; size?: number }): string;
   /** Escaped `<p>` per blank-line-separated paragraph, line breaks kept; `style` is inline CSS. */
   paragraphs(body: string, style?: string): string;
+  /**
+   * A free-text field's Markdown (see `parseMarkdown`) as email HTML, and its plain-text twin as
+   * lines to pass to `text(...)`. Paragraphs are `<p>` in `style` (default `bodyStyle()`) with their
+   * line breaks kept, so text with no Markdown in it comes out exactly as `paragraphs` draws it;
+   * headings, links, lists, quotes and dividers take this block's colours and font scale. Every run
+   * is escaped and every link goes through `url()`. The text drops the marks and writes a link
+   * "label (address)".
+   */
+  markdown(body: string, style?: string): { html: string; text: string[] };
+  /**
+   * One run of text with its inline Markdown drawn (bold, italic, strikethrough and links) and no
+   * element around it, for a short field the block wraps itself. Line breaks stay as typed. `text`
+   * is its plain-text twin.
+   */
+  inlineMarkdown(text: string): { html: string; text: string };
   /** Inline CSS for body text (15px), in `color` or the palette's text colour. */
   bodyStyle(color?: string): string;
   /** Inline CSS for small print (13px), in `color` or the palette's muted colour. */

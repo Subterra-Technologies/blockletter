@@ -1,9 +1,8 @@
 import { defineBlock } from '../definition';
-import { splitParagraphs } from '../html';
 import { issuesFrom } from '../issues';
 import type { CalloutBlock } from '../types';
 import { blockValidator } from '../validate';
-import { MISSING_BUTTON_LABEL, firstWords } from './shared';
+import { MISSING_BUTTON_LABEL, firstWords, plainWords } from './shared';
 
 /** A short heading, a paragraph and a button: "Have news to share?". */
 export const calloutBlock = defineBlock<CalloutBlock>({
@@ -33,22 +32,23 @@ export const calloutBlock = defineBlock<CalloutBlock>({
     if (url && !label) return [MISSING_BUTTON_LABEL];
     return [];
   }),
-  summary: (block) => block.heading.trim() || firstWords(block.body),
+  summary: (block) => block.heading.trim() || firstWords(plainWords(block.body)),
   render(block, ctx) {
     const heading = block.heading.trim();
     const label = block.ctaLabel.trim();
     const hasButton = Boolean(label && block.ctaUrl.trim());
     if (!heading && !block.body.trim() && !hasButton) return '';
+    const body = ctx.markdown(block.body);
     ctx.text(
       ...(heading ? [heading.toUpperCase()] : []),
-      ...splitParagraphs(block.body),
+      ...body.text,
       ...(hasButton ? [`${label}: ${ctx.url(block.ctaUrl)}`] : []),
       '',
     );
     return ctx.section(
       block,
       (heading ? ctx.heading(block.heading, { size: 20 }) : '') +
-        ctx.paragraphs(block.body) +
+        body.html +
         (hasButton ? ctx.button(label, block.ctaUrl) : ''),
       { padding: '20px 32px' },
     );

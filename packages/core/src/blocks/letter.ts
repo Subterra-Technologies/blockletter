@@ -1,9 +1,8 @@
 import { defineBlock } from '../definition';
-import { splitParagraphs } from '../html';
 import { issuesFrom } from '../issues';
 import type { LetterBlock } from '../types';
 import { blockValidator } from '../validate';
-import { TABLE, firstWords, missingAlt, tooLong } from './shared';
+import { TABLE, firstWords, missingAlt, plainWords, tooLong } from './shared';
 
 /** A personal note with an optional round portrait and a signature. */
 export const letterBlock = defineBlock<LetterBlock>({
@@ -30,15 +29,16 @@ export const letterBlock = defineBlock<LetterBlock>({
         ]
       : []),
   ]),
-  summary: (block) => block.heading.trim() || firstWords(block.body),
+  summary: (block) => block.heading.trim() || firstWords(plainWords(block.body)),
   render(block, ctx) {
     if (!block.body.trim()) return '';
     const heading = block.heading.trim();
     const signature = block.signature.trim();
     const photoUrl = ctx.image(block.photo);
+    const body = ctx.markdown(block.body);
     ctx.text(
       ...(heading ? [heading.toUpperCase()] : []),
-      ...splitParagraphs(block.body),
+      ...body.text,
       ...(signature ? [signature] : []),
       '',
     );
@@ -49,7 +49,7 @@ export const letterBlock = defineBlock<LetterBlock>({
       block,
       (heading ? ctx.heading(block.heading) : '') +
         `${TABLE}<tr>${photo}<td${photo ? ` class="${ctx.classes.stackNarrow}"` : ''} valign="top">` +
-        ctx.paragraphs(block.body) +
+        body.html +
         (signature
           ? `<p style="${ctx.bodyStyle()}font-style:italic;">${ctx.escape(signature)}</p>`
           : '') +
