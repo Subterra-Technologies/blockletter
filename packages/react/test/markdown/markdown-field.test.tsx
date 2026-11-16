@@ -190,6 +190,17 @@ describe('MarkdownField', () => {
     expect(button('Bulleted list')).toHaveFocus();
   });
 
+  it('gives the focus back to the Heading button when the menu is closed without a choice', async () => {
+    const { user, stored, select } = setup('Title');
+    select(0, 0);
+    await user.click(button('Heading'));
+    await screen.findByRole('menuitem', { name: /Large heading/ });
+    await user.keyboard('{Escape}');
+    expect(screen.queryByRole('menu')).toBeNull();
+    expect(button('Heading')).toHaveFocus();
+    expect(stored()).toBe('Title');
+  });
+
   it('opens the heading menu from the keyboard', async () => {
     const { user, stored, select } = setup('Title');
     select(0, 0);

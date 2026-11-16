@@ -324,6 +324,8 @@ function Toolbar({
 }: ToolbarProps) {
   const { formatting, markdown, common } = useEditorMessages();
   const buttons = useRef<(HTMLButtonElement | null)[]>([]);
+  /** A heading was chosen, so the menu hands the focus to the text rather than to its button. */
+  const chosen = useRef(false);
   const [stop, setStop] = useState(0);
   const nameId = `${controls}-tools`;
   const count = TOOLS.length + 1;
@@ -405,6 +407,8 @@ function Toolbar({
             // Closes at once: the choice is already made in the text behind it.
             className="bl:min-w-44 bl:data-[state=closed]:animate-none!"
             onCloseAutoFocus={(event) => {
+              if (!chosen.current) return;
+              chosen.current = false;
               event.preventDefault();
               onMenuClosed();
             }}
@@ -412,7 +416,10 @@ function Toolbar({
             {HEADINGS.map((heading) => (
               <DropdownMenuItem
                 key={heading.format}
-                onSelect={() => onHeading(heading.format)}
+                onSelect={() => {
+                  chosen.current = true;
+                  onHeading(heading.format);
+                }}
                 className="bl:justify-between bl:gap-4"
               >
                 <span className={heading.className}>{markdown[heading.word]}</span>

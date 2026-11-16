@@ -142,7 +142,7 @@
         "heading": { "type": "string" },
         "body": {
           "type": "string",
-          "description": "Plain text; a blank line starts a new paragraph."
+          "description": "Plain text with Markdown in it (see `parseMarkdown`); a blank line starts a new paragraph."
         },
         "signature": { "type": "string" },
         "photo": { "$ref": "#/definitions/ImageRef" }
@@ -426,7 +426,7 @@
         "format": {
           "type": "string",
           "enum": ["plain", "html"],
-          "description": "`html`: the body is rich HTML (sanitised and inlined at render). Declared rather than guessed — a plain body that happens to mention \"<b>\" is text, and escaping it is the point."
+          "description": "`html`: the body is rich HTML (sanitised and inlined at render); otherwise it is plain text with Markdown in it. Declared rather than guessed — a plain body that happens to mention \"<u>\" is text, and escaping it is the point."
         }
       },
       "required": ["id", "type", "hidden", "body"],
