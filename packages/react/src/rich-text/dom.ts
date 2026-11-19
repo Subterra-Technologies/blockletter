@@ -132,7 +132,8 @@ function inlineFormatting(element: Element, outer: Formatting): Formatting {
   if (tag === 'em' || tag === 'i') italic = true;
   if (tag === 'a') {
     const address = element.getAttribute('href')?.trim();
-    href = address && isSafeLinkHref(address) ? address : undefined;
+    // A path on the host's own site stays a link; the renderer resolves it against baseUrl.
+    href = address && isSafeLinkHref(address, { relative: true }) ? address : undefined;
   }
   // Pasted HTML often says it with styles: Google Docs wraps a whole copy in
   // `<b style="font-weight:normal">` and marks the real bold with `font-weight:700`.
@@ -631,7 +632,7 @@ const LINK_ATTRIBUTES = new Set(['href', 'rel', 'target']);
 function tidyLink(element: Element): boolean {
   const href = element.getAttribute('href');
   return (
-    Boolean(href && isSafeLinkHref(href)) &&
+    Boolean(href && isSafeLinkHref(href, { relative: true })) &&
     [...element.attributes].every((attribute) => LINK_ATTRIBUTES.has(attribute.name))
   );
 }

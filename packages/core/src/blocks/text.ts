@@ -1,7 +1,7 @@
 import { defineBlock } from '../definition';
 import { splitParagraphs } from '../html';
 import { issuesFrom } from '../issues';
-import { htmlToText, inlineRichTextStyles, sanitizeHtml } from '../rich-text';
+import { htmlToText, inlineRichTextStyles, resolveRichTextLinks, sanitizeHtml } from '../rich-text';
 import type { TextBlock } from '../types';
 import { blockValidator } from '../validate';
 import { firstWords, tooLong } from './shared';
@@ -29,10 +29,12 @@ export const textBlock = defineBlock<TextBlock>({
     if (heading) ctx.text(heading.toUpperCase());
     // Said by the block, not inferred from its contents: plain text that mentions "<b>" is text.
     const rich = block.format === 'html';
-    ctx.text(...splitParagraphs(words(block)), '');
+    // Links to the host's own pages ("/events") resolve against baseUrl like every other link.
+    const html = rich ? resolveRichTextLinks(sanitizeHtml(block.body), ctx.url) : '';
+    ctx.text(...splitParagraphs(rich ? htmlToText(html) : block.body), '');
     // Rich text sits in a wrapper carrying the body font and colour, which its own tags lack.
     const body = rich
-      ? `<div style="font-family:${ctx.fonts.body};font-size:${ctx.px(15)}px;line-height:1.55;color:${ctx.palette.text};">${inlineRichTextStyles(sanitizeHtml(block.body), ctx.palette)}</div>`
+      ? `<div style="font-family:${ctx.fonts.body};font-size:${ctx.px(15)}px;line-height:1.55;color:${ctx.palette.text};">${inlineRichTextStyles(html, ctx.palette)}</div>`
       : ctx.paragraphs(block.body);
     return ctx.section(block, (heading ? ctx.heading(heading, { size: 20 }) : '') + body, {
       padding: '20px 32px',

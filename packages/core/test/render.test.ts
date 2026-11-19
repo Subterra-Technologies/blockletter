@@ -361,6 +361,22 @@ describe('a text block holding rich writing', () => {
     );
   });
 
+  it('resolves links to the site’s own pages against baseUrl, in the HTML and the text', () => {
+    const body = '<p>See <a href="/events?month=9&amp;year=2026">our events</a>.</p>';
+    const { html, text, warningDetails } = render([block('text', 'b1', { body, format: 'html' })]);
+    expect(html).toContain(
+      `<a href="${BASE_URL}/events?month=9&amp;year=2026" rel="noopener" target="_blank"`,
+    );
+    expect(text).toContain(`our events (${BASE_URL}/events?month=9&year=2026)`);
+    expect(warningDetails.map((warning) => warning.code)).not.toContain('relative_link');
+  });
+
+  it('keeps a link to the site’s own page without a baseUrl, and warns', () => {
+    const { html, warningDetails } = rich('<p>See <a href="/events">our events</a>.</p>');
+    expect(html).toContain('<a href="/events" rel="noopener" target="_blank"');
+    expect(warningDetails.map((warning) => warning.code)).toContain('relative_link');
+  });
+
   it('still treats plain writing as paragraphs', () => {
     // No `format: 'html'`, so blank lines separate paragraphs and markup is escaped.
     const { html } = renderEmail(

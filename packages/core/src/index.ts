@@ -118,6 +118,7 @@ export {
   inlineRichTextStyles,
   isSafeLinkHref,
   plainTextToHtml,
+  resolveRichTextLinks,
   sanitizeHtml,
   type SanitizeOptions,
   type SanitizeStyles,
