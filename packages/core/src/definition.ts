@@ -12,6 +12,7 @@ import {
   type JsonSchema,
 } from './fields';
 import type { RenderLabels, RenderOptions } from './render';
+import type { HtmlValue, RawHtml } from './template';
 import type { BlockBase, BlockBody, BrandKit, ImageRef, ValidationIssue } from './types';
 import { blockValidator, type ObjectValidator } from './validate';
 
@@ -39,6 +40,33 @@ export interface SectionOptions {
   attributes?: string;
   /** Extra inline CSS appended after the computed style. */
   style?: string;
+}
+
+/** How `RenderContext.columns` lays out its cells. */
+export interface ColumnsOptions {
+  /** Space between the cells in px, dropped once they stack. Default 16. */
+  gap?: number;
+  /** Each cell's share of the row, in %. Default: equal shares. */
+  widths?: readonly number[];
+  /**
+   * When the cells become rows, one under another: on phones (620px and narrower, the default),
+   * only on narrow phones (360px), or never.
+   */
+  stack?: 'phone' | 'narrow' | 'never';
+  /** Default `top`. */
+  valign?: 'top' | 'middle' | 'bottom';
+}
+
+/** How `RenderContext.card` draws its box. */
+export interface CardOptions {
+  /** Default: the palette's soft tint. */
+  background?: string;
+  /** The border's colour, or `false` for none. Default: the palette's border colour. */
+  border?: string | false;
+  /** CSS padding shorthand. Default `16px 18px`. */
+  padding?: string;
+  /** Corner radius in px. Default 8. */
+  radius?: number;
 }
 
 /**
@@ -116,6 +144,34 @@ export interface RenderContext {
   ): string;
   /** A bold link line and its plain-text twin; both empty unless label and url are set. */
   optionalLink(label: string | undefined, url: string | undefined): { html: string; text: string };
+  /**
+   * Email HTML from a template, escaped by default:
+   * `` ctx.html`<p style="${ctx.smallStyle()}">${block.location}</p>${ctx.button('Apply', block.url)}` ``.
+   * Text goes in escaped; HTML these helpers made (and another `ctx.html`) goes in as it is, as
+   * does the `html` of what `markdown`, `inlineMarkdown`, `optionalLink` and `richText` return.
+   * Inside a tag a value is an attribute's value: escaped, quoted when the template left the
+   * quotes out, and for an `href` resolved through `url()`. Lists are joined; `null`,
+   * `undefined` and booleans are nothing. The source's line breaks and indentation are dropped
+   * beside tags.
+   */
+  html(strings: TemplateStringsArray, ...values: readonly HtmlValue[]): string;
+  /** HTML of your own, checked by you, that `html` inserts as it is wherever it goes. */
+  raw(html: string): RawHtml;
+  /**
+   * Cells side by side in one row, which become rows on a phone (see `ColumnsOptions`), with no
+   * table markup to write. Size an image in a cell with `columnWidth`.
+   */
+  columns(cells: readonly string[], options?: ColumnsOptions): string;
+  /** The width in px of one of `count` columns `gap` px apart (default 16) in this block. */
+  columnWidth(count: number, gap?: number): number;
+  /** `inner` in a box: a soft background, a hairline border and rounded corners, by default. */
+  card(inner: string, options?: CardOptions): string;
+  /**
+   * Formatted text stored as HTML (a `field.html()`, say) for the email: cleaned with
+   * `sanitizeHtml`, its links resolved like `url()`'s, styled inline in the palette, in the body
+   * font; and its plain-text twin as lines for `text(...)`.
+   */
+  richText(html: string): { html: string; text: string[] };
   /** A safe absolute address for a link (see `absoluteUrl`); warns of relative ones. */
   url(href: string | undefined): string;
   /** HTML-escapes text for an element or an attribute value. */

@@ -37,10 +37,12 @@ const jobBlock = defineBlock({
     );
     return ctx.section(
       block,
-      ctx.heading(block.title, { size: 20 }) +
-        `<p style="${ctx.smallStyle()}">${ctx.escape(block.location)}</p>` +
-        summary.html +
-        ctx.button('Apply', block.url),
+      ctx.html`
+        ${ctx.heading(block.title, { size: 20 })}
+        <p style="${ctx.smallStyle()}">${block.location}</p>
+        ${summary}
+        ${ctx.button('Apply', block.url)}
+      `,
     );
   },
 });
@@ -62,6 +64,7 @@ describe('the README’s own-block example', () => {
     expect(validateDocument(doc, definitions)).toEqual([]);
     const email = renderEmail(doc, { definitions, baseUrl: 'https://example.test' });
     expect(email.html).toContain('<strong>ship</strong>');
+    expect(email.html).toMatch(/<\/h2><p style="[^"]*">Remote<\/p><p/);
     expect(email.text).toContain('Apply: https://example.test/careers');
   });
 

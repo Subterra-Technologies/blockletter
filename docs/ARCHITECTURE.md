@@ -176,6 +176,39 @@ grow to a stacked cell.
 plain-text twin), `warn(message)`, `bodyStyle`/`smallStyle`, `options`, and `width`
 (`{ full: 600, content: 536, inner }`, where `inner` accounts for the block's own padding).
 
+A block writes its HTML with `ctx.html`, a template tag that escapes by default:
+
+```ts
+ctx.html`
+  ${ctx.heading(block.title, { size: 20 })}
+  <p style="${ctx.smallStyle()}">${block.location}</p>
+  ${ctx.markdown(block.summary)}
+  <a href="${block.url}">${block.linkLabel}</a>
+`;
+```
+
+- **Element content:** text and numbers are escaped. HTML the context's own helpers made goes in
+  as it is: `heading`, `paragraphs`, `button`, `imageOrPlaceholder`, `columns`, `card`, `section`,
+  another `ctx.html`, and the `html` of what `markdown`, `inlineMarkdown`, `optionalLink` and
+  `richText` return. The context remembers each piece it makes, and a string equal to one of them
+  is the same HTML, so it is as safe. Lists are joined; `null`, `undefined` and booleans draw
+  nothing.
+- **Inside a tag:** a value is an attribute's value. It is escaped (even HTML the context made),
+  quoted when the template left the quotes out, and for a whole `href` resolved through `url()`
+  first (once: an address `url()` returned is not resolved again), so a link is absolute and never
+  `javascript:`. A value where an attribute's name would go throws, because escaping cannot stop
+  text there from adding an attribute; `ctx.raw(html)` is inserted as it is anywhere, for markup
+  the block's author has checked.
+- **Layout of the source:** line breaks and indentation beside tags and at either end are dropped,
+  and a line break inside text reads as a space.
+
+Layout helpers write the tables, so a block needs none of its own:
+`columns(cells, { widths?, gap?, stack?: 'phone' | 'narrow' | 'never', valign? })` puts cells
+side by side and stacks them on a phone, with `columnWidth(count, gap?)` for an image's width in
+one; `card(inner, { background?, border?, padding?, radius? })` draws a box; and
+`richText(html)` cleans, resolves and styles a `field.html()` value, with its plain text. The
+columns and text blocks are drawn with these.
+
 ### Brand kit and palette
 
 ```ts
