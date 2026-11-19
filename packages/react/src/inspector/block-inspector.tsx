@@ -6,6 +6,10 @@ import { blockName, definitionText } from '../i18n/blocks';
 import { useEditorMessages } from '../i18n/context';
 import { blockIssueText } from '../i18n/core-words';
 import { StatusBadge } from '../ui/status-badge';
+import { SelectField } from './editor-fields';
+
+/** The "Fill from" choice for no source: a select's options cannot have an empty value. */
+const BY_HAND = 'blockletter:by-hand';
 
 /** What the editor calls once a block is picked, so keyboard users land in its fields. */
 export interface BlockInspectorHandle {
@@ -59,6 +63,12 @@ export function BlockInspector({
     ? blockIssueDetails(block, [definition]).map((issue) => blockIssueText(issue, m))
     : [];
   const source = sourceFor(block, context.sources);
+  // The host's sources that can fill this type of block: a list block can take one on here.
+  const fillers = context.sources.filter((item) => item.blockType === block.type);
+  const fillFrom = (id: string) => {
+    const { source: _previous, ...rest } = block;
+    onChange(id === BY_HAND ? rest : { ...rest, source: id });
+  };
 
   // `preventScroll`: the canvas has already brought the chosen block into view, and focusing a
   // heading at the top of a long panel must not throw the reader back up the page.
@@ -116,6 +126,18 @@ export function BlockInspector({
             ))}
           </ul>
         </div>
+      ) : null}
+      {fillers.length > 0 && !locked ? (
+        <SelectField
+          label={m.inspector.fillFrom}
+          help={source ? m.inspector.fillFromHelp : undefined}
+          value={source?.id ?? BY_HAND}
+          onChange={fillFrom}
+          options={[
+            { value: BY_HAND, label: m.inspector.fillFromNone },
+            ...fillers.map((item) => ({ value: item.id, label: item.label })),
+          ]}
+        />
       ) : null}
       {Editor ? (
         <Editor

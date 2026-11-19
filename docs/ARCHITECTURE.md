@@ -316,7 +316,9 @@ import '@subterra-technologies/blockletter-react/styles.css';
   brand={brand}
   onBrandChange={saveBrand}         // optional; shows the Brand kit tab
   definitions={[...]}               // optional; built-ins + host blocks with editors
-  sources={[eventsSource]}          // optional DataSources
+  sources={[eventsSource]}          // optional DataSources; a list block added from the palette
+                                    // takes the one source that fills its type, and "Fill from"
+                                    // in the inspector chooses among several
   uploadImage={(file) => …}         // optional; enables image upload fields → ImageRef
   renderOptions={{ baseUrl, … }}    // passed to the live preview
   readOnly={status !== 'draft'}
