@@ -15,7 +15,8 @@ import { escapeHtml } from './html';
  * Inside a tag, a value is an attribute's value: escaped, put in quotes when the template left them
  * out, and, for an `href`, resolved through `ctx.url()` first, so a link is absolute and never a
  * `javascript:` one. A value where an attribute's name would go is refused unless it is `ctx.raw()`
- * HTML or nothing, since escaping cannot stop text there from adding an attribute.
+ * HTML or nothing, since escaping cannot stop text there from adding an attribute, and so is one
+ * in an event handler (`onclick="…"`), where the browser decodes it before reading the script.
  */
 
 /** HTML `ctx.html` inserts as it is, wherever it goes. Made by `ctx.raw()`. */
@@ -171,6 +172,18 @@ function content(value: HtmlValue, context: TemplateContext): string {
   return context.trusted.has(html) ? html : escapeHtml(html);
 }
 
+/**
+ * Refuses a value in an event handler's attribute: the browser decodes the escaped quotes back
+ * before it reads the script, so no escaping keeps a value inside a string there.
+ */
+function checkAttribute(name: string, value: HtmlValue): void {
+  if (/^on/i.test(name) && !isEmpty(value) && !(value instanceof RawHtml)) {
+    throw new Error(
+      `ctx.html: a value cannot go in an event handler (${name}); emails run no script.`,
+    );
+  }
+}
+
 /** One value as an attribute's value, or part of one. */
 function attributeValue(
   value: HtmlValue,
@@ -212,9 +225,11 @@ export function renderTemplate(
         out += content(value, context);
         break;
       case 'quoted':
+        checkAttribute(position.name, value);
         out += attributeValue(value, position.name, position.empty, context);
         break;
       case 'unquoted':
+        checkAttribute(position.name, value);
         out += `"${attributeValue(value, position.name, true, context)}"`;
         break;
       case 'name':

@@ -163,6 +163,13 @@ describe('ctx.html inside a tag', () => {
     expect(html((ctx) => ctx.html`<td ${''}${null}${false}>`)).toBe('<td >');
   });
 
+  it('refuses a value in an event handler, where the browser would decode it into script', () => {
+    expect(() => html((ctx) => ctx.html`<a onclick="go('${"');steal();('"}')">`)).toThrow(
+      'cannot go in an event handler (onclick)',
+    );
+    expect(() => html((ctx) => ctx.html`<img ONERROR=${'x'}>`)).toThrow('event handler');
+  });
+
   it('knows a tag has ended once its > is written', () => {
     expect(html((ctx) => ctx.html`<p class="a>b">${'<i>'}</p>`)).toBe(
       '<p class="a>b">&lt;i&gt;</p>',
