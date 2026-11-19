@@ -183,7 +183,9 @@ describe('a block declared by its fields', () => {
   });
 
   it('sums itself up from its first text field with words in it', () => {
-    expect(jobBlock.summary?.(valid({ title: 'Designer' }) as unknown as JobBlock)).toBe('Designer');
+    expect(jobBlock.summary?.(valid({ title: 'Designer' }) as unknown as JobBlock)).toBe(
+      'Designer',
+    );
     const notes = defineBlock({
       type: 'notes',
       label: 'Notes',
