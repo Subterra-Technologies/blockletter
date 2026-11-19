@@ -1,5 +1,41 @@
 # @subterra-technologies/blockletter
 
+## 0.2.0
+
+### Minor Changes
+
+- [#45](https://github.com/Subterra-Technologies/blockletter/pull/45) [`1001971`](https://github.com/Subterra-Technologies/blockletter/commit/10019710944d6fc82cd30c06021faea81c1b08eb) Thanks [@NoahDeshotel](https://github.com/NoahDeshotel)! - A list block added from the palette is connected to your data without a template: when exactly one of your registered sources fills its type, it takes that source and fills itself. The inspector has a "Fill from" choice for any list block with a source that can fill it, to take one on, switch, or write the block by hand.
+
+- [#39](https://github.com/Subterra-Technologies/blockletter/pull/39) [`6bf1d84`](https://github.com/Subterra-Technologies/blockletter/commit/6bf1d84771c32f45784ddbec94d16b8275c3d8b6) Thanks [@NoahDeshotel](https://github.com/NoahDeshotel)! - `renderEmail(doc, { frame: 'plain' })` drops the bordered card, so the content runs edge to edge on the card colour, for a brand whose header and footer frame the email; the editor's canvas follows the same option. A new brand font, `System`, uses the device's own interface face (Segoe UI, San Francisco, Roboto) with Helvetica and Arial behind it.
+
+- [#40](https://github.com/Subterra-Technologies/blockletter/pull/40) [`e8fa175`](https://github.com/Subterra-Technologies/blockletter/commit/e8fa175f91b415fc47e7bcc88e8f6f2a92f04916) Thanks [@NoahDeshotel](https://github.com/NoahDeshotel)! - The header's logo follows the header's alignment, centred or right in every client including Outlook, and comes in three sizes (`logoSize`: 160, 240 or 320px). The footer links the website (its own `website`, or the brand kit's) instead of the line under the card, and has a `light` look on the card under a fine line beside the default band. The brand kit gains `complianceText`, used by every footer that leaves its own blank; a new footer now starts blank so the brand kit's words apply. If you pass your own brand kit, set `complianceText` on it to keep a line saying why readers get your emails.
+
+- [#42](https://github.com/Subterra-Technologies/blockletter/pull/42) [`4c204f3`](https://github.com/Subterra-Technologies/blockletter/commit/4c204f3984e19ebc6d13091893bb46560d0e4903) Thanks [@NoahDeshotel](https://github.com/NoahDeshotel)! - Free-text fields now read Markdown. The bodies of the letter, callout, article, image + text and
+  column blocks, a text block's plain (not `html`) body, the pull quote, each sponsor's thank-you and
+  the name list's introduction render `**bold**`, `*italic*`, `~~strike~~`, `[label](url)`, `#` to
+  `###` headings, bullet and numbered lists, `>` quotes and `---` dividers, plus the bare `<br>`,
+  `<p>`, `<b>`, `<strong>`, `<i>` and `<em>` a paste carries, in the email, its plain-text part and on
+  the editor's canvas. Every run is still escaped, every link goes through the same checks as other
+  links, and text with no Markdown in it renders exactly as before.
+
+  For your own blocks, core adds `ctx.markdown(body, style?)` and `ctx.inlineMarkdown(text)` to
+  `RenderContext`, and exports `parseMarkdown`, `parseInline`, `markdownToText`, `markdownToHtml` and
+  `MARKDOWN_HEADING_SIZES`. The editor adds `MarkdownField`, a text area with a formatting toolbar
+  (headings, bold, italic, strikethrough, links and lists, with Ctrl/⌘ + B, I and K) that the
+  built-in blocks now use for those fields, and `EmailMarkdown` and `EmailInlineMarkdown` to draw the
+  same Markdown on the canvas. Its words are under the new `markdown` messages. A text block with a
+  plain Markdown body keeps its formatting when it is first edited in the rich-text field.
+
+- [#43](https://github.com/Subterra-Technologies/blockletter/pull/43) [`a1fc7b1`](https://github.com/Subterra-Technologies/blockletter/commit/a1fc7b11f6edd5263964233e13b6841213786682) Thanks [@NoahDeshotel](https://github.com/NoahDeshotel)! - `overrideBlock(definition, overrides)` and `overrideEditorBlock(definition, overrides)` replace parts of a block, such as a built-in drawn in your own style, keeping its type, fields, validation and form. A new `render` is handed the original as `base`, for its plain-text lines. In the editor, a new `render` without a new `Canvas` drops the built-in drawing, so the canvas draws the block from its new email HTML.
+
+- [#44](https://github.com/Subterra-Technologies/blockletter/pull/44) [`5216289`](https://github.com/Subterra-Technologies/blockletter/commit/521628981e1d1d49dd3463b46031a9ae21054f2f) Thanks [@NoahDeshotel](https://github.com/NoahDeshotel)! - `renderEmail(doc, { webVersionUrl })` adds a small "View in your browser" link above the email and as the first line of its plain text, for readers whose mail app shows it badly. The address is inserted verbatim, so your email service's merge tag works; the words are `labels.viewInBrowser`.
+
+### Patch Changes
+
+- [#41](https://github.com/Subterra-Technologies/blockletter/pull/41) [`fb06599`](https://github.com/Subterra-Technologies/blockletter/commit/fb0659997178037cf2a5733965a9915bb20b91a7) Thanks [@NoahDeshotel](https://github.com/NoahDeshotel)! - Rich text is cleaned more strictly: it keeps only the inline styles and classes formatting uses (colour, highlight, alignment, weight, slant, decoration), shows images from `https:` addresses only, reads quoted attribute values whole, and closes a link left open. `sanitizeHtml(html, { styles: 'email' })` keeps the layout styles of HTML the renderer wrote, which the editor uses to draw a block without a canvas of its own.
+
+- [#38](https://github.com/Subterra-Technologies/blockletter/pull/38) [`5962da6`](https://github.com/Subterra-Technologies/blockletter/commit/5962da6b4bac3acf414606952f59895bc099a84f) Thanks [@NoahDeshotel](https://github.com/NoahDeshotel)! - A link in rich text to a page on your own site (`/events`) is kept and resolved against `baseUrl`, in the email and its plain text, instead of being dropped; without a `baseUrl` it stays relative and the render warns, as for any other link. The rich-text field keeps such links when you edit. New: `isSafeLinkHref(href, { relative: true })` and `resolveRichTextLinks(html, resolve)`.
+
 ## 0.1.0
 
 ### Minor Changes
