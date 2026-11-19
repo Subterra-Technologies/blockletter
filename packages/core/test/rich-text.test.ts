@@ -74,7 +74,8 @@ describe('sanitizeHtml', () => {
     expect(clean).not.toMatch(/onerror|onload|<svg|<iframe|<!--|custom-tag|data-x/i);
     expect(clean).toContain('kept text');
     expect(clean).toContain('<p style="color:red">Fine</p>');
-    expect(clean).toContain('<img>');
+    // An image with no address it may load is dropped rather than left as an empty frame.
+    expect(clean).not.toContain('<img');
   });
 
   it('keeps images with web addresses and the attributes formatting needs', () => {
@@ -92,6 +93,151 @@ describe('sanitizeHtml', () => {
     expect(isSafeLinkHref('mailto:a@example.test')).toBe(true);
     expect(isSafeLinkHref('/relative')).toBe(false);
     expect(isSafeLinkHref('javascript:alert(1)')).toBe(false);
+  });
+});
+
+describe('sanitizeHtml against hostile input', () => {
+  /** Ported from the source's hardening of its own sanitiser. */
+  const hostile: Record<string, string> = {
+    'a slash before the handler': '<p>Packet</p><img src="https://x.test/a.png" /onerror="x()">',
+    'no separator after a quoted value':
+      '<p>Agenda</p><img src="https://x.test/a.png"onerror="x()">',
+    'a slash after the tag name': '<svg/onload=alert(1)>',
+    'a slash on a kept tag': '<p/onclick="alert(1)">text</p>',
+    'a handler after a quoted href': '<a href="https://ok.test/"onclick="alert(1)">t</a>',
+    'a slash after a quoted href': '<a href="https://ok.test/"/onmouseover="alert(1)">t</a>',
+    'an unquoted value': '<img src=x onerror=alert(1)>',
+    'an unquoted value with a slash': '<img src=x/onerror=alert(1)>',
+    'a backtick value': '<p onclick=`alert(1)`>t</p>',
+    'an upper-case handler': '<P ONCLICK="alert(1)">t</P>',
+    'a newline before the handler': '<img src="x"\nonerror="alert(1)">',
+    'a tab before the handler': '<img\tsrc="x"\tonerror="alert(1)">',
+    'a form feed before the handler': '<img\fsrc="x"\fonerror="alert(1)">',
+    'a handler with no value': '<p onclick>t</p>',
+    'a greater-than inside a quoted value': '<img alt=">" src="x" onerror="alert(1)">',
+    'a greater-than inside an href':
+      '<a href="https://ok.test/ style=\'x onmouseover=alert(1) y\'>">t</a>',
+    'a quoted href carrying a style': '<a href=\'https://ok.test/" style="x\' >t</a>',
+    'a style with an expression': '<p style="width:expression(alert(1))">t</p>',
+    'a style with a script url': '<p style="background:url(javascript:alert(1))">t</p>',
+    'a style that pins itself over the page':
+      '<span style="color: red; position: fixed; top: 0; left: 0; width: 100vw">t</span>',
+    'a style hidden in character references': '<p style="position&#58;fixed">t</p>',
+    'a class from the page around it': '<p class="fixed inset-0 z-50">t</p>',
+    'a script element': '<script>alert(1)</script>',
+    'an upper-case script element': '<SCRIPT SRC=//evil.test/x.js></SCRIPT>',
+    'a split script element': '<scr<script>ipt>alert(1)</scr</script>ipt>',
+    'a script with a slash': '<script/src="x">alert(1)</script>',
+    'frames, objects, embeds and forms':
+      '<iframe src="x"></iframe><object data="x"></object><embed src="x"><form action="x"><input></form>',
+    'svg and math':
+      '<svg><script>alert(1)</script></svg><math><mi xlink:href="javascript:alert(1)">x</mi></math>',
+    'a meta refresh and a base':
+      '<meta http-equiv="refresh" content="0;url=javascript:alert(1)"><base href="https://evil.test/">',
+    'an image with a script address': '<img src="javascript:alert(1)">',
+    'an image with a data address': '<img src="data:text/html;base64,AAAA">',
+    'a comment': '<!--><img src=x onerror=alert(1)>-->',
+    'an unterminated comment': '<p>ok</p><!-- <img src=x onerror=alert(1)>',
+    'an unterminated tag': '<p>ok</p><img src=x onerror=alert(1)',
+    'an unterminated quote': '<p>ok</p><img src="x onerror=alert(1)>',
+    'noscript and template':
+      '<noscript><p title="</noscript><img src=x onerror=alert(1)>"></noscript><template><img src=x onerror=alert(1)></template>',
+    'textarea and title':
+      '<title><img src=x onerror=alert(1)></title><textarea><img src=x onerror=alert(1)></textarea>',
+    'an unquoted href swallowing the next attribute':
+      '<a href=https://ok.test/ onclick=alert(1)>t</a>',
+  };
+
+  /** Every tag in the output, with the attributes it kept. */
+  const tags = (html: string) => [...html.matchAll(/<\/?([a-z0-9]+)([^>]*)>/gi)];
+
+  it.each(Object.entries(hostile))('leaves nothing that can run or escape for %s', (_, dirty) => {
+    for (const styles of ['formatting', 'email'] as const) {
+      const clean = sanitizeHtml(dirty, { styles });
+      for (const [, name, attributes] of tags(clean)) {
+        expect(name).not.toMatch(/^(script|svg|math|iframe|object|embed|form|meta|base|input)$/i);
+        expect(attributes).not.toMatch(
+          /\son[a-z]+\s*=|javascript:|expression\(|position:\s*fixed/i,
+        );
+      }
+      // Stable: cleaning the output again changes nothing, so a second pass cannot undo the first.
+      expect(sanitizeHtml(clean, { styles })).toBe(clean);
+      expect(inlineRichTextStyles(clean)).not.toMatch(
+        /<[^>]*\son[a-z]+\s*=|javascript:|expression\(/i,
+      );
+    }
+  });
+
+  it('keeps only the styles formatting uses, as they were written', () => {
+    expect(
+      sanitizeHtml(
+        '<p style="color: #c00; background-color: rgb(255, 240, 0); text-align: center; font-weight: 700; position: fixed; margin: 0 -9999px; background: url(https://x.test/a.png)">t</p>',
+      ),
+    ).toBe(
+      '<p style="color: #c00;background-color: rgb(255, 240, 0);text-align: center;font-weight: 700">t</p>',
+    );
+    expect(sanitizeHtml('<p style="position:fixed">t</p>')).toBe('<p>t</p>');
+  });
+
+  it('keeps only alignment and indent classes from formatting', () => {
+    expect(sanitizeHtml('<p class="ql-align-center fixed inset-0 ql-indent-2">t</p>')).toBe(
+      '<p class="ql-align-center ql-indent-2">t</p>',
+    );
+    expect(sanitizeHtml('<p class="fixed">t</p>')).toBe('<p>t</p>');
+  });
+
+  it('keeps the layout the renderer wrote in email mode, without what can run', () => {
+    const rendered =
+      '<td class="bl-stack" width="50%" style="padding:0 0 12px 0;background-image:url(&#39;https://x.test/a.png?w=1&amp;h=2&#39;);font-family:Georgia, \'Times New Roman\', serif;mso-line-height-rule:exactly">x</td>';
+    expect(sanitizeHtml(rendered, { styles: 'email' })).toBe(
+      '<td class="bl-stack" width="50%" style="padding:0 0 12px 0;background-image:url(&#39;https://x.test/a.png?w=1&amp;h=2&#39;);font-family:Georgia, &#39;Times New Roman&#39;, serif;mso-line-height-rule:exactly">x</td>',
+    );
+    expect(
+      sanitizeHtml(
+        '<td style="padding:4px;background:url(javascript:alert(1));width:expression(alert(1));behavior:url(x.htc);position:fixed;color:re\\64">x</td>',
+        { styles: 'email' },
+      ),
+    ).toBe('<td style="padding:4px">x</td>');
+  });
+
+  it('shows rich-text images from https addresses only, with a plain size', () => {
+    expect(sanitizeHtml('<img src="http://x.test/a.png" alt="a">')).toBe('');
+    expect(sanitizeHtml('<img src="//x.test/a.png" alt="a">')).toBe('');
+    expect(sanitizeHtml('<img src="https://x.test/a.png" alt="a" width="200px" height="80">')).toBe(
+      '<img src="https://x.test/a.png" alt="a" height="80">',
+    );
+    // The renderer's own images may still be http, as RenderContext.image allows.
+    expect(sanitizeHtml('<img src="http://x.test/a.png" alt="a">', { styles: 'email' })).toBe(
+      '<img src="http://x.test/a.png" alt="a">',
+    );
+  });
+
+  it('closes a link left open and drops a closing tag with no link', () => {
+    expect(sanitizeHtml('<p><a href="https://a.test">open')).toBe(
+      '<p><a href="https://a.test" rel="noopener" target="_blank">open</a>',
+    );
+    expect(sanitizeHtml('<p>one</a> two</p>')).toBe('<p>one two</p>');
+    expect(
+      sanitizeHtml('<p><a href="javascript:x">one</a> and <a href="https://a.test">two</a></p>'),
+    ).toBe('<p>one and <a href="https://a.test" rel="noopener" target="_blank">two</a></p>');
+  });
+
+  it('escapes every character that could end a value, so a later pass reads tags right', () => {
+    const clean = sanitizeHtml('<p title="a > b \' c">t</p>');
+    expect(clean).toBe('<p title="a &gt; b &#39; c">t</p>');
+    expect(inlineRichTextStyles(clean)).toBe(
+      '<p title="a &gt; b &#39; c" style="margin:0 0 12px;line-height:1.55">t</p>',
+    );
+  });
+
+  it('keeps attribute values only in the form each attribute takes', () => {
+    expect(
+      sanitizeHtml(
+        '<ol start="3" type="a" dir="rtl"><li>x</li></ol><table><tr><td colspan="2" align="center" width="50%">y</td><td colspan="2;x" align="middle;">z</td></tr></table>',
+      ),
+    ).toBe(
+      '<ol start="3" type="a" dir="rtl"><li>x</li></ol><table><tr><td colspan="2" align="center" width="50%">y</td><td>z</td></tr></table>',
+    );
   });
 });
 

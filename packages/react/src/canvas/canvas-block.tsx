@@ -67,7 +67,8 @@ function HtmlBlock({
   const html = useMemo(() => {
     try {
       const options = { ...theme.options, brand: theme.brand, definitions, annotate: false };
-      return sanitizeHtml(renderBlock(block, options).html);
+      // The renderer wrote this, so its layout styles stay; nothing that can run does.
+      return sanitizeHtml(renderBlock(block, options).html, { styles: 'email' });
     } catch {
       return null;
     }
