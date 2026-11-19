@@ -11,6 +11,7 @@ import {
   relativeLuminance,
   renderEmail,
   resolvePalette,
+  validateBrandKit,
   type BrandKit,
 } from '../src';
 import { block } from './helpers';
@@ -218,6 +219,15 @@ describe('fonts', () => {
     expect(fontStack('Trebuchet MS')).toBe(FONT_STACKS['Trebuchet MS']);
     expect(fontStack('Comic Sans MS')).toBe(FONT_STACKS.Arial);
     expect(fontStack(undefined, 'Georgia')).toBe(FONT_STACKS.Georgia);
+  });
+
+  it('offers the device’s own face, led by one Outlook for Windows always has', () => {
+    // Outlook reads only the first font, and falls back to Times New Roman when it is missing.
+    expect(fontStack('System')).toMatch(/^'Segoe UI', -apple-system, /);
+    expect(fontStack('System')).toMatch(/Roboto, .*Helvetica, Arial, sans-serif$/);
+    expect(
+      validateBrandKit({ ...DEFAULT_BRAND, fonts: { heading: 'System', body: 'System' } }),
+    ).toEqual([]);
   });
 });
 

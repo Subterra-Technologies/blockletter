@@ -415,7 +415,10 @@ export interface NewsletterTemplate<B extends BlockBase = BuiltInBlock> {
 // Brand kit
 // ---------------------------------------------------------------------------
 
-/** Web-safe fonts only: email clients cannot be relied on to load webfonts. */
+/**
+ * Web-safe fonts only: email clients cannot be relied on to load webfonts. `System` is the
+ * device's own interface face (Segoe UI, San Francisco, Roboto), with Helvetica and Arial behind.
+ */
 export const BRAND_FONTS = [
   'Georgia',
   'Helvetica',
@@ -423,6 +426,7 @@ export const BRAND_FONTS = [
   'Verdana',
   'Trebuchet MS',
   'Times New Roman',
+  'System',
 ] as const;
 
 export type BrandFont = (typeof BRAND_FONTS)[number];

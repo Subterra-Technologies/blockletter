@@ -112,6 +112,7 @@ interface RenderOptions {
   preferencesUrl?: string;                // footer link; inserted verbatim (merge tags allowed)
   unsubscribeUrl?: string;                // footer link; inserted verbatim (merge tags allowed)
   annotate?: boolean;                     // data-block-id on each block, for previews; default false
+  frame?: 'card' | 'plain';               // bordered card (default), or none: edge to edge
   poweredBy?: { label: string; url: string }; // credit under the card; default none
   issueLabel?: string;                    // "September 2026 issue" under the card
   lang?: string;                          // <html lang>; default 'en'

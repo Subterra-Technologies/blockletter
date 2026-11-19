@@ -329,7 +329,7 @@ describe('validateBrandKit', () => {
       ['colors/highlight', 'Enter the highlight colour as a six-digit hex colour such as #1f2937.'],
       [
         'fonts/heading',
-        'Choose a heading font from: Georgia, Helvetica, Arial, Verdana, Trebuchet MS, Times New Roman.',
+        'Choose a heading font from: Georgia, Helvetica, Arial, Verdana, Trebuchet MS, Times New Roman, System.',
       ],
       ['contact/phone', 'Keep the phone number to 40 characters or fewer.'],
       ['contact/email', 'Enter a valid email address.'],

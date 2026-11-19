@@ -126,6 +126,8 @@ export function NewsletterCanvas({
   const m = useEditorMessages();
   const locked = readOnly ?? editor.readOnly;
   const theme = useMemo(() => canvasTheme(brand, renderOptions), [brand, renderOptions]);
+  // The email drawn without its card (`renderOptions.frame`), as it will be sent.
+  const plain = renderOptions?.frame === 'plain';
   const ids = useId();
   const headingId = `${ids}-heading`;
   const hintId = `${ids}-hint`;
@@ -376,7 +378,10 @@ export function NewsletterCanvas({
   );
 
   return (
-    <div className="bl:flex bl:flex-1 bl:flex-col" style={{ backgroundColor: theme.palette.page }}>
+    <div
+      className="bl:flex bl:flex-1 bl:flex-col"
+      style={{ backgroundColor: plain ? theme.palette.card : theme.palette.page }}
+    >
       <h2 id={headingId} className="bl:sr-only">
         {m.canvas.heading}
       </h2>
@@ -395,10 +400,14 @@ export function NewsletterCanvas({
           </p>
         ) : null}
         <ol
-          className="bl:@container/sheet bl:mx-auto bl:w-full bl:max-w-[600px] bl:overflow-hidden bl:rounded-[10px]"
+          className={cn(
+            'bl:@container/sheet bl:mx-auto bl:w-full bl:max-w-[600px] bl:overflow-hidden',
+            !plain && 'bl:rounded-[10px]',
+          )}
           style={{
             backgroundColor: theme.palette.card,
-            border: `1px solid ${theme.palette.border}`,
+            // The email's own frame, so the canvas looks like what is sent.
+            ...(plain ? {} : { border: `1px solid ${theme.palette.border}` }),
             fontFamily: theme.fonts.body,
           }}
           role="tablist"

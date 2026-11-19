@@ -42,11 +42,27 @@
       "properties": {
         "heading": {
           "type": "string",
-          "enum": ["Georgia", "Helvetica", "Arial", "Verdana", "Trebuchet MS", "Times New Roman"]
+          "enum": [
+            "Georgia",
+            "Helvetica",
+            "Arial",
+            "Verdana",
+            "Trebuchet MS",
+            "Times New Roman",
+            "System"
+          ]
         },
         "body": {
           "type": "string",
-          "enum": ["Georgia", "Helvetica", "Arial", "Verdana", "Trebuchet MS", "Times New Roman"]
+          "enum": [
+            "Georgia",
+            "Helvetica",
+            "Arial",
+            "Verdana",
+            "Trebuchet MS",
+            "Times New Roman",
+            "System"
+          ]
         }
       },
       "required": ["heading", "body"],
