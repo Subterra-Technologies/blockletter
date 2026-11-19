@@ -5,6 +5,9 @@ export * from './types';
 export {
   BLOCK_GROUPS,
   defineBlock,
+  overrideBlock,
+  type BlockOverrides,
+  type OverrideRender,
   type BlockDefinition,
   type BlockGroup,
   type RenderContext,
