@@ -3,7 +3,7 @@ import { issuesFrom } from '../issues';
 import { LIMITS } from '../limits';
 import type { ColumnsBlock } from '../types';
 import { blockValidator } from '../validate';
-import { ALT_TEXT_ISSUE, TABLE, gapCell, missingAlt, plural, tooLong } from './shared';
+import { ALT_TEXT_ISSUE, missingAlt, plural, tooLong } from './shared';
 
 const [MIN_COLUMNS, MAX_COLUMNS] = LIMITS.columns;
 
@@ -57,35 +57,27 @@ export const columnsBlock = defineBlock<ColumnsBlock>({
   render(block, ctx) {
     const columns = block.columns.slice(0, MAX_COLUMNS);
     if (columns.length === 0) return '';
-    const count = columns.length;
-    const width = Math.floor(100 / count);
-    const columnPx = Math.floor((ctx.width.inner - (count - 1) * 16) / count);
-    const cells = columns
-      .map((column, index) => {
-        const link = ctx.optionalLink(column.linkLabel, column.linkUrl);
-        const heading = column.heading?.trim() ?? '';
-        const body = ctx.markdown(column.body, `${ctx.bodyStyle()}margin:0 0 8px 0;`);
-        if (heading) ctx.text(column.heading ?? '');
-        ctx.text(...body.text);
-        if (link.text) ctx.text(link.text);
-        const image = column.image
-          ? ctx.imageOrPlaceholder(column.image, column.alt ?? '', columnPx, 110, { fill: true })
-          : '';
-        const last = index === count - 1;
-        const stack = last ? ctx.classes.stack : `${ctx.classes.stack} ${ctx.classes.space}`;
-        return (
-          `<td class="${stack}" width="${width}%" valign="top" style="padding:0;">` +
-          (image ? `<div style="margin:0 0 10px 0;">${image}</div>` : '') +
-          (heading
-            ? `<p style="margin:0 0 6px 0;font-family:${ctx.fonts.heading};font-size:${ctx.px(18)}px;line-height:1.3;color:${ctx.palette.heading};">${ctx.escape(column.heading ?? '')}</p>`
-            : '') +
-          body.html +
-          link.html +
-          `</td>${last ? '' : gapCell(ctx, 16)}`
-        );
-      })
-      .join('');
+    const columnPx = ctx.columnWidth(columns.length);
+    const cells = columns.map((column) => {
+      const link = ctx.optionalLink(column.linkLabel, column.linkUrl);
+      const heading = column.heading?.trim() ?? '';
+      const body = ctx.markdown(column.body, `${ctx.bodyStyle()}margin:0 0 8px 0;`);
+      if (heading) ctx.text(column.heading ?? '');
+      ctx.text(...body.text);
+      if (link.text) ctx.text(link.text);
+      const image = column.image
+        ? ctx.imageOrPlaceholder(column.image, column.alt ?? '', columnPx, 110, { fill: true })
+        : '';
+      return (
+        (image ? `<div style="margin:0 0 10px 0;">${image}</div>` : '') +
+        (heading
+          ? `<p style="margin:0 0 6px 0;font-family:${ctx.fonts.heading};font-size:${ctx.px(18)}px;line-height:1.3;color:${ctx.palette.heading};">${ctx.escape(column.heading ?? '')}</p>`
+          : '') +
+        body.html +
+        link.html
+      );
+    });
     ctx.text('');
-    return ctx.section(block, `${TABLE}<tr>${cells}</tr></table>`);
+    return ctx.section(block, ctx.columns(cells));
   },
 });

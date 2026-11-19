@@ -346,16 +346,23 @@ export const jobBlock = defineBlock({
     );
     return ctx.section(
       block,
-      ctx.heading(block.title, { size: 20 }) +
-        `<p style="${ctx.smallStyle()}">${ctx.escape(block.location)}</p>` +
-        summary.html +
-        ctx.button('Apply', block.url),
+      ctx.html`
+        ${ctx.heading(block.title, { size: 20 })}
+        <p style="${ctx.smallStyle()}">${block.location}</p>
+        ${summary}
+        ${ctx.button('Apply', block.url)}
+      `,
     );
   },
 });
 
 export type JobBlock = BlockOf<typeof jobBlock>; // { id; type: 'job'; …; title: string; … }
 ```
+
+`ctx.html` escapes what goes into it, except the HTML that `ctx`'s own helpers make, so
+escaping is the default rather than a habit. A link's `href="${…}"` is resolved for you, and
+`ctx.columns()`, `ctx.card()` and `ctx.richText()` write the email tables and formatted text a
+block would otherwise spell out by hand.
 
 In the editor it needs only an icon. The form is built from the fields, and the canvas draws the
 block's email HTML:

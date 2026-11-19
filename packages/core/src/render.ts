@@ -1,6 +1,12 @@
 import { builtInBlocks } from './blocks';
 import { DEFAULT_BRAND, fontStack, resolvePalette, type Palette } from './brand';
-import type { BlockDefinition, RenderContext, SectionOptions } from './definition';
+import type {
+  BlockDefinition,
+  CardOptions,
+  ColumnsOptions,
+  RenderContext,
+  SectionOptions,
+} from './definition';
 import {
   absoluteUrl,
   escapeHtml,
@@ -24,6 +30,8 @@ import {
 import { AP_MONTHS } from './period';
 import { getDefinition } from './registry';
 import { RESPONSIVE_CLASSES, RESPONSIVE_STYLE } from './responsive';
+import { htmlToText, inlineRichTextStyles, resolveRichTextLinks, sanitizeHtml } from './rich-text';
+import { RawHtml, renderTemplate } from './template';
 import type {
   BlockBase,
   BlockFontSize,
@@ -296,6 +304,10 @@ function sectionLayout(
   };
 }
 
+/** The full-width layout table `columns` and `card` nest their cells in. */
+const LAYOUT_TABLE =
+  '<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">';
+
 function contextFor(state: RenderState, block: BlockBase): RenderContext {
   const style = block.style;
   const scale = (style?.fontSize && FONT_SCALE[style.fontSize]) || 1;
@@ -312,8 +324,21 @@ function contextFor(state: RenderState, block: BlockBase): RenderContext {
       }
     : state.palette;
   const { fonts, labels } = state;
+  const innerWidth = style?.fullWidth ? WIDTH : CONTENT_WIDTH;
   const px = (size: number): number => Math.round(size * scale);
-  const url = (href: string | undefined): string => resolveUrl(state, href);
+  // What `html` inserts as it is: every piece of HTML the helpers below make, and the addresses
+  // `url` resolved, so `html` does not resolve them twice.
+  const trusted = new Set<string>();
+  const resolved = new Set<string>();
+  const trust = (html: string): string => {
+    if (html) trusted.add(html);
+    return html;
+  };
+  const url = (href: string | undefined): string => {
+    const address = resolveUrl(state, href);
+    resolved.add(address);
+    return address;
+  };
   const image = (ref: ImageRef | undefined): string | undefined => resolveImage(state, ref);
   const bodyStyle = (color: string = palette.text): string =>
     `margin:0 0 12px 0;font-family:${fonts.body};font-size:${px(15)}px;line-height:1.55;color:${color};`;
@@ -338,37 +363,46 @@ function contextFor(state: RenderState, block: BlockBase): RenderContext {
     brand: state.brand,
     labels,
     options: state.options,
-    width: { full: WIDTH, content: CONTENT_WIDTH, inner: style?.fullWidth ? WIDTH : CONTENT_WIDTH },
+    width: { full: WIDTH, content: CONTENT_WIDTH, inner: innerWidth },
     classes: RESPONSIVE_CLASSES,
     section(target: BlockBase, inner: string, options: SectionOptions = {}): string {
       const { background = palette.card, padding = '28px 32px', attributes = '' } = options;
       const layout = sectionLayout(palette, target, background, padding);
       const annotation =
         state.options.annotate === true ? ` data-block-id="${escapeHtml(target.id)}"` : '';
-      return `<tr><td${layout.narrowSides ? ` class="${RESPONSIVE_CLASSES.pad}"` : ''}${annotation}${attributes ? ` ${attributes}` : ''} style="${layout.style}${options.style ?? ''}">${inner}</td></tr>`;
+      return trust(
+        `<tr><td${layout.narrowSides ? ` class="${RESPONSIVE_CLASSES.pad}"` : ''}${annotation}${attributes ? ` ${attributes}` : ''} style="${layout.style}${options.style ?? ''}">${inner}</td></tr>`,
+      );
     },
     heading(text: string, options: { color?: string; size?: number } = {}): string {
       const { color = palette.heading, size = 24 } = options;
-      return `<h2 style="margin:0 0 14px 0;font-family:${fonts.heading};font-size:${px(size)}px;line-height:1.25;font-weight:normal;color:${color};">${escapeHtml(text)}</h2>`;
+      return trust(
+        `<h2 style="margin:0 0 14px 0;font-family:${fonts.heading};font-size:${px(size)}px;line-height:1.25;font-weight:normal;color:${color};">${escapeHtml(text)}</h2>`,
+      );
     },
     paragraphs(body: string, paragraphStyle: string = bodyStyle()): string {
-      return splitParagraphs(body)
-        .map(
-          (part) =>
-            `<p style="${paragraphStyle}">${escapeHtml(part).replace(/\r?\n/g, '<br>')}</p>`,
-        )
-        .join('');
+      return trust(
+        splitParagraphs(body)
+          .map(
+            (part) =>
+              `<p style="${paragraphStyle}">${escapeHtml(part).replace(/\r?\n/g, '<br>')}</p>`,
+          )
+          .join(''),
+      );
     },
     markdown(body: string, paragraphStyle: string = bodyStyle()) {
       const blocks = parseMarkdown(body);
       return {
-        html: markdownBlocksHtml(blocks, markdownTheme(paragraphStyle)),
+        html: trust(markdownBlocksHtml(blocks, markdownTheme(paragraphStyle))),
         text: markdownTextLines(blocks, url),
       };
     },
     inlineMarkdown(text: string) {
       const nodes = parseInline(text);
-      return { html: inlineHtml(nodes, markdownTheme(''), false), text: inlineText(nodes, url) };
+      return {
+        html: trust(inlineHtml(nodes, markdownTheme(''), false)),
+        text: inlineText(nodes, url),
+      };
     },
     bodyStyle,
     smallStyle,
@@ -379,11 +413,11 @@ function contextFor(state: RenderState, block: BlockBase): RenderContext {
           : `background:${palette.accent};border-radius:6px;`;
       // An outline button is accent-coloured text on the card, so it uses the readable shade.
       const color = variant === 'outline' ? palette.accentInk : palette.accentText;
-      return (
+      return trust(
         `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:6px 0 0 0;"><tr>` +
-        `<td style="${cell}">` +
-        `<a href="${escapeHtml(url(href))}" style="display:inline-block;padding:12px 22px;font-family:${fonts.body};font-size:${px(15)}px;font-weight:bold;color:${color};text-decoration:none;">${escapeHtml(label)}</a>` +
-        `</td></tr></table>`
+          `<td style="${cell}">` +
+          `<a href="${escapeHtml(url(href))}" style="display:inline-block;padding:12px 22px;font-family:${fonts.body};font-size:${px(15)}px;font-weight:bold;color:${color};text-decoration:none;">${escapeHtml(label)}</a>` +
+          `</td></tr></table>`,
       );
     },
     image,
@@ -395,16 +429,77 @@ function contextFor(state: RenderState, block: BlockBase): RenderContext {
       options: { fill?: boolean } = {},
     ): string {
       const src = image(ref);
-      return src
-        ? `<img${options.fill ? ` class="${RESPONSIVE_CLASSES.fill}"` : ''} src="${escapeHtml(src)}" width="${width}" alt="${escapeHtml(alt)}" style="display:block;width:100%;max-width:${width}px;height:auto;border-radius:8px;">`
-        : `<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="width:100%;"><tr><td align="center" valign="middle" height="${height}" style="height:${height}px;background:${palette.soft};border:1px dashed ${palette.border};border-radius:8px;font-family:${fonts.body};font-size:${px(13)}px;color:${palette.muted};">${escapeHtml(alt.trim() || labels.image)}</td></tr></table>`;
+      return trust(
+        src
+          ? `<img${options.fill ? ` class="${RESPONSIVE_CLASSES.fill}"` : ''} src="${escapeHtml(src)}" width="${width}" alt="${escapeHtml(alt)}" style="display:block;width:100%;max-width:${width}px;height:auto;border-radius:8px;">`
+          : `<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="width:100%;"><tr><td align="center" valign="middle" height="${height}" style="height:${height}px;background:${palette.soft};border:1px dashed ${palette.border};border-radius:8px;font-family:${fonts.body};font-size:${px(13)}px;color:${palette.muted};">${escapeHtml(alt.trim() || labels.image)}</td></tr></table>`,
+      );
     },
     optionalLink(label: string | undefined, href: string | undefined) {
       if (!label?.trim() || !href?.trim()) return { html: '', text: '' };
       const link = url(href);
       return {
-        html: `<p style="${smallStyle(palette.link)}"><a href="${escapeHtml(link)}" style="color:${palette.link};font-weight:bold;">${escapeHtml(label)}</a></p>`,
+        html: trust(
+          `<p style="${smallStyle(palette.link)}"><a href="${escapeHtml(link)}" style="color:${palette.link};font-weight:bold;">${escapeHtml(label)}</a></p>`,
+        ),
         text: `${label}: ${link}`,
+      };
+    },
+    html(strings: TemplateStringsArray, ...values) {
+      return trust(renderTemplate(strings, values, { trusted, url, resolved }));
+    },
+    raw: (html: string) => new RawHtml(html),
+    columns(cells: readonly string[], options: ColumnsOptions = {}): string {
+      const { gap = 16, stack = 'phone', valign = 'top' } = options;
+      if (cells.length === 0) return '';
+      const equal = Math.floor(100 / cells.length);
+      const [stacks, spaces] =
+        stack === 'narrow'
+          ? [RESPONSIVE_CLASSES.stackNarrow, RESPONSIVE_CLASSES.spaceNarrow]
+          : [RESPONSIVE_CLASSES.stack, RESPONSIVE_CLASSES.space];
+      const row = cells
+        .map((cell, index) => {
+          const last = index === cells.length - 1;
+          const classes = stack === 'never' ? '' : last ? stacks : `${stacks} ${spaces}`;
+          const width = options.widths?.[index] ?? equal;
+          const spacer =
+            last || gap <= 0
+              ? ''
+              : `<td${stack === 'never' ? '' : ` class="${RESPONSIVE_CLASSES.gap}"`} width="${gap}" style="width:${gap}px;font-size:0;line-height:0;">&nbsp;</td>`;
+          return (
+            `<td${classes ? ` class="${classes}"` : ''} width="${width}%" valign="${valign}" style="padding:0;">${cell}</td>` +
+            spacer
+          );
+        })
+        .join('');
+      return trust(`${LAYOUT_TABLE}<tr>${row}</tr></table>`);
+    },
+    columnWidth(count: number, gap = 16): number {
+      const columns = Math.max(1, Math.floor(count));
+      return Math.floor((innerWidth - (columns - 1) * gap) / columns);
+    },
+    card(inner: string, options: CardOptions = {}): string {
+      const {
+        background = palette.soft,
+        border = palette.border,
+        padding = '16px 18px',
+        radius = 8,
+      } = options;
+      return trust(
+        `${LAYOUT_TABLE}<tr><td style="padding:${padding};background:${background};${border ? `border:1px solid ${border};` : ''}border-radius:${radius}px;">${inner}</td></tr></table>`,
+      );
+    },
+    richText(html: string) {
+      // Links to the host's own pages ("/events") resolve against baseUrl like every other link.
+      const clean = resolveRichTextLinks(sanitizeHtml(html), url);
+      return {
+        // Rich text sits in a wrapper carrying the body font and colour, which its own tags lack.
+        html: clean
+          ? trust(
+              `<div style="font-family:${fonts.body};font-size:${px(15)}px;line-height:1.55;color:${palette.text};">${inlineRichTextStyles(clean, palette)}</div>`,
+            )
+          : '',
+        text: splitParagraphs(htmlToText(clean)),
       };
     },
     url,

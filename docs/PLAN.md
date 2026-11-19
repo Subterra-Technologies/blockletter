@@ -116,8 +116,9 @@ filling, tests) comes from it.
    the callout. The AI catalogue entry comes with B5, which reads the same fields.
 
 2. **Email-safe render helpers (M).** An auto-escaping `ctx.html` template tag, so escaping is
-   the default rather than a habit. Layout helpers that write the tables, Outlook ghost tables and
-   phone stacking: `ctx.columns()`, `ctx.card()`, `ctx.image()`, `ctx.markdown()`.
+   the default rather than a habit. Layout helpers that write the tables and phone stacking:
+   `ctx.columns()`, `ctx.card()` and `ctx.richText()`, beside the `ctx.imageOrPlaceholder()` and
+   `ctx.markdown()` that exist.
 3. **Data sources for any block (M).** A definition says which list field a source fills, how many
    items it keeps, their order, and whether a refresh replaces or merges them.
    `DataSource.blockType` takes any type. The built-in list blocks' special cases move into their

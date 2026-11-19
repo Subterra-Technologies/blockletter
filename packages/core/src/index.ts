@@ -12,11 +12,15 @@ export {
   type OverrideRender,
   type BlockDefinition,
   type BlockGroup,
+  type CardOptions,
+  type ColumnsOptions,
   type FieldBlock,
   type FieldBlockSpec,
   type RenderContext,
   type SectionOptions,
 } from './definition';
+
+export type { HtmlValue, RawHtml } from './template';
 
 // Field schemas: a block's fields declared once
 export {
