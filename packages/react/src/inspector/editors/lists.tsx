@@ -23,6 +23,7 @@ import { useEditorMessages } from '../../i18n/context';
 import type { BoundMessages } from '../../i18n/resolve';
 import { StatusBadge } from '../../ui/status-badge';
 import { blockEditor } from '../editor-base';
+import { MarkdownField } from '../../markdown/markdown-field';
 import { AreaField, EditorFields, FieldPair, TextField } from '../editor-fields';
 import { ImageField } from '../image-field';
 import { ItemList } from '../item-list';
@@ -203,7 +204,7 @@ export function SponsorsEditor({ block, onChange, readOnly }: BlockEditorProps<S
                 onChange={(url) => update({ url })}
               />
             </FieldPair>
-            <AreaField
+            <MarkdownField
               label={words.message}
               rows={2}
               value={item.message}
@@ -242,7 +243,7 @@ export function NameListEditor({ block, onChange, readOnly }: BlockEditorProps<N
         value={block.heading}
         onChange={(heading) => patch({ heading })}
       />
-      <AreaField
+      <MarkdownField
         label={words.intro}
         rows={3}
         value={block.intro}

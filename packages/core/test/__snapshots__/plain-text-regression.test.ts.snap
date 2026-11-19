@@ -1,0 +1,722 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`text with no Markdown in it > renders the article block as before Markdown support 1`] = `
+{
+  "html": "<tr><td class="bl-pad" style="padding:28px 32px 28px 32px;background:#ffffff;"><p style="margin:0 0 8px 0;font-family:Arial, Helvetica, sans-serif;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:#0f766e;font-weight:bold;">Tips and tools</p><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr><td class="bl-stack bl-space" width="160" valign="top" style="width:160px;padding-right:20px;"><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="160" style="width:160px;"><tr><td align="center" valign="middle" width="160" height="120" style="width:160px;height:120px;background:#1f2937;border-radius:8px;font-family:Georgia, 'Times New Roman', Times, serif;font-size:14px;letter-spacing:1px;color:#f5f5f4;">TIPS AND TOOLS</td></tr></table></td><td class="bl-stack" valign="top"><h2 style="margin:0 0 14px 0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:20px;line-height:1.25;font-weight:normal;color:#1f2937;">One practical idea for this month</h2><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;">Dear readers,<br>thank you for a great year &amp; a busy autumn.</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;">We met 2 * 3 * 4 times (that is 24) at Sam&#39;s, and &quot;the_big_room&quot; was full.<br>Tickets &lt; $10 &amp; children &gt; 5 go free; ask file_name owners at snake_case@example.test.</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;">An indented line stays as it was.   <br>  So does this one.</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;">The last paragraph, after many blank lines.</p><p style="margin:0;font-family:Arial, Helvetica, sans-serif;font-size:13px;line-height:1.5;color:#1f2937;"><a href="https://example.test/more" style="color:#1f2937;font-weight:bold;">More</a></p></td></tr></table></td></tr>",
+  "text": "TIPS AND TOOLS
+One practical idea for this month
+Dear readers,
+thank you for a great year & a busy autumn.
+We met 2 * 3 * 4 times (that is 24) at Sam's, and "the_big_room" was full.
+Tickets < $10 & children > 5 go free; ask file_name owners at snake_case@example.test.
+An indented line stays as it was.   
+  So does this one.
+The last paragraph, after many blank lines.
+More: https://example.test/more",
+}
+`;
+
+exports[`text with no Markdown in it > renders the article-photo block as before Markdown support 1`] = `
+{
+  "html": "<tr><td class="bl-pad" style="padding:28px 32px 28px 32px;background:#173e44;text-align:center;"><p style="margin:0 0 8px 0;font-family:Arial, Helvetica, sans-serif;font-size:14px;letter-spacing:2px;text-transform:uppercase;color:#0f766e;font-weight:bold;">Tips and tools</p><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr><td class="bl-stack bl-space" width="160" valign="top" style="width:160px;padding-right:20px;"><img src="https://files.example.test/photo.jpg" width="160" alt="One practical idea for this month" style="display:block;width:100%;max-width:160px;height:auto;border-radius:8px;"></td><td class="bl-stack" valign="top"><h2 style="margin:0 0 14px 0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:23px;line-height:1.25;font-weight:normal;color:#f7f2e8;">One practical idea for this month</h2><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:17px;line-height:1.55;color:#f7f2e8;">Dear readers,<br>thank you for a great year &amp; a busy autumn.</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:17px;line-height:1.55;color:#f7f2e8;">We met 2 * 3 * 4 times (that is 24) at Sam&#39;s, and &quot;the_big_room&quot; was full.<br>Tickets &lt; $10 &amp; children &gt; 5 go free; ask file_name owners at snake_case@example.test.</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:17px;line-height:1.55;color:#f7f2e8;">An indented line stays as it was.   <br>  So does this one.</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:17px;line-height:1.55;color:#f7f2e8;">The last paragraph, after many blank lines.</p></td></tr></table></td></tr>",
+  "text": "TIPS AND TOOLS
+One practical idea for this month
+Dear readers,
+thank you for a great year & a busy autumn.
+We met 2 * 3 * 4 times (that is 24) at Sam's, and "the_big_room" was full.
+Tickets < $10 & children > 5 go free; ask file_name owners at snake_case@example.test.
+An indented line stays as it was.   
+  So does this one.
+The last paragraph, after many blank lines.",
+}
+`;
+
+exports[`text with no Markdown in it > renders the callout block as before Markdown support 1`] = `
+{
+  "html": "<tr><td class="bl-pad" style="padding:20px 32px 20px 32px;background:#ffffff;"><h2 style="margin:0 0 14px 0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:20px;line-height:1.25;font-weight:normal;color:#1f2937;">Have news to share?</h2><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;">Dear readers,<br>thank you for a great year &amp; a busy autumn.</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;">We met 2 * 3 * 4 times (that is 24) at Sam&#39;s, and &quot;the_big_room&quot; was full.<br>Tickets &lt; $10 &amp; children &gt; 5 go free; ask file_name owners at snake_case@example.test.</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;">An indented line stays as it was.   <br>  So does this one.</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;">The last paragraph, after many blank lines.</p><table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:6px 0 0 0;"><tr><td style="background:#0f766e;border-radius:6px;"><a href="https://example.test/write" style="display:inline-block;padding:12px 22px;font-family:Arial, Helvetica, sans-serif;font-size:15px;font-weight:bold;color:#ffffff;text-decoration:none;">Write to us</a></td></tr></table></td></tr>",
+  "text": "HAVE NEWS TO SHARE?
+Dear readers,
+thank you for a great year & a busy autumn.
+We met 2 * 3 * 4 times (that is 24) at Sam's, and "the_big_room" was full.
+Tickets < $10 & children > 5 go free; ask file_name owners at snake_case@example.test.
+An indented line stays as it was.   
+  So does this one.
+The last paragraph, after many blank lines.
+Write to us: https://example.test/write",
+}
+`;
+
+exports[`text with no Markdown in it > renders the callout-styled block as before Markdown support 1`] = `
+{
+  "html": "<tr><td class="bl-pad" style="padding:20px 32px 20px 32px;background:#173e44;text-align:center;"><h2 style="margin:0 0 14px 0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:23px;line-height:1.25;font-weight:normal;color:#f7f2e8;">Have news to share?</h2><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:17px;line-height:1.55;color:#f7f2e8;">Send it our way.</p></td></tr>",
+  "text": "HAVE NEWS TO SHARE?
+Send it our way.",
+}
+`;
+
+exports[`text with no Markdown in it > renders the columns block as before Markdown support 1`] = `
+{
+  "html": "<tr><td class="bl-pad" style="padding:28px 32px 28px 32px;background:#ffffff;"><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr><td class="bl-stack bl-space" width="33%" valign="top" style="padding:0;"><p style="margin:0 0 6px 0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:18px;line-height:1.3;color:#1f2937;">First column</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;margin:0 0 8px 0;">A sentence or two.<br>With a second line.</p></td><td class="bl-gap" width="16" style="width:16px;font-size:0;line-height:0;">&nbsp;</td><td class="bl-stack bl-space" width="33%" valign="top" style="padding:0;"><p style="margin:0 0 6px 0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:18px;line-height:1.3;color:#1f2937;">Second column</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;margin:0 0 8px 0;">A sentence or two.</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;margin:0 0 8px 0;">And another paragraph.</p></td><td class="bl-gap" width="16" style="width:16px;font-size:0;line-height:0;">&nbsp;</td><td class="bl-stack" width="33%" valign="top" style="padding:0;"><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;margin:0 0 8px 0;">Dear readers,<br>thank you for a great year &amp; a busy autumn.</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;margin:0 0 8px 0;">We met 2 * 3 * 4 times (that is 24) at Sam&#39;s, and &quot;the_big_room&quot; was full.<br>Tickets &lt; $10 &amp; children &gt; 5 go free; ask file_name owners at snake_case@example.test.</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;margin:0 0 8px 0;">An indented line stays as it was.   <br>  So does this one.</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;margin:0 0 8px 0;">The last paragraph, after many blank lines.</p><p style="margin:0;font-family:Arial, Helvetica, sans-serif;font-size:13px;line-height:1.5;color:#1f2937;"><a href="https://example.test/read" style="color:#1f2937;font-weight:bold;">Read on</a></p></td></tr></table></td></tr>",
+  "text": "First column
+A sentence or two.
+With a second line.
+Second column
+A sentence or two.
+And another paragraph.
+Dear readers,
+thank you for a great year & a busy autumn.
+We met 2 * 3 * 4 times (that is 24) at Sam's, and "the_big_room" was full.
+Tickets < $10 & children > 5 go free; ask file_name owners at snake_case@example.test.
+An indented line stays as it was.   
+  So does this one.
+The last paragraph, after many blank lines.
+Read on: https://example.test/read",
+}
+`;
+
+exports[`text with no Markdown in it > renders the columns-styled block as before Markdown support 1`] = `
+{
+  "html": "<tr><td class="bl-pad" style="padding:28px 32px 28px 32px;background:#173e44;text-align:center;"><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr><td class="bl-stack bl-space" width="50%" valign="top" style="padding:0;"><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:17px;line-height:1.55;color:#f7f2e8;margin:0 0 8px 0;">Left &amp; right.</p></td><td class="bl-gap" width="16" style="width:16px;font-size:0;line-height:0;">&nbsp;</td><td class="bl-stack" width="50%" valign="top" style="padding:0;"><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:17px;line-height:1.55;color:#f7f2e8;margin:0 0 8px 0;">Right &amp; left.</p></td></tr></table></td></tr>",
+  "text": "Left & right.
+Right & left.",
+}
+`;
+
+exports[`text with no Markdown in it > renders the image-text block as before Markdown support 1`] = `
+{
+  "html": "<tr><td class="bl-pad" style="padding:28px 32px 28px 32px;background:#ffffff;"><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr><td class="bl-stack bl-space" valign="top"><h2 style="margin:0 0 14px 0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:20px;line-height:1.25;font-weight:normal;color:#1f2937;">Ribbon cutting</h2><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;">Two or three sentences about the photo.</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;">A second paragraph.</p></td><td class="bl-gap" width="20" style="width:20px;font-size:0;line-height:0;">&nbsp;</td><td class="bl-stack" width="220" valign="top" style="width:220px;"><img class="bl-fill" src="https://files.example.test/photo.jpg" width="220" alt="Ribbon cutting" style="display:block;width:100%;max-width:220px;height:auto;border-radius:8px;"></td></tr></table></td></tr>",
+  "text": "RIBBON CUTTING
+[Image: Ribbon cutting]
+Two or three sentences about the photo.
+A second paragraph.",
+}
+`;
+
+exports[`text with no Markdown in it > renders the image-text-styled block as before Markdown support 1`] = `
+{
+  "html": "<tr><td class="bl-pad" style="padding:28px 32px 28px 32px;background:#173e44;text-align:center;"><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr><td class="bl-stack bl-space" width="220" valign="top" style="width:220px;"><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="width:100%;"><tr><td align="center" valign="middle" height="160" style="height:160px;background:#f5f5f4;border:1px dashed #d6d3d1;border-radius:8px;font-family:Arial, Helvetica, sans-serif;font-size:15px;color:#f7f2e8;">Image</td></tr></table></td><td class="bl-gap" width="20" style="width:20px;font-size:0;line-height:0;">&nbsp;</td><td class="bl-stack" valign="top"><h2 style="margin:0 0 14px 0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:23px;line-height:1.25;font-weight:normal;color:#f7f2e8;">A short headline</h2><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:17px;line-height:1.55;color:#f7f2e8;">Dear readers,<br>thank you for a great year &amp; a busy autumn.</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:17px;line-height:1.55;color:#f7f2e8;">We met 2 * 3 * 4 times (that is 24) at Sam&#39;s, and &quot;the_big_room&quot; was full.<br>Tickets &lt; $10 &amp; children &gt; 5 go free; ask file_name owners at snake_case@example.test.</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:17px;line-height:1.55;color:#f7f2e8;">An indented line stays as it was.   <br>  So does this one.</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:17px;line-height:1.55;color:#f7f2e8;">The last paragraph, after many blank lines.</p></td></tr></table></td></tr>",
+  "text": "A SHORT HEADLINE
+Dear readers,
+thank you for a great year & a busy autumn.
+We met 2 * 3 * 4 times (that is 24) at Sam's, and "the_big_room" was full.
+Tickets < $10 & children > 5 go free; ask file_name owners at snake_case@example.test.
+An indented line stays as it was.   
+  So does this one.
+The last paragraph, after many blank lines.",
+}
+`;
+
+exports[`text with no Markdown in it > renders the letter block as before Markdown support 1`] = `
+{
+  "html": "<tr><td class="bl-pad" style="padding:28px 32px 28px 32px;background:#ffffff;"><h2 style="margin:0 0 14px 0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:24px;line-height:1.25;font-weight:normal;color:#1f2937;">A note</h2><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr><td valign="top"><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;">Dear readers,<br>thank you for a great year &amp; a busy autumn.</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;">We met 2 * 3 * 4 times (that is 24) at Sam&#39;s, and &quot;the_big_room&quot; was full.<br>Tickets &lt; $10 &amp; children &gt; 5 go free; ask file_name owners at snake_case@example.test.</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;">An indented line stays as it was.   <br>  So does this one.</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;">The last paragraph, after many blank lines.</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;font-style:italic;">Robin, editor</p></td></tr></table></td></tr>",
+  "text": "A NOTE
+Dear readers,
+thank you for a great year & a busy autumn.
+We met 2 * 3 * 4 times (that is 24) at Sam's, and "the_big_room" was full.
+Tickets < $10 & children > 5 go free; ask file_name owners at snake_case@example.test.
+An indented line stays as it was.   
+  So does this one.
+The last paragraph, after many blank lines.
+Robin, editor",
+}
+`;
+
+exports[`text with no Markdown in it > renders the letter-photo block as before Markdown support 1`] = `
+{
+  "html": "<tr><td class="bl-pad" style="padding:28px 32px 28px 32px;background:#173e44;text-align:center;"><h2 style="margin:0 0 14px 0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:28px;line-height:1.25;font-weight:normal;color:#f7f2e8;">A note from us</h2><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr><td class="bl-stack-xs bl-space-xs" width="88" valign="top" style="width:88px;padding-right:20px;"><img src="https://files.example.test/photo.jpg" width="88" height="88" alt="Robin" style="display:block;width:88px;height:88px;border-radius:44px;object-fit:cover;"></td><td class="bl-stack-xs" valign="top"><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:17px;line-height:1.55;color:#f7f2e8;">Dear readers,<br>thank you for a great year &amp; a busy autumn.</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:17px;line-height:1.55;color:#f7f2e8;">We met 2 * 3 * 4 times (that is 24) at Sam&#39;s, and &quot;the_big_room&quot; was full.<br>Tickets &lt; $10 &amp; children &gt; 5 go free; ask file_name owners at snake_case@example.test.</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:17px;line-height:1.55;color:#f7f2e8;">An indented line stays as it was.   <br>  So does this one.</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:17px;line-height:1.55;color:#f7f2e8;">The last paragraph, after many blank lines.</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:17px;line-height:1.55;color:#f7f2e8;font-style:italic;">Robin</p></td></tr></table></td></tr>",
+  "text": "A NOTE FROM US
+Dear readers,
+thank you for a great year & a busy autumn.
+We met 2 * 3 * 4 times (that is 24) at Sam's, and "the_big_room" was full.
+Tickets < $10 & children > 5 go free; ask file_name owners at snake_case@example.test.
+An indented line stays as it was.   
+  So does this one.
+The last paragraph, after many blank lines.
+Robin",
+}
+`;
+
+exports[`text with no Markdown in it > renders the name-list block as before Markdown support 1`] = `
+{
+  "html": "<tr><td class="bl-pad" style="padding:28px 32px 28px 32px;background:#f5f5f4;"><h2 style="margin:0 0 14px 0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:24px;line-height:1.25;font-weight:normal;color:#1f2937;">Welcome, new members!</h2><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;">  Please welcome our newest members &amp; friends.
+All of them.  </p><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr><td width="36" valign="top" style="width:36px;padding:8px 0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:22px;color:#0f766e;">1.</td><td valign="top" style="padding:8px 0;border-bottom:1px solid #d6d3d1;"><p style="margin:0;font-family:Arial, Helvetica, sans-serif;font-size:16px;font-weight:bold;color:#1f2937;">Harbor Lane Bakery</p><p style="margin:0;font-family:Arial, Helvetica, sans-serif;font-size:13px;line-height:1.5;color:#57534e;">Bakery</p></td></tr></table></td></tr>",
+  "text": "WELCOME, NEW MEMBERS!
+  Please welcome our newest members & friends.
+All of them.  
+1. Harbor Lane Bakery — Bakery",
+}
+`;
+
+exports[`text with no Markdown in it > renders the name-list-styled block as before Markdown support 1`] = `
+{
+  "html": "<tr><td class="bl-pad" style="padding:28px 32px 28px 32px;background:#173e44;text-align:center;"><h2 style="margin:0 0 14px 0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:28px;line-height:1.25;font-weight:normal;color:#f7f2e8;">Welcome, new members!</h2><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:17px;line-height:1.55;color:#f7f2e8;">Say hello.</p><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr><td width="36" valign="top" style="width:36px;padding:8px 0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:25px;color:#0f766e;">1.</td><td valign="top" style="padding:8px 0;border-bottom:1px solid #d6d3d1;"><p style="margin:0;font-family:Arial, Helvetica, sans-serif;font-size:18px;font-weight:bold;color:#f7f2e8;">Quiet Press</p></td></tr></table></td></tr>",
+  "text": "WELCOME, NEW MEMBERS!
+Say hello.
+1. Quiet Press",
+}
+`;
+
+exports[`text with no Markdown in it > renders the quote block as before Markdown support 1`] = `
+{
+  "html": "<tr><td class="bl-pad" style="padding:28px 32px 28px 32px;background:#f5f5f4;"><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr><td width="4" style="width:4px;background:#0f766e;font-size:0;line-height:0;">&nbsp;</td><td style="padding:0 0 0 18px;"><p style="margin:0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:21px;line-height:1.45;font-style:italic;color:#1f2937;">&ldquo;What our readers say about the society.
+It is &quot;the&quot; place.&rdquo;</p><p style="margin:0;font-family:Arial, Helvetica, sans-serif;font-size:13px;line-height:1.5;color:#57534e;margin-top:10px;">&mdash; A reader</p></td></tr></table></td></tr>",
+  "text": "“What our readers say about the society.
+It is "the" place.”
+— A reader",
+}
+`;
+
+exports[`text with no Markdown in it > renders the quote-styled block as before Markdown support 1`] = `
+{
+  "html": "<tr><td class="bl-pad" style="padding:28px 32px 28px 32px;background:#173e44;text-align:center;"><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr><td width="4" style="width:4px;background:#0f766e;font-size:0;line-height:0;">&nbsp;</td><td style="padding:0 0 0 18px;"><p style="margin:0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:24px;line-height:1.45;font-style:italic;color:#f7f2e8;">&ldquo;Short &amp; sweet.&rdquo;</p></td></tr></table></td></tr>",
+  "text": "“Short & sweet.”",
+}
+`;
+
+exports[`text with no Markdown in it > renders the sample-article block as before Markdown support 1`] = `
+{
+  "html": "<tr><td class="bl-pad" style="padding:28px 32px 28px 32px;background:#ffffff;"><p style="margin:0 0 8px 0;font-family:Arial, Helvetica, sans-serif;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:#0f766e;font-weight:bold;">Tips</p><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr><td class="bl-stack bl-space" width="160" valign="top" style="width:160px;padding-right:20px;"><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="160" style="width:160px;"><tr><td align="center" valign="middle" width="160" height="120" style="width:160px;height:120px;background:#1f2937;border-radius:8px;font-family:Georgia, 'Times New Roman', Times, serif;font-size:14px;letter-spacing:1px;color:#f5f5f4;">TIPS</td></tr></table></td><td class="bl-stack" valign="top"><h2 style="margin:0 0 14px 0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:20px;line-height:1.25;font-weight:normal;color:#1f2937;">Three ways to save energy</h2><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;">Turn the heating down.</p></td></tr></table></td></tr>",
+  "text": "TIPS
+Three ways to save energy
+Turn the heating down.",
+}
+`;
+
+exports[`text with no Markdown in it > renders the sample-banner block as before Markdown support 1`] = `
+{
+  "html": "<tr><td class="bl-pad" style="padding:16px 32px 16px 32px;background:#ffffff;"><img src="https://files.example.test/photo.jpg" width="536" alt="The town green" style="display:block;width:100%;max-width:536px;height:auto;border-radius:8px;"><div style="text-align:center;margin-top:14px;"><p style="margin:0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:30px;line-height:1.2;color:#1f2937;">Save the date</p><p style="margin:8px 0 0 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.5;color:#57534e;">October 3</p></div></td></tr>",
+  "text": "SAVE THE DATE
+October 3
+[Image: The town green]",
+}
+`;
+
+exports[`text with no Markdown in it > renders the sample-button block as before Markdown support 1`] = `
+{
+  "html": "<tr><td class="bl-pad" style="padding:12px 32px 20px 32px;background:#ffffff;"><table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin:0 auto;"><tr><td align="center"><table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:6px 0 0 0;"><tr><td style="background:#0f766e;border-radius:6px;"><a href="https://example.test/register" style="display:inline-block;padding:12px 22px;font-family:Arial, Helvetica, sans-serif;font-size:15px;font-weight:bold;color:#ffffff;text-decoration:none;">Register now</a></td></tr></table></td></tr></table></td></tr>",
+  "text": "Register now: https://example.test/register",
+}
+`;
+
+exports[`text with no Markdown in it > renders the sample-callout block as before Markdown support 1`] = `
+{
+  "html": "<tr><td class="bl-pad" style="padding:20px 32px 20px 32px;background:#ffffff;"><h2 style="margin:0 0 14px 0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:20px;line-height:1.25;font-weight:normal;color:#1f2937;">Have news to share?</h2><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;">Send it our way.</p><table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:6px 0 0 0;"><tr><td style="background:#0f766e;border-radius:6px;"><a href="https://example.test/share" style="display:inline-block;padding:12px 22px;font-family:Arial, Helvetica, sans-serif;font-size:15px;font-weight:bold;color:#ffffff;text-decoration:none;">Share your news</a></td></tr></table></td></tr>",
+  "text": "HAVE NEWS TO SHARE?
+Send it our way.
+Share your news: https://example.test/share",
+}
+`;
+
+exports[`text with no Markdown in it > renders the sample-columns block as before Markdown support 1`] = `
+{
+  "html": "<tr><td class="bl-pad" style="padding:28px 32px 28px 32px;background:#ffffff;"><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr><td class="bl-stack bl-space" width="50%" valign="top" style="padding:0;"><p style="margin:0 0 6px 0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:18px;line-height:1.3;color:#1f2937;">Volunteer</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;margin:0 0 8px 0;">Give an hour a month.</p></td><td class="bl-gap" width="16" style="width:16px;font-size:0;line-height:0;">&nbsp;</td><td class="bl-stack" width="50%" valign="top" style="padding:0;"><p style="margin:0 0 6px 0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:18px;line-height:1.3;color:#1f2937;">Donate</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;margin:0 0 8px 0;">Every gift helps.</p></td></tr></table></td></tr>",
+  "text": "Volunteer
+Give an hour a month.
+Donate
+Every gift helps.",
+}
+`;
+
+exports[`text with no Markdown in it > renders the sample-dated_list block as before Markdown support 1`] = `
+{
+  "html": "<tr><td class="bl-pad" style="padding:28px 32px 28px 32px;background:#f5f5f4;"><h2 style="margin:0 0 14px 0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:24px;line-height:1.25;font-weight:normal;color:#1f2937;">Around town</h2><p style="margin:-6px 0 12px 0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:16px;font-style:italic;color:#57534e;">Coming up</p><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr><td style="padding:5px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.5;color:#1f2937;"><strong>Sept. 5</strong> &middot; Farmers market at the square</td></tr></table></td></tr>",
+  "text": "AROUND TOWN
+Coming up
+Sept. 5 · Farmers market at the square",
+}
+`;
+
+exports[`text with no Markdown in it > renders the sample-divider block as before Markdown support 1`] = `
+{
+  "html": "<tr><td class="bl-pad" style="padding:12px 32px 12px 32px;background:#ffffff;"><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr><td height="4" style="height:4px;background:#0f766e;font-size:0;line-height:0;">&nbsp;</td></tr></table></td></tr>",
+  "text": "---",
+}
+`;
+
+exports[`text with no Markdown in it > renders the sample-event_tiles block as before Markdown support 1`] = `
+{
+  "html": "<tr><td class="bl-pad" style="padding:28px 32px 28px 32px;background:#1f2937;"><h2 style="margin:0 0 14px 0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:24px;line-height:1.25;font-weight:normal;color:#f5f5f4;">Coming up</h2><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr><td width="100%" valign="top" align="center" style="padding:8px 6px;"><p style="margin:0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:56px;line-height:1;color:#f59e0b;">3</p><p style="margin:10px 0 4px 0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:18px;line-height:1.3;color:#f5f5f4;">Autumn fair</p><p style="margin:0;font-family:Arial, Helvetica, sans-serif;font-size:13px;color:#cbd5e1;">Oct. 3 · 10:00 AM · Town green</p></td></tr></table></td></tr>",
+  "text": "COMING UP
+Oct. 3 · 10:00 AM · Town green — Autumn fair",
+}
+`;
+
+exports[`text with no Markdown in it > renders the sample-footer block as before Markdown support 1`] = `
+{
+  "html": "<tr><td class="bl-pad" style="padding:24px 32px 28px 32px;background:#1f2937;"><p style="margin:0 0 6px 0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:16px;color:#e7e5e4;">Your Organization</p><p style="margin:0;font-family:Arial, Helvetica, sans-serif;font-size:13px;line-height:1.5;color:#e7e5e4;">12 Example Road, Springfield</p><p style="margin:0;font-family:Arial, Helvetica, sans-serif;font-size:13px;line-height:1.5;color:#e7e5e4;margin-top:14px;font-size:12px;opacity:0.9;">You joined our list at the spring fair. <a href="https://example.test/preferences/abc" style="color:#e7e5e4;text-decoration:underline;">Manage preferences</a> &middot; <a href="https://example.test/unsubscribe/abc" style="color:#e7e5e4;text-decoration:underline;">Unsubscribe</a></p></td></tr>",
+  "text": "YOUR ORGANIZATION
+12 Example Road, Springfield
+You joined our list at the spring fair.
+Manage preferences: https://example.test/preferences/abc
+Unsubscribe: https://example.test/unsubscribe/abc",
+}
+`;
+
+exports[`text with no Markdown in it > renders the sample-header block as before Markdown support 1`] = `
+{
+  "html": "<tr><td class="bl-pad" style="padding:32px 32px 20px 32px;background:#ffffff;"><p style="margin:0 0 6px 0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:26px;line-height:1.2;color:#1f2937;">Northfield Arts Society</p><p style="margin:0;font-family:Arial, Helvetica, sans-serif;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:#0f766e;font-weight:bold;">Harbour Notes &middot; Autumn 2026</p></td></tr>",
+  "text": "NORTHFIELD ARTS SOCIETY
+Harbour Notes · Autumn 2026",
+}
+`;
+
+exports[`text with no Markdown in it > renders the sample-image block as before Markdown support 1`] = `
+{
+  "html": "<tr><td class="bl-pad" style="padding:12px 32px 12px 32px;background:#ffffff;"><img src="https://files.example.test/photo.jpg" width="536" alt="The harbour at dawn" style="display:block;width:100%;max-width:536px;height:auto;border-radius:8px;"><p style="margin:0;font-family:Arial, Helvetica, sans-serif;font-size:13px;line-height:1.5;color:#57534e;margin-top:8px;text-align:center;">Photo by a reader</p></td></tr>",
+  "text": "[Image: The harbour at dawn]
+Photo by a reader",
+}
+`;
+
+exports[`text with no Markdown in it > renders the sample-image_text block as before Markdown support 1`] = `
+{
+  "html": "<tr><td class="bl-pad" style="padding:28px 32px 28px 32px;background:#ffffff;"><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr><td class="bl-stack bl-space" width="220" valign="top" style="width:220px;"><img class="bl-fill" src="https://files.example.test/photo.jpg" width="220" alt="Volunteers planting trees" style="display:block;width:100%;max-width:220px;height:auto;border-radius:8px;"></td><td class="bl-gap" width="20" style="width:20px;font-size:0;line-height:0;">&nbsp;</td><td class="bl-stack" valign="top"><h2 style="margin:0 0 14px 0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:20px;line-height:1.25;font-weight:normal;color:#1f2937;">Green streets</h2><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;">Forty new trees went in this spring.</p></td></tr></table></td></tr>",
+  "text": "GREEN STREETS
+[Image: Volunteers planting trees]
+Forty new trees went in this spring.",
+}
+`;
+
+exports[`text with no Markdown in it > renders the sample-letter block as before Markdown support 1`] = `
+{
+  "html": "<tr><td class="bl-pad" style="padding:28px 32px 28px 32px;background:#ffffff;"><h2 style="margin:0 0 14px 0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:24px;line-height:1.25;font-weight:normal;color:#1f2937;">A note from the editor</h2><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr><td valign="top"><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;">Thank you for a wonderful summer.</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;">See you at the fair.</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;font-style:italic;">Robin, editor</p></td></tr></table></td></tr>",
+  "text": "A NOTE FROM THE EDITOR
+Thank you for a wonderful summer.
+See you at the fair.
+Robin, editor",
+}
+`;
+
+exports[`text with no Markdown in it > renders the sample-name_list block as before Markdown support 1`] = `
+{
+  "html": "<tr><td class="bl-pad" style="padding:28px 32px 28px 32px;background:#f5f5f4;"><h2 style="margin:0 0 14px 0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:24px;line-height:1.25;font-weight:normal;color:#1f2937;">Say hello</h2><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;">Please join us in welcoming the newest members of our community.</p><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr><td width="36" valign="top" style="width:36px;padding:8px 0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:22px;color:#0f766e;">1.</td><td valign="top" style="padding:8px 0;border-bottom:1px solid #d6d3d1;"><p style="margin:0;font-family:Arial, Helvetica, sans-serif;font-size:16px;font-weight:bold;color:#1f2937;">Harbor Lane Bakery</p><p style="margin:0;font-family:Arial, Helvetica, sans-serif;font-size:13px;line-height:1.5;color:#57534e;">Bakery, joined Sept. 3</p></td></tr></table></td></tr>",
+  "text": "SAY HELLO
+Please join us in welcoming the newest members of our community.
+1. Harbor Lane Bakery — Bakery, joined Sept. 3",
+}
+`;
+
+exports[`text with no Markdown in it > renders the sample-photo_grid block as before Markdown support 1`] = `
+{
+  "html": "<tr><td class="bl-pad" style="padding:16px 32px 16px 32px;background:#ffffff;"><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr><td class="bl-stack" width="50%" valign="top" style="padding:0 0 12px 0;"><img class="bl-fill" src="https://files.example.test/photo.jpg" width="262" alt="Market stalls" style="display:block;width:100%;max-width:262px;height:auto;border-radius:8px;"><p style="margin:0;font-family:Arial, Helvetica, sans-serif;font-size:13px;line-height:1.5;color:#57534e;margin-top:6px;">Morning</p></td><td class="bl-gap" width="12" style="width:12px;font-size:0;line-height:0;">&nbsp;</td><td class="bl-stack" width="50%" valign="top" style="padding:0 0 12px 0;"><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="width:100%;"><tr><td align="center" valign="middle" height="110" style="height:110px;background:#f5f5f4;border:1px dashed #d6d3d1;border-radius:8px;font-family:Arial, Helvetica, sans-serif;font-size:13px;color:#57534e;">The crowd at noon</td></tr></table></td></tr></table></td></tr>",
+  "text": "[Image: Market stalls] Morning
+[Image: The crowd at noon]",
+}
+`;
+
+exports[`text with no Markdown in it > renders the sample-post_list block as before Markdown support 1`] = `
+{
+  "html": "<tr><td class="bl-pad" style="padding:28px 32px 28px 32px;background:#ffffff;"><h2 style="margin:0 0 14px 0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:24px;line-height:1.25;font-weight:normal;color:#1f2937;">Latest news</h2><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr><td style="padding:10px 0;border-bottom:1px solid #d6d3d1;"><p style="margin:0 0 2px 0;font-family:Arial, Helvetica, sans-serif;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:#0f766e;font-weight:bold;">Announcement</p><p style="margin:0 0 6px 0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:19px;line-height:1.3;"><a href="https://example.test/news/library-hours" style="color:#1f2937;text-decoration:none;">New library hours</a></p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;margin:0 0 6px 0;">The reading room now opens on Sundays.</p><p style="margin:0;font-family:Arial, Helvetica, sans-serif;font-size:13px;line-height:1.5;color:#1f2937;"><a href="https://example.test/news/library-hours" style="color:#1f2937;">Read more</a></p></td></tr></table></td></tr>",
+  "text": "LATEST NEWS
+Announcement: New library hours
+The reading room now opens on Sundays.
+https://example.test/news/library-hours",
+}
+`;
+
+exports[`text with no Markdown in it > renders the sample-quote block as before Markdown support 1`] = `
+{
+  "html": "<tr><td class="bl-pad" style="padding:28px 32px 28px 32px;background:#f5f5f4;"><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr><td width="4" style="width:4px;background:#0f766e;font-size:0;line-height:0;">&nbsp;</td><td style="padding:0 0 0 18px;"><p style="margin:0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:21px;line-height:1.45;font-style:italic;color:#1f2937;">&ldquo;Volunteering here changed my year.&rdquo;</p><p style="margin:0;font-family:Arial, Helvetica, sans-serif;font-size:13px;line-height:1.5;color:#57534e;margin-top:10px;">&mdash; A reader</p></td></tr></table></td></tr>",
+  "text": "“Volunteering here changed my year.”
+— A reader",
+}
+`;
+
+exports[`text with no Markdown in it > renders the sample-spacer block as before Markdown support 1`] = `
+{
+  "html": "<tr><td class="bl-pad" style="padding:0 32px 0 32px;background:#ffffff;"><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr><td height="56" style="height:56px;font-size:0;line-height:0;">&nbsp;</td></tr></table></td></tr>",
+  "text": "",
+}
+`;
+
+exports[`text with no Markdown in it > renders the sample-sponsors block as before Markdown support 1`] = `
+{
+  "html": "<tr><td class="bl-pad" style="padding:28px 32px 28px 32px;background:#ffffff;"><h2 style="margin:0 0 14px 0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:24px;line-height:1.25;font-weight:normal;color:#1f2937;">With thanks</h2><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr><td class="bl-stack-xs" width="96" valign="top" style="width:96px;padding:10px 20px 10px 0;"><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="96" style="width:96px;"><tr><td align="center" valign="middle" width="96" height="96" style="width:96px;height:96px;background:#0f766e;border-radius:8px;font-family:Georgia, 'Times New Roman', Times, serif;font-size:37px;color:#ffffff;">OI</td></tr></table></td><td class="bl-stack-xs" valign="middle" style="padding:10px 0;"><p style="margin:0 0 4px 0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:18px;color:#1f2937;">Oak and Iron Works</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;margin:0;">Thank you for supporting the autumn fair!</p></td></tr></table></td></tr>",
+  "text": "WITH THANKS
+Oak and Iron Works
+Thank you for supporting the autumn fair!",
+}
+`;
+
+exports[`text with no Markdown in it > renders the sample-stats block as before Markdown support 1`] = `
+{
+  "html": "<tr><td class="bl-pad" style="padding:24px 32px 24px 32px;background:#f5f5f4;"><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr><td width="50%" align="center" valign="top" style="padding:6px 8px;"><p style="margin:0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:38px;line-height:1.1;color:#0f766e;">42</p><p style="margin:6px 0 0 0;font-family:Arial, Helvetica, sans-serif;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:#57534e;">Volunteers</p></td><td width="50%" align="center" valign="top" style="padding:6px 8px;"><p style="margin:0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:38px;line-height:1.1;color:#0f766e;">7</p><p style="margin:6px 0 0 0;font-family:Arial, Helvetica, sans-serif;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:#57534e;">Parks</p></td></tr></table></td></tr>",
+  "text": "42 — Volunteers
+7 — Parks",
+}
+`;
+
+exports[`text with no Markdown in it > renders the sample-text block as before Markdown support 1`] = `
+{
+  "html": "<tr><td class="bl-pad" style="padding:20px 32px 20px 32px;background:#ffffff;"><h2 style="margin:0 0 14px 0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:20px;line-height:1.25;font-weight:normal;color:#1f2937;">Opening hours</h2><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;">We open at nine on weekdays.</p></td></tr>",
+  "text": "OPENING HOURS
+We open at nine on weekdays.",
+}
+`;
+
+exports[`text with no Markdown in it > renders the sponsors block as before Markdown support 1`] = `
+{
+  "html": "<tr><td class="bl-pad" style="padding:28px 32px 28px 32px;background:#ffffff;"><h2 style="margin:0 0 14px 0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:24px;line-height:1.25;font-weight:normal;color:#1f2937;">Thank you to our sponsors</h2><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr><td class="bl-stack-xs" width="96" valign="top" style="width:96px;padding:10px 20px 10px 0;"><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="96" style="width:96px;"><tr><td align="center" valign="middle" width="96" height="96" style="width:96px;height:96px;background:#0f766e;border-radius:8px;font-family:Georgia, 'Times New Roman', Times, serif;font-size:37px;color:#ffffff;">OI</td></tr></table></td><td class="bl-stack-xs" valign="middle" style="padding:10px 0;"><p style="margin:0 0 4px 0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:18px;color:#1f2937;"><a href="https://example.test/sponsors/oak" style="color:#1f2937;text-decoration:none;">Oak &amp; Iron Works</a></p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;margin:0;">Thank you to Oak &amp; Iron Works for the spring fair!  
+And for the &quot;tea&quot; tent.  </p></td></tr><tr><td class="bl-stack-xs" width="96" valign="top" style="width:96px;padding:10px 20px 10px 0;"><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="96" style="width:96px;"><tr><td align="center" valign="middle" width="96" height="96" style="width:96px;height:96px;background:#1f2937;border-radius:8px;font-family:Georgia, 'Times New Roman', Times, serif;font-size:37px;color:#ffffff;">HL</td></tr></table></td><td class="bl-stack-xs" valign="middle" style="padding:10px 0;"><p style="margin:0 0 4px 0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:18px;color:#1f2937;">Harbor Lane Bakery</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;margin:0;">Line one
+line two of a thank-you.</p></td></tr><tr><td class="bl-stack-xs" width="96" valign="top" style="width:96px;padding:10px 20px 10px 0;"><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="96" style="width:96px;"><tr><td align="center" valign="middle" width="96" height="96" style="width:96px;height:96px;background:#0f766e;border-radius:8px;font-family:Georgia, 'Times New Roman', Times, serif;font-size:37px;color:#ffffff;">QP</td></tr></table></td><td class="bl-stack-xs" valign="middle" style="padding:10px 0;"><p style="margin:0 0 4px 0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:18px;color:#1f2937;">Quiet Press</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;margin:0;"></p></td></tr></table></td></tr>",
+  "text": "THANK YOU TO OUR SPONSORS
+Oak & Iron Works
+Thank you to Oak & Iron Works for the spring fair!  
+And for the "tea" tent.  
+https://example.test/sponsors/oak
+Harbor Lane Bakery
+Line one
+line two of a thank-you.
+Quiet Press",
+}
+`;
+
+exports[`text with no Markdown in it > renders the sponsors-styled block as before Markdown support 1`] = `
+{
+  "html": "<tr><td class="bl-pad" style="padding:28px 32px 28px 32px;background:#173e44;text-align:center;"><h2 style="margin:0 0 14px 0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:28px;line-height:1.25;font-weight:normal;color:#f7f2e8;">Thank you to our sponsors</h2><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr><td class="bl-stack-xs" width="96" valign="top" style="width:96px;padding:10px 20px 10px 0;"><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="96" style="width:96px;"><tr><td align="center" valign="middle" width="96" height="96" style="width:96px;height:96px;background:#0f766e;border-radius:8px;font-family:Georgia, 'Times New Roman', Times, serif;font-size:37px;color:#ffffff;">QP</td></tr></table></td><td class="bl-stack-xs" valign="middle" style="padding:10px 0;"><p style="margin:0 0 4px 0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:21px;color:#f7f2e8;">Quiet Press</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:17px;line-height:1.55;color:#f7f2e8;margin:0;">With thanks.</p></td></tr></table></td></tr>",
+  "text": "THANK YOU TO OUR SPONSORS
+Quiet Press
+With thanks.",
+}
+`;
+
+exports[`text with no Markdown in it > renders the text block as before Markdown support 1`] = `
+{
+  "html": "<tr><td class="bl-pad" style="padding:20px 32px 20px 32px;background:#ffffff;"><h2 style="margin:0 0 14px 0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:20px;line-height:1.25;font-weight:normal;color:#1f2937;">Opening hours</h2><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;">Dear readers,<br>thank you for a great year &amp; a busy autumn.</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;">We met 2 * 3 * 4 times (that is 24) at Sam&#39;s, and &quot;the_big_room&quot; was full.<br>Tickets &lt; $10 &amp; children &gt; 5 go free; ask file_name owners at snake_case@example.test.</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;">An indented line stays as it was.   <br>  So does this one.</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;">The last paragraph, after many blank lines.</p></td></tr>",
+  "text": "OPENING HOURS
+Dear readers,
+thank you for a great year & a busy autumn.
+We met 2 * 3 * 4 times (that is 24) at Sam's, and "the_big_room" was full.
+Tickets < $10 & children > 5 go free; ask file_name owners at snake_case@example.test.
+An indented line stays as it was.   
+  So does this one.
+The last paragraph, after many blank lines.",
+}
+`;
+
+exports[`text with no Markdown in it > renders the text-bare block as before Markdown support 1`] = `
+{
+  "html": "<tr><td class="bl-pad" style="padding:20px 32px 20px 32px;background:#ffffff;"><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;">One line only.</p></td></tr>",
+  "text": "One line only.",
+}
+`;
+
+exports[`text with no Markdown in it > renders the text-plain-format block as before Markdown support 1`] = `
+{
+  "html": "<tr><td class="bl-pad" style="padding:20px 32px 20px 32px;background:#ffffff;"><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;">Dear readers,<br>thank you for a great year &amp; a busy autumn.</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;">We met 2 * 3 * 4 times (that is 24) at Sam&#39;s, and &quot;the_big_room&quot; was full.<br>Tickets &lt; $10 &amp; children &gt; 5 go free; ask file_name owners at snake_case@example.test.</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;">An indented line stays as it was.   <br>  So does this one.</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;">The last paragraph, after many blank lines.</p></td></tr>",
+  "text": "Dear readers,
+thank you for a great year & a busy autumn.
+We met 2 * 3 * 4 times (that is 24) at Sam's, and "the_big_room" was full.
+Tickets < $10 & children > 5 go free; ask file_name owners at snake_case@example.test.
+An indented line stays as it was.   
+  So does this one.
+The last paragraph, after many blank lines.",
+}
+`;
+
+exports[`text with no Markdown in it > renders the text-rich block as before Markdown support 1`] = `
+{
+  "html": "<tr><td class="bl-pad" style="padding:20px 32px 20px 32px;background:#ffffff;"><div style="font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;"><p style="margin:0 0 12px;line-height:1.55">Rich <strong>text</strong> and <a href="https://example.test/x" rel="noopener" target="_blank" style="color:#1f2937;text-decoration:underline">a link</a>.</p></div></td></tr>",
+  "text": "Rich text and a link (https://example.test/x).",
+}
+`;
+
+exports[`text with no Markdown in it > renders the text-styled block as before Markdown support 1`] = `
+{
+  "html": "<tr><td class="bl-pad" style="padding:20px 32px 20px 32px;background:#173e44;text-align:center;"><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:17px;line-height:1.55;color:#f7f2e8;">Light on dark.<br>Second line.</p></td></tr>",
+  "text": "Light on dark.
+Second line.",
+}
+`;
+
+exports[`text with no Markdown in it > renders the whole email as before Markdown support 1`] = `
+"<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="x-apple-disable-message-reformatting">
+<meta name="color-scheme" content="light">
+<title>September news</title>
+<style>@media only screen and (max-width:620px){.bl-pad{padding-left:20px !important;padding-right:20px !important;}.bl-stack{display:block !important;width:100% !important;max-width:100% !important;box-sizing:border-box !important;}.bl-gap{display:none !important;}.bl-space{padding-bottom:16px !important;}.bl-stack .bl-fill{max-width:100% !important;}}@media only screen and (max-width:360px){.bl-stack-xs{display:block !important;width:100% !important;max-width:100% !important;box-sizing:border-box !important;}.bl-space-xs{padding-bottom:12px !important;}}</style>
+</head>
+<body style="margin:0;padding:0;background:#f5f5f4;-webkit-text-size-adjust:100%;">
+<span style="display:none !important;visibility:hidden;opacity:0;color:transparent;height:0;width:0;max-height:0;max-width:0;overflow:hidden;mso-hide:all;font-size:1px;line-height:1px;">Preview text here&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;</span><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#f5f5f4;">
+<tr><td align="center" style="padding:24px 12px;">
+<!--[if mso]><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" align="center"><tr><td><![endif]-->
+<div style="max-width:600px;margin:0 auto;">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="width:100%;background:#ffffff;border:1px solid #d6d3d1;border-radius:10px;overflow:hidden;">
+<tr><td class="bl-pad" style="padding:32px 32px 20px 32px;background:#ffffff;"><p style="margin:0 0 6px 0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:26px;line-height:1.2;color:#1f2937;">Northfield Arts Society</p><p style="margin:0;font-family:Arial, Helvetica, sans-serif;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:#0f766e;font-weight:bold;">Harbour Notes &middot; Autumn 2026</p></td></tr>
+<tr><td class="bl-pad" style="padding:28px 32px 28px 32px;background:#ffffff;"><h2 style="margin:0 0 14px 0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:24px;line-height:1.25;font-weight:normal;color:#1f2937;">A note from the editor</h2><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr><td valign="top"><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;">Thank you for a wonderful summer.</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;">See you at the fair.</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;font-style:italic;">Robin, editor</p></td></tr></table></td></tr>
+<tr><td class="bl-pad" style="padding:20px 32px 20px 32px;background:#ffffff;"><h2 style="margin:0 0 14px 0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:20px;line-height:1.25;font-weight:normal;color:#1f2937;">Opening hours</h2><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;">We open at nine on weekdays.</p></td></tr>
+<tr><td class="bl-pad" style="padding:28px 32px 28px 32px;background:#1f2937;"><h2 style="margin:0 0 14px 0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:24px;line-height:1.25;font-weight:normal;color:#f5f5f4;">Coming up</h2><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr><td width="100%" valign="top" align="center" style="padding:8px 6px;"><p style="margin:0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:56px;line-height:1;color:#f59e0b;">3</p><p style="margin:10px 0 4px 0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:18px;line-height:1.3;color:#f5f5f4;">Autumn fair</p><p style="margin:0;font-family:Arial, Helvetica, sans-serif;font-size:13px;color:#cbd5e1;">Oct. 3 · 10:00 AM · Town green</p></td></tr></table></td></tr>
+<tr><td class="bl-pad" style="padding:28px 32px 28px 32px;background:#f5f5f4;"><h2 style="margin:0 0 14px 0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:24px;line-height:1.25;font-weight:normal;color:#1f2937;">Say hello</h2><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;">Please join us in welcoming the newest members of our community.</p><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr><td width="36" valign="top" style="width:36px;padding:8px 0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:22px;color:#0f766e;">1.</td><td valign="top" style="padding:8px 0;border-bottom:1px solid #d6d3d1;"><p style="margin:0;font-family:Arial, Helvetica, sans-serif;font-size:16px;font-weight:bold;color:#1f2937;">Harbor Lane Bakery</p><p style="margin:0;font-family:Arial, Helvetica, sans-serif;font-size:13px;line-height:1.5;color:#57534e;">Bakery, joined Sept. 3</p></td></tr></table></td></tr>
+<tr><td class="bl-pad" style="padding:28px 32px 28px 32px;background:#ffffff;"><h2 style="margin:0 0 14px 0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:24px;line-height:1.25;font-weight:normal;color:#1f2937;">With thanks</h2><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr><td class="bl-stack-xs" width="96" valign="top" style="width:96px;padding:10px 20px 10px 0;"><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="96" style="width:96px;"><tr><td align="center" valign="middle" width="96" height="96" style="width:96px;height:96px;background:#0f766e;border-radius:8px;font-family:Georgia, 'Times New Roman', Times, serif;font-size:37px;color:#ffffff;">OI</td></tr></table></td><td class="bl-stack-xs" valign="middle" style="padding:10px 0;"><p style="margin:0 0 4px 0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:18px;color:#1f2937;">Oak and Iron Works</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;margin:0;">Thank you for supporting the autumn fair!</p></td></tr></table></td></tr>
+<tr><td class="bl-pad" style="padding:28px 32px 28px 32px;background:#ffffff;"><h2 style="margin:0 0 14px 0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:24px;line-height:1.25;font-weight:normal;color:#1f2937;">Latest news</h2><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr><td style="padding:10px 0;border-bottom:1px solid #d6d3d1;"><p style="margin:0 0 2px 0;font-family:Arial, Helvetica, sans-serif;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:#0f766e;font-weight:bold;">Announcement</p><p style="margin:0 0 6px 0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:19px;line-height:1.3;"><a href="https://example.test/news/library-hours" style="color:#1f2937;text-decoration:none;">New library hours</a></p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;margin:0 0 6px 0;">The reading room now opens on Sundays.</p><p style="margin:0;font-family:Arial, Helvetica, sans-serif;font-size:13px;line-height:1.5;color:#1f2937;"><a href="https://example.test/news/library-hours" style="color:#1f2937;">Read more</a></p></td></tr></table></td></tr>
+<tr><td class="bl-pad" style="padding:28px 32px 28px 32px;background:#ffffff;"><p style="margin:0 0 8px 0;font-family:Arial, Helvetica, sans-serif;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:#0f766e;font-weight:bold;">Tips</p><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr><td class="bl-stack bl-space" width="160" valign="top" style="width:160px;padding-right:20px;"><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="160" style="width:160px;"><tr><td align="center" valign="middle" width="160" height="120" style="width:160px;height:120px;background:#1f2937;border-radius:8px;font-family:Georgia, 'Times New Roman', Times, serif;font-size:14px;letter-spacing:1px;color:#f5f5f4;">TIPS</td></tr></table></td><td class="bl-stack" valign="top"><h2 style="margin:0 0 14px 0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:20px;line-height:1.25;font-weight:normal;color:#1f2937;">Three ways to save energy</h2><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;">Turn the heating down.</p></td></tr></table></td></tr>
+<tr><td class="bl-pad" style="padding:28px 32px 28px 32px;background:#f5f5f4;"><h2 style="margin:0 0 14px 0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:24px;line-height:1.25;font-weight:normal;color:#1f2937;">Around town</h2><p style="margin:-6px 0 12px 0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:16px;font-style:italic;color:#57534e;">Coming up</p><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr><td style="padding:5px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.5;color:#1f2937;"><strong>Sept. 5</strong> &middot; Farmers market at the square</td></tr></table></td></tr>
+<tr><td class="bl-pad" style="padding:20px 32px 20px 32px;background:#ffffff;"><h2 style="margin:0 0 14px 0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:20px;line-height:1.25;font-weight:normal;color:#1f2937;">Have news to share?</h2><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;">Send it our way.</p><table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:6px 0 0 0;"><tr><td style="background:#0f766e;border-radius:6px;"><a href="https://example.test/share" style="display:inline-block;padding:12px 22px;font-family:Arial, Helvetica, sans-serif;font-size:15px;font-weight:bold;color:#ffffff;text-decoration:none;">Share your news</a></td></tr></table></td></tr>
+<tr><td class="bl-pad" style="padding:28px 32px 28px 32px;background:#ffffff;"><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr><td class="bl-stack bl-space" width="50%" valign="top" style="padding:0;"><p style="margin:0 0 6px 0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:18px;line-height:1.3;color:#1f2937;">Volunteer</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;margin:0 0 8px 0;">Give an hour a month.</p></td><td class="bl-gap" width="16" style="width:16px;font-size:0;line-height:0;">&nbsp;</td><td class="bl-stack" width="50%" valign="top" style="padding:0;"><p style="margin:0 0 6px 0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:18px;line-height:1.3;color:#1f2937;">Donate</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;margin:0 0 8px 0;">Every gift helps.</p></td></tr></table></td></tr>
+<tr><td class="bl-pad" style="padding:28px 32px 28px 32px;background:#ffffff;"><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr><td class="bl-stack bl-space" width="220" valign="top" style="width:220px;"><img class="bl-fill" src="https://files.example.test/photo.jpg" width="220" alt="Volunteers planting trees" style="display:block;width:100%;max-width:220px;height:auto;border-radius:8px;"></td><td class="bl-gap" width="20" style="width:20px;font-size:0;line-height:0;">&nbsp;</td><td class="bl-stack" valign="top"><h2 style="margin:0 0 14px 0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:20px;line-height:1.25;font-weight:normal;color:#1f2937;">Green streets</h2><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;">Forty new trees went in this spring.</p></td></tr></table></td></tr>
+<tr><td class="bl-pad" style="padding:12px 32px 20px 32px;background:#ffffff;"><table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin:0 auto;"><tr><td align="center"><table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:6px 0 0 0;"><tr><td style="background:#0f766e;border-radius:6px;"><a href="https://example.test/register" style="display:inline-block;padding:12px 22px;font-family:Arial, Helvetica, sans-serif;font-size:15px;font-weight:bold;color:#ffffff;text-decoration:none;">Register now</a></td></tr></table></td></tr></table></td></tr>
+<tr><td class="bl-pad" style="padding:12px 32px 12px 32px;background:#ffffff;"><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr><td height="4" style="height:4px;background:#0f766e;font-size:0;line-height:0;">&nbsp;</td></tr></table></td></tr>
+<tr><td class="bl-pad" style="padding:0 32px 0 32px;background:#ffffff;"><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr><td height="56" style="height:56px;font-size:0;line-height:0;">&nbsp;</td></tr></table></td></tr>
+<tr><td class="bl-pad" style="padding:16px 32px 16px 32px;background:#ffffff;"><img src="https://files.example.test/photo.jpg" width="536" alt="The town green" style="display:block;width:100%;max-width:536px;height:auto;border-radius:8px;"><div style="text-align:center;margin-top:14px;"><p style="margin:0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:30px;line-height:1.2;color:#1f2937;">Save the date</p><p style="margin:8px 0 0 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.5;color:#57534e;">October 3</p></div></td></tr>
+<tr><td class="bl-pad" style="padding:12px 32px 12px 32px;background:#ffffff;"><img src="https://files.example.test/photo.jpg" width="536" alt="The harbour at dawn" style="display:block;width:100%;max-width:536px;height:auto;border-radius:8px;"><p style="margin:0;font-family:Arial, Helvetica, sans-serif;font-size:13px;line-height:1.5;color:#57534e;margin-top:8px;text-align:center;">Photo by a reader</p></td></tr>
+<tr><td class="bl-pad" style="padding:16px 32px 16px 32px;background:#ffffff;"><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr><td class="bl-stack" width="50%" valign="top" style="padding:0 0 12px 0;"><img class="bl-fill" src="https://files.example.test/photo.jpg" width="262" alt="Market stalls" style="display:block;width:100%;max-width:262px;height:auto;border-radius:8px;"><p style="margin:0;font-family:Arial, Helvetica, sans-serif;font-size:13px;line-height:1.5;color:#57534e;margin-top:6px;">Morning</p></td><td class="bl-gap" width="12" style="width:12px;font-size:0;line-height:0;">&nbsp;</td><td class="bl-stack" width="50%" valign="top" style="padding:0 0 12px 0;"><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="width:100%;"><tr><td align="center" valign="middle" height="110" style="height:110px;background:#f5f5f4;border:1px dashed #d6d3d1;border-radius:8px;font-family:Arial, Helvetica, sans-serif;font-size:13px;color:#57534e;">The crowd at noon</td></tr></table></td></tr></table></td></tr>
+<tr><td class="bl-pad" style="padding:28px 32px 28px 32px;background:#f5f5f4;"><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr><td width="4" style="width:4px;background:#0f766e;font-size:0;line-height:0;">&nbsp;</td><td style="padding:0 0 0 18px;"><p style="margin:0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:21px;line-height:1.45;font-style:italic;color:#1f2937;">&ldquo;Volunteering here changed my year.&rdquo;</p><p style="margin:0;font-family:Arial, Helvetica, sans-serif;font-size:13px;line-height:1.5;color:#57534e;margin-top:10px;">&mdash; A reader</p></td></tr></table></td></tr>
+<tr><td class="bl-pad" style="padding:24px 32px 24px 32px;background:#f5f5f4;"><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr><td width="50%" align="center" valign="top" style="padding:6px 8px;"><p style="margin:0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:38px;line-height:1.1;color:#0f766e;">42</p><p style="margin:6px 0 0 0;font-family:Arial, Helvetica, sans-serif;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:#57534e;">Volunteers</p></td><td width="50%" align="center" valign="top" style="padding:6px 8px;"><p style="margin:0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:38px;line-height:1.1;color:#0f766e;">7</p><p style="margin:6px 0 0 0;font-family:Arial, Helvetica, sans-serif;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:#57534e;">Parks</p></td></tr></table></td></tr>
+<tr><td class="bl-pad" style="padding:28px 32px 28px 32px;background:#ffffff;"><h2 style="margin:0 0 14px 0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:24px;line-height:1.25;font-weight:normal;color:#1f2937;">A note</h2><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr><td valign="top"><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;">Dear readers,<br>thank you for a great year &amp; a busy autumn.</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;">We met 2 * 3 * 4 times (that is 24) at Sam&#39;s, and &quot;the_big_room&quot; was full.<br>Tickets &lt; $10 &amp; children &gt; 5 go free; ask file_name owners at snake_case@example.test.</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;">An indented line stays as it was.   <br>  So does this one.</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;">The last paragraph, after many blank lines.</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;font-style:italic;">Robin, editor</p></td></tr></table></td></tr>
+<tr><td class="bl-pad" style="padding:28px 32px 28px 32px;background:#173e44;text-align:center;"><h2 style="margin:0 0 14px 0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:28px;line-height:1.25;font-weight:normal;color:#f7f2e8;">A note from us</h2><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr><td class="bl-stack-xs bl-space-xs" width="88" valign="top" style="width:88px;padding-right:20px;"><img src="https://files.example.test/photo.jpg" width="88" height="88" alt="Robin" style="display:block;width:88px;height:88px;border-radius:44px;object-fit:cover;"></td><td class="bl-stack-xs" valign="top"><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:17px;line-height:1.55;color:#f7f2e8;">Dear readers,<br>thank you for a great year &amp; a busy autumn.</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:17px;line-height:1.55;color:#f7f2e8;">We met 2 * 3 * 4 times (that is 24) at Sam&#39;s, and &quot;the_big_room&quot; was full.<br>Tickets &lt; $10 &amp; children &gt; 5 go free; ask file_name owners at snake_case@example.test.</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:17px;line-height:1.55;color:#f7f2e8;">An indented line stays as it was.   <br>  So does this one.</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:17px;line-height:1.55;color:#f7f2e8;">The last paragraph, after many blank lines.</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:17px;line-height:1.55;color:#f7f2e8;font-style:italic;">Robin</p></td></tr></table></td></tr>
+<tr><td class="bl-pad" style="padding:20px 32px 20px 32px;background:#ffffff;"><h2 style="margin:0 0 14px 0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:20px;line-height:1.25;font-weight:normal;color:#1f2937;">Opening hours</h2><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;">Dear readers,<br>thank you for a great year &amp; a busy autumn.</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;">We met 2 * 3 * 4 times (that is 24) at Sam&#39;s, and &quot;the_big_room&quot; was full.<br>Tickets &lt; $10 &amp; children &gt; 5 go free; ask file_name owners at snake_case@example.test.</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;">An indented line stays as it was.   <br>  So does this one.</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;">The last paragraph, after many blank lines.</p></td></tr>
+<tr><td class="bl-pad" style="padding:20px 32px 20px 32px;background:#ffffff;"><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;">One line only.</p></td></tr>
+<tr><td class="bl-pad" style="padding:20px 32px 20px 32px;background:#173e44;text-align:center;"><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:17px;line-height:1.55;color:#f7f2e8;">Light on dark.<br>Second line.</p></td></tr>
+<tr><td class="bl-pad" style="padding:20px 32px 20px 32px;background:#ffffff;"><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;">Dear readers,<br>thank you for a great year &amp; a busy autumn.</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;">We met 2 * 3 * 4 times (that is 24) at Sam&#39;s, and &quot;the_big_room&quot; was full.<br>Tickets &lt; $10 &amp; children &gt; 5 go free; ask file_name owners at snake_case@example.test.</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;">An indented line stays as it was.   <br>  So does this one.</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;">The last paragraph, after many blank lines.</p></td></tr>
+<tr><td class="bl-pad" style="padding:20px 32px 20px 32px;background:#ffffff;"><div style="font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;"><p style="margin:0 0 12px;line-height:1.55">Rich <strong>text</strong> and <a href="https://example.test/x" rel="noopener" target="_blank" style="color:#1f2937;text-decoration:underline">a link</a>.</p></div></td></tr>
+<tr><td class="bl-pad" style="padding:20px 32px 20px 32px;background:#ffffff;"><h2 style="margin:0 0 14px 0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:20px;line-height:1.25;font-weight:normal;color:#1f2937;">Have news to share?</h2><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;">Dear readers,<br>thank you for a great year &amp; a busy autumn.</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;">We met 2 * 3 * 4 times (that is 24) at Sam&#39;s, and &quot;the_big_room&quot; was full.<br>Tickets &lt; $10 &amp; children &gt; 5 go free; ask file_name owners at snake_case@example.test.</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;">An indented line stays as it was.   <br>  So does this one.</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;">The last paragraph, after many blank lines.</p><table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:6px 0 0 0;"><tr><td style="background:#0f766e;border-radius:6px;"><a href="https://example.test/write" style="display:inline-block;padding:12px 22px;font-family:Arial, Helvetica, sans-serif;font-size:15px;font-weight:bold;color:#ffffff;text-decoration:none;">Write to us</a></td></tr></table></td></tr>
+<tr><td class="bl-pad" style="padding:20px 32px 20px 32px;background:#173e44;text-align:center;"><h2 style="margin:0 0 14px 0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:23px;line-height:1.25;font-weight:normal;color:#f7f2e8;">Have news to share?</h2><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:17px;line-height:1.55;color:#f7f2e8;">Send it our way.</p></td></tr>
+<tr><td class="bl-pad" style="padding:28px 32px 28px 32px;background:#ffffff;"><p style="margin:0 0 8px 0;font-family:Arial, Helvetica, sans-serif;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:#0f766e;font-weight:bold;">Tips and tools</p><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr><td class="bl-stack bl-space" width="160" valign="top" style="width:160px;padding-right:20px;"><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="160" style="width:160px;"><tr><td align="center" valign="middle" width="160" height="120" style="width:160px;height:120px;background:#1f2937;border-radius:8px;font-family:Georgia, 'Times New Roman', Times, serif;font-size:14px;letter-spacing:1px;color:#f5f5f4;">TIPS AND TOOLS</td></tr></table></td><td class="bl-stack" valign="top"><h2 style="margin:0 0 14px 0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:20px;line-height:1.25;font-weight:normal;color:#1f2937;">One practical idea for this month</h2><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;">Dear readers,<br>thank you for a great year &amp; a busy autumn.</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;">We met 2 * 3 * 4 times (that is 24) at Sam&#39;s, and &quot;the_big_room&quot; was full.<br>Tickets &lt; $10 &amp; children &gt; 5 go free; ask file_name owners at snake_case@example.test.</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;">An indented line stays as it was.   <br>  So does this one.</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;">The last paragraph, after many blank lines.</p><p style="margin:0;font-family:Arial, Helvetica, sans-serif;font-size:13px;line-height:1.5;color:#1f2937;"><a href="https://example.test/more" style="color:#1f2937;font-weight:bold;">More</a></p></td></tr></table></td></tr>
+<tr><td class="bl-pad" style="padding:28px 32px 28px 32px;background:#173e44;text-align:center;"><p style="margin:0 0 8px 0;font-family:Arial, Helvetica, sans-serif;font-size:14px;letter-spacing:2px;text-transform:uppercase;color:#0f766e;font-weight:bold;">Tips and tools</p><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr><td class="bl-stack bl-space" width="160" valign="top" style="width:160px;padding-right:20px;"><img src="https://files.example.test/photo.jpg" width="160" alt="One practical idea for this month" style="display:block;width:100%;max-width:160px;height:auto;border-radius:8px;"></td><td class="bl-stack" valign="top"><h2 style="margin:0 0 14px 0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:23px;line-height:1.25;font-weight:normal;color:#f7f2e8;">One practical idea for this month</h2><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:17px;line-height:1.55;color:#f7f2e8;">Dear readers,<br>thank you for a great year &amp; a busy autumn.</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:17px;line-height:1.55;color:#f7f2e8;">We met 2 * 3 * 4 times (that is 24) at Sam&#39;s, and &quot;the_big_room&quot; was full.<br>Tickets &lt; $10 &amp; children &gt; 5 go free; ask file_name owners at snake_case@example.test.</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:17px;line-height:1.55;color:#f7f2e8;">An indented line stays as it was.   <br>  So does this one.</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:17px;line-height:1.55;color:#f7f2e8;">The last paragraph, after many blank lines.</p></td></tr></table></td></tr>
+<tr><td class="bl-pad" style="padding:28px 32px 28px 32px;background:#ffffff;"><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr><td class="bl-stack bl-space" valign="top"><h2 style="margin:0 0 14px 0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:20px;line-height:1.25;font-weight:normal;color:#1f2937;">Ribbon cutting</h2><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;">Two or three sentences about the photo.</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;">A second paragraph.</p></td><td class="bl-gap" width="20" style="width:20px;font-size:0;line-height:0;">&nbsp;</td><td class="bl-stack" width="220" valign="top" style="width:220px;"><img class="bl-fill" src="https://files.example.test/photo.jpg" width="220" alt="Ribbon cutting" style="display:block;width:100%;max-width:220px;height:auto;border-radius:8px;"></td></tr></table></td></tr>
+<tr><td class="bl-pad" style="padding:28px 32px 28px 32px;background:#173e44;text-align:center;"><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr><td class="bl-stack bl-space" width="220" valign="top" style="width:220px;"><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="width:100%;"><tr><td align="center" valign="middle" height="160" style="height:160px;background:#f5f5f4;border:1px dashed #d6d3d1;border-radius:8px;font-family:Arial, Helvetica, sans-serif;font-size:15px;color:#f7f2e8;">Image</td></tr></table></td><td class="bl-gap" width="20" style="width:20px;font-size:0;line-height:0;">&nbsp;</td><td class="bl-stack" valign="top"><h2 style="margin:0 0 14px 0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:23px;line-height:1.25;font-weight:normal;color:#f7f2e8;">A short headline</h2><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:17px;line-height:1.55;color:#f7f2e8;">Dear readers,<br>thank you for a great year &amp; a busy autumn.</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:17px;line-height:1.55;color:#f7f2e8;">We met 2 * 3 * 4 times (that is 24) at Sam&#39;s, and &quot;the_big_room&quot; was full.<br>Tickets &lt; $10 &amp; children &gt; 5 go free; ask file_name owners at snake_case@example.test.</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:17px;line-height:1.55;color:#f7f2e8;">An indented line stays as it was.   <br>  So does this one.</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:17px;line-height:1.55;color:#f7f2e8;">The last paragraph, after many blank lines.</p></td></tr></table></td></tr>
+<tr><td class="bl-pad" style="padding:28px 32px 28px 32px;background:#ffffff;"><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr><td class="bl-stack bl-space" width="33%" valign="top" style="padding:0;"><p style="margin:0 0 6px 0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:18px;line-height:1.3;color:#1f2937;">First column</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;margin:0 0 8px 0;">A sentence or two.<br>With a second line.</p></td><td class="bl-gap" width="16" style="width:16px;font-size:0;line-height:0;">&nbsp;</td><td class="bl-stack bl-space" width="33%" valign="top" style="padding:0;"><p style="margin:0 0 6px 0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:18px;line-height:1.3;color:#1f2937;">Second column</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;margin:0 0 8px 0;">A sentence or two.</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;margin:0 0 8px 0;">And another paragraph.</p></td><td class="bl-gap" width="16" style="width:16px;font-size:0;line-height:0;">&nbsp;</td><td class="bl-stack" width="33%" valign="top" style="padding:0;"><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;margin:0 0 8px 0;">Dear readers,<br>thank you for a great year &amp; a busy autumn.</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;margin:0 0 8px 0;">We met 2 * 3 * 4 times (that is 24) at Sam&#39;s, and &quot;the_big_room&quot; was full.<br>Tickets &lt; $10 &amp; children &gt; 5 go free; ask file_name owners at snake_case@example.test.</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;margin:0 0 8px 0;">An indented line stays as it was.   <br>  So does this one.</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;margin:0 0 8px 0;">The last paragraph, after many blank lines.</p><p style="margin:0;font-family:Arial, Helvetica, sans-serif;font-size:13px;line-height:1.5;color:#1f2937;"><a href="https://example.test/read" style="color:#1f2937;font-weight:bold;">Read on</a></p></td></tr></table></td></tr>
+<tr><td class="bl-pad" style="padding:28px 32px 28px 32px;background:#173e44;text-align:center;"><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr><td class="bl-stack bl-space" width="50%" valign="top" style="padding:0;"><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:17px;line-height:1.55;color:#f7f2e8;margin:0 0 8px 0;">Left &amp; right.</p></td><td class="bl-gap" width="16" style="width:16px;font-size:0;line-height:0;">&nbsp;</td><td class="bl-stack" width="50%" valign="top" style="padding:0;"><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:17px;line-height:1.55;color:#f7f2e8;margin:0 0 8px 0;">Right &amp; left.</p></td></tr></table></td></tr>
+<tr><td class="bl-pad" style="padding:28px 32px 28px 32px;background:#f5f5f4;"><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr><td width="4" style="width:4px;background:#0f766e;font-size:0;line-height:0;">&nbsp;</td><td style="padding:0 0 0 18px;"><p style="margin:0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:21px;line-height:1.45;font-style:italic;color:#1f2937;">&ldquo;What our readers say about the society.
+It is &quot;the&quot; place.&rdquo;</p><p style="margin:0;font-family:Arial, Helvetica, sans-serif;font-size:13px;line-height:1.5;color:#57534e;margin-top:10px;">&mdash; A reader</p></td></tr></table></td></tr>
+<tr><td class="bl-pad" style="padding:28px 32px 28px 32px;background:#173e44;text-align:center;"><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr><td width="4" style="width:4px;background:#0f766e;font-size:0;line-height:0;">&nbsp;</td><td style="padding:0 0 0 18px;"><p style="margin:0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:24px;line-height:1.45;font-style:italic;color:#f7f2e8;">&ldquo;Short &amp; sweet.&rdquo;</p></td></tr></table></td></tr>
+<tr><td class="bl-pad" style="padding:28px 32px 28px 32px;background:#ffffff;"><h2 style="margin:0 0 14px 0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:24px;line-height:1.25;font-weight:normal;color:#1f2937;">Thank you to our sponsors</h2><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr><td class="bl-stack-xs" width="96" valign="top" style="width:96px;padding:10px 20px 10px 0;"><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="96" style="width:96px;"><tr><td align="center" valign="middle" width="96" height="96" style="width:96px;height:96px;background:#0f766e;border-radius:8px;font-family:Georgia, 'Times New Roman', Times, serif;font-size:37px;color:#ffffff;">OI</td></tr></table></td><td class="bl-stack-xs" valign="middle" style="padding:10px 0;"><p style="margin:0 0 4px 0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:18px;color:#1f2937;"><a href="https://example.test/sponsors/oak" style="color:#1f2937;text-decoration:none;">Oak &amp; Iron Works</a></p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;margin:0;">Thank you to Oak &amp; Iron Works for the spring fair!  
+And for the &quot;tea&quot; tent.  </p></td></tr><tr><td class="bl-stack-xs" width="96" valign="top" style="width:96px;padding:10px 20px 10px 0;"><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="96" style="width:96px;"><tr><td align="center" valign="middle" width="96" height="96" style="width:96px;height:96px;background:#1f2937;border-radius:8px;font-family:Georgia, 'Times New Roman', Times, serif;font-size:37px;color:#ffffff;">HL</td></tr></table></td><td class="bl-stack-xs" valign="middle" style="padding:10px 0;"><p style="margin:0 0 4px 0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:18px;color:#1f2937;">Harbor Lane Bakery</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;margin:0;">Line one
+line two of a thank-you.</p></td></tr><tr><td class="bl-stack-xs" width="96" valign="top" style="width:96px;padding:10px 20px 10px 0;"><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="96" style="width:96px;"><tr><td align="center" valign="middle" width="96" height="96" style="width:96px;height:96px;background:#0f766e;border-radius:8px;font-family:Georgia, 'Times New Roman', Times, serif;font-size:37px;color:#ffffff;">QP</td></tr></table></td><td class="bl-stack-xs" valign="middle" style="padding:10px 0;"><p style="margin:0 0 4px 0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:18px;color:#1f2937;">Quiet Press</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;margin:0;"></p></td></tr></table></td></tr>
+<tr><td class="bl-pad" style="padding:28px 32px 28px 32px;background:#173e44;text-align:center;"><h2 style="margin:0 0 14px 0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:28px;line-height:1.25;font-weight:normal;color:#f7f2e8;">Thank you to our sponsors</h2><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr><td class="bl-stack-xs" width="96" valign="top" style="width:96px;padding:10px 20px 10px 0;"><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="96" style="width:96px;"><tr><td align="center" valign="middle" width="96" height="96" style="width:96px;height:96px;background:#0f766e;border-radius:8px;font-family:Georgia, 'Times New Roman', Times, serif;font-size:37px;color:#ffffff;">QP</td></tr></table></td><td class="bl-stack-xs" valign="middle" style="padding:10px 0;"><p style="margin:0 0 4px 0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:21px;color:#f7f2e8;">Quiet Press</p><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:17px;line-height:1.55;color:#f7f2e8;margin:0;">With thanks.</p></td></tr></table></td></tr>
+<tr><td class="bl-pad" style="padding:28px 32px 28px 32px;background:#f5f5f4;"><h2 style="margin:0 0 14px 0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:24px;line-height:1.25;font-weight:normal;color:#1f2937;">Welcome, new members!</h2><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:15px;line-height:1.55;color:#1f2937;">  Please welcome our newest members &amp; friends.
+All of them.  </p><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr><td width="36" valign="top" style="width:36px;padding:8px 0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:22px;color:#0f766e;">1.</td><td valign="top" style="padding:8px 0;border-bottom:1px solid #d6d3d1;"><p style="margin:0;font-family:Arial, Helvetica, sans-serif;font-size:16px;font-weight:bold;color:#1f2937;">Harbor Lane Bakery</p><p style="margin:0;font-family:Arial, Helvetica, sans-serif;font-size:13px;line-height:1.5;color:#57534e;">Bakery</p></td></tr></table></td></tr>
+<tr><td class="bl-pad" style="padding:28px 32px 28px 32px;background:#173e44;text-align:center;"><h2 style="margin:0 0 14px 0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:28px;line-height:1.25;font-weight:normal;color:#f7f2e8;">Welcome, new members!</h2><p style="margin:0 0 12px 0;font-family:Arial, Helvetica, sans-serif;font-size:17px;line-height:1.55;color:#f7f2e8;">Say hello.</p><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr><td width="36" valign="top" style="width:36px;padding:8px 0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:25px;color:#0f766e;">1.</td><td valign="top" style="padding:8px 0;border-bottom:1px solid #d6d3d1;"><p style="margin:0;font-family:Arial, Helvetica, sans-serif;font-size:18px;font-weight:bold;color:#f7f2e8;">Quiet Press</p></td></tr></table></td></tr>
+<tr><td class="bl-pad" style="padding:24px 32px 28px 32px;background:#1f2937;"><p style="margin:0 0 6px 0;font-family:Georgia, 'Times New Roman', Times, serif;font-size:16px;color:#e7e5e4;">Your Organization</p><p style="margin:0;font-family:Arial, Helvetica, sans-serif;font-size:13px;line-height:1.5;color:#e7e5e4;">12 Example Road, Springfield</p><p style="margin:0;font-family:Arial, Helvetica, sans-serif;font-size:13px;line-height:1.5;color:#e7e5e4;margin-top:14px;font-size:12px;opacity:0.9;">You joined our list at the spring fair. <a href="https://example.test/preferences/abc" style="color:#e7e5e4;text-decoration:underline;">Manage preferences</a> &middot; <a href="https://example.test/unsubscribe/abc" style="color:#e7e5e4;text-decoration:underline;">Unsubscribe</a></p></td></tr>
+</table>
+</div>
+<!--[if mso]></td></tr></table><![endif]-->
+</td></tr>
+</table>
+</body>
+</html>"
+`;
+
+exports[`text with no Markdown in it > renders the whole email as before Markdown support 2`] = `
+"September news
+
+Preview text here
+
+NORTHFIELD ARTS SOCIETY
+Harbour Notes · Autumn 2026
+
+A NOTE FROM THE EDITOR
+Thank you for a wonderful summer.
+See you at the fair.
+Robin, editor
+
+OPENING HOURS
+We open at nine on weekdays.
+
+COMING UP
+Oct. 3 · 10:00 AM · Town green — Autumn fair
+
+SAY HELLO
+Please join us in welcoming the newest members of our community.
+1. Harbor Lane Bakery — Bakery, joined Sept. 3
+
+WITH THANKS
+Oak and Iron Works
+Thank you for supporting the autumn fair!
+
+LATEST NEWS
+Announcement: New library hours
+The reading room now opens on Sundays.
+https://example.test/news/library-hours
+
+TIPS
+Three ways to save energy
+Turn the heating down.
+
+AROUND TOWN
+Coming up
+Sept. 5 · Farmers market at the square
+
+HAVE NEWS TO SHARE?
+Send it our way.
+Share your news: https://example.test/share
+
+Volunteer
+Give an hour a month.
+Donate
+Every gift helps.
+
+GREEN STREETS
+[Image: Volunteers planting trees]
+Forty new trees went in this spring.
+
+Register now: https://example.test/register
+
+---
+
+SAVE THE DATE
+October 3
+[Image: The town green]
+
+[Image: The harbour at dawn]
+Photo by a reader
+
+[Image: Market stalls] Morning
+[Image: The crowd at noon]
+
+“Volunteering here changed my year.”
+— A reader
+
+42 — Volunteers
+7 — Parks
+
+A NOTE
+Dear readers,
+thank you for a great year & a busy autumn.
+We met 2 * 3 * 4 times (that is 24) at Sam's, and "the_big_room" was full.
+Tickets < $10 & children > 5 go free; ask file_name owners at snake_case@example.test.
+An indented line stays as it was.   
+  So does this one.
+The last paragraph, after many blank lines.
+Robin, editor
+
+A NOTE FROM US
+Dear readers,
+thank you for a great year & a busy autumn.
+We met 2 * 3 * 4 times (that is 24) at Sam's, and "the_big_room" was full.
+Tickets < $10 & children > 5 go free; ask file_name owners at snake_case@example.test.
+An indented line stays as it was.   
+  So does this one.
+The last paragraph, after many blank lines.
+Robin
+
+OPENING HOURS
+Dear readers,
+thank you for a great year & a busy autumn.
+We met 2 * 3 * 4 times (that is 24) at Sam's, and "the_big_room" was full.
+Tickets < $10 & children > 5 go free; ask file_name owners at snake_case@example.test.
+An indented line stays as it was.   
+  So does this one.
+The last paragraph, after many blank lines.
+
+One line only.
+
+Light on dark.
+Second line.
+
+Dear readers,
+thank you for a great year & a busy autumn.
+We met 2 * 3 * 4 times (that is 24) at Sam's, and "the_big_room" was full.
+Tickets < $10 & children > 5 go free; ask file_name owners at snake_case@example.test.
+An indented line stays as it was.   
+  So does this one.
+The last paragraph, after many blank lines.
+
+Rich text and a link (https://example.test/x).
+
+HAVE NEWS TO SHARE?
+Dear readers,
+thank you for a great year & a busy autumn.
+We met 2 * 3 * 4 times (that is 24) at Sam's, and "the_big_room" was full.
+Tickets < $10 & children > 5 go free; ask file_name owners at snake_case@example.test.
+An indented line stays as it was.   
+  So does this one.
+The last paragraph, after many blank lines.
+Write to us: https://example.test/write
+
+HAVE NEWS TO SHARE?
+Send it our way.
+
+TIPS AND TOOLS
+One practical idea for this month
+Dear readers,
+thank you for a great year & a busy autumn.
+We met 2 * 3 * 4 times (that is 24) at Sam's, and "the_big_room" was full.
+Tickets < $10 & children > 5 go free; ask file_name owners at snake_case@example.test.
+An indented line stays as it was.   
+  So does this one.
+The last paragraph, after many blank lines.
+More: https://example.test/more
+
+TIPS AND TOOLS
+One practical idea for this month
+Dear readers,
+thank you for a great year & a busy autumn.
+We met 2 * 3 * 4 times (that is 24) at Sam's, and "the_big_room" was full.
+Tickets < $10 & children > 5 go free; ask file_name owners at snake_case@example.test.
+An indented line stays as it was.   
+  So does this one.
+The last paragraph, after many blank lines.
+
+RIBBON CUTTING
+[Image: Ribbon cutting]
+Two or three sentences about the photo.
+A second paragraph.
+
+A SHORT HEADLINE
+Dear readers,
+thank you for a great year & a busy autumn.
+We met 2 * 3 * 4 times (that is 24) at Sam's, and "the_big_room" was full.
+Tickets < $10 & children > 5 go free; ask file_name owners at snake_case@example.test.
+An indented line stays as it was.   
+  So does this one.
+The last paragraph, after many blank lines.
+
+First column
+A sentence or two.
+With a second line.
+Second column
+A sentence or two.
+And another paragraph.
+Dear readers,
+thank you for a great year & a busy autumn.
+We met 2 * 3 * 4 times (that is 24) at Sam's, and "the_big_room" was full.
+Tickets < $10 & children > 5 go free; ask file_name owners at snake_case@example.test.
+An indented line stays as it was.   
+  So does this one.
+The last paragraph, after many blank lines.
+Read on: https://example.test/read
+
+Left & right.
+Right & left.
+
+“What our readers say about the society.
+It is "the" place.”
+— A reader
+
+“Short & sweet.”
+
+THANK YOU TO OUR SPONSORS
+Oak & Iron Works
+Thank you to Oak & Iron Works for the spring fair!  
+And for the "tea" tent.  
+https://example.test/sponsors/oak
+Harbor Lane Bakery
+Line one
+line two of a thank-you.
+Quiet Press
+
+THANK YOU TO OUR SPONSORS
+Quiet Press
+With thanks.
+
+WELCOME, NEW MEMBERS!
+  Please welcome our newest members & friends.
+All of them.  
+1. Harbor Lane Bakery — Bakery
+
+WELCOME, NEW MEMBERS!
+Say hello.
+1. Quiet Press
+
+YOUR ORGANIZATION
+12 Example Road, Springfield
+You joined our list at the spring fair.
+Manage preferences: https://example.test/preferences/abc
+Unsubscribe: https://example.test/unsubscribe/abc"
+`;

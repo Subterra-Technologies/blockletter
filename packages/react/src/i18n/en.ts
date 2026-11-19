@@ -784,6 +784,22 @@ export const enMessages: EditorMessages = frozen<EditorMessages>({
       'This text has formatting the editor can’t keep, such as headings, images or colours. Editing it removes that; bold, italics, links and lists stay.',
   },
 
+  markdown: {
+    heading: 'Heading',
+    headingTip: 'Heading or normal text',
+    large: 'Large heading',
+    medium: 'Medium heading',
+    small: 'Small heading',
+    normal: 'Normal text',
+    strikethrough: 'Strikethrough',
+    linkText: 'Text',
+    linkAddress: 'Link to',
+    linkPlaceholder: 'https://… or /events',
+    invalidAddress:
+      'Use a web address such as https://example.org, a path such as /events, or an email address.',
+    hint: 'Use the buttons, or type **bold**, *italic*, ## heading, - list or [text](https://…). Formatting pasted from an AI assistant is kept. Colour and size are under Appearance.',
+  },
+
   toasts: {
     dismiss: 'Dismiss message',
     undo: 'Undo',

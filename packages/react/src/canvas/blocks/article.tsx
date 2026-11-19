@@ -2,15 +2,8 @@ import type { ArticleBlock } from '@subterra-technologies/blockletter';
 import type { BlockCanvasProps } from '../../editor/types';
 import { useEditorMessages } from '../../i18n/context';
 import { blockBackground } from '../canvas-theme';
-import {
-  CanvasSection,
-  CanvasNote,
-  EmailLink,
-  EmailParagraphs,
-  SPLIT,
-  headingStyle,
-  labelStyle,
-} from './shared';
+import { EmailMarkdown } from './markdown';
+import { CanvasSection, CanvasNote, EmailLink, SPLIT, headingStyle, labelStyle } from './shared';
 
 /**
  * A feature article: the kicker, then the image (or, without one, the kicker itself as a label
@@ -71,7 +64,7 @@ export function ArticleCanvas(canvas: BlockCanvasProps<ArticleBlock>) {
         ) : null}
         <div className="bl:min-w-0 bl:flex-1">
           {title ? <p style={headingStyle(canvas, palette.heading, 20)}>{block.title}</p> : null}
-          <EmailParagraphs canvas={canvas} body={block.body} />
+          <EmailMarkdown canvas={canvas} body={block.body} />
           <EmailLink canvas={canvas} label={block.linkLabel} url={block.linkUrl} />
         </div>
       </div>

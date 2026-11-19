@@ -404,15 +404,16 @@ describe('a text block holding rich writing', () => {
   });
 
   it('still treats plain writing as paragraphs', () => {
-    // No `format: 'html'`, so blank lines separate paragraphs and markup is escaped.
+    // No `format: 'html'`, so blank lines separate paragraphs and markup is escaped (all but the
+    // bare <b>, <strong>, <i> and <em> a paste carries, which the Markdown reader formats).
     const { html } = renderEmail(
       createDocument({
         subject: 'Note',
-        blocks: [block('text', 'b1', { body: 'First paragraph.\n\nSecond <b>paragraph</b>.' })],
+        blocks: [block('text', 'b1', { body: 'First paragraph.\n\nSecond <u>paragraph</u>.' })],
       }),
     );
     expect(html).toContain('First paragraph.</p>');
-    expect(html).toContain('Second &lt;b&gt;paragraph&lt;/b&gt;.');
+    expect(html).toContain('Second &lt;u&gt;paragraph&lt;/u&gt;.');
     expect(html).not.toContain('<p>First paragraph.\n\nSecond');
   });
 

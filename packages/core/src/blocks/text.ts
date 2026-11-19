@@ -4,10 +4,10 @@ import { issuesFrom } from '../issues';
 import { htmlToText, inlineRichTextStyles, resolveRichTextLinks, sanitizeHtml } from '../rich-text';
 import type { TextBlock } from '../types';
 import { blockValidator } from '../validate';
-import { firstWords, tooLong } from './shared';
+import { firstWords, plainWords, tooLong } from './shared';
 
 const words = (block: TextBlock): string =>
-  block.format === 'html' ? htmlToText(block.body) : block.body;
+  block.format === 'html' ? htmlToText(block.body) : plainWords(block.body);
 
 /** A heading and a few paragraphs: plain text, or rich HTML when the block says so. */
 export const textBlock = defineBlock<TextBlock>({
@@ -31,11 +31,13 @@ export const textBlock = defineBlock<TextBlock>({
     const rich = block.format === 'html';
     // Links to the host's own pages ("/events") resolve against baseUrl like every other link.
     const html = rich ? resolveRichTextLinks(sanitizeHtml(block.body), ctx.url) : '';
-    ctx.text(...splitParagraphs(rich ? htmlToText(html) : block.body), '');
+    // Plain text is Markdown: text with none in it renders exactly as it always did.
+    const markdown = rich ? null : ctx.markdown(block.body);
+    ctx.text(...(markdown ? markdown.text : splitParagraphs(htmlToText(html))), '');
     // Rich text sits in a wrapper carrying the body font and colour, which its own tags lack.
     const body = rich
       ? `<div style="font-family:${ctx.fonts.body};font-size:${ctx.px(15)}px;line-height:1.55;color:${ctx.palette.text};">${inlineRichTextStyles(html, ctx.palette)}</div>`
-      : ctx.paragraphs(block.body);
+      : (markdown?.html ?? '');
     return ctx.section(block, (heading ? ctx.heading(heading, { size: 20 }) : '') + body, {
       padding: '20px 32px',
     });

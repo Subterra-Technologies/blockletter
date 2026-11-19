@@ -1,7 +1,7 @@
 import { defineBlock } from '../definition';
 import type { NameListBlock } from '../types';
 import { blockValidator } from '../validate';
-import { TABLE, joinNames } from './shared';
+import { TABLE, joinNames, shortMarkdown } from './shared';
 
 /** A numbered list of names with an optional second line each, e.g. welcoming new members. */
 export const nameListBlock = defineBlock<NameListBlock>({
@@ -29,9 +29,9 @@ export const nameListBlock = defineBlock<NameListBlock>({
   render(block, ctx) {
     if (block.items.length === 0) return '';
     const heading = block.heading.trim();
-    const intro = block.intro.trim();
+    const intro = block.intro.trim() ? shortMarkdown(ctx, block.intro, ctx.bodyStyle()) : null;
     if (heading) ctx.text(heading.toUpperCase());
-    if (intro) ctx.text(block.intro);
+    if (intro) ctx.text(...intro.text);
     const rows = block.items
       .map((item, index) => {
         const detail = item.detail?.trim() ?? '';
@@ -55,9 +55,7 @@ export const nameListBlock = defineBlock<NameListBlock>({
     ctx.text('');
     return ctx.section(
       block,
-      (heading ? ctx.heading(block.heading) : '') +
-        (intro ? `<p style="${ctx.bodyStyle()}">${ctx.escape(block.intro)}</p>` : '') +
-        `${TABLE}${rows}</table>`,
+      (heading ? ctx.heading(block.heading) : '') + (intro?.html ?? '') + `${TABLE}${rows}</table>`,
       { background: ctx.palette.soft },
     );
   },

@@ -2,6 +2,7 @@ import { labelOn, type SponsorsBlock } from '@subterra-technologies/blockletter'
 import type { BlockCanvasProps } from '../../editor/types';
 import { useEditorMessages } from '../../i18n/context';
 import { blockBackground } from '../canvas-theme';
+import { ShortMarkdown } from './markdown';
 import { CanvasSection, CanvasNote, bodyStyle, headingStyle } from './shared';
 
 const firstCharacter = (value: string): string => Array.from(value.trim())[0] ?? '';
@@ -79,7 +80,12 @@ export function SponsorsCanvas(canvas: BlockCanvasProps<SponsorsBlock>) {
                 >
                   {item.name}
                 </p>
-                <p style={{ ...bodyStyle(canvas), margin: 0 }}>{item.message}</p>
+                <ShortMarkdown
+                  canvas={canvas}
+                  source={item.message}
+                  style={{ ...bodyStyle(canvas), margin: 0 }}
+                  bodyStyle={{ ...bodyStyle(canvas), margin: '0 0 8px 0' }}
+                />
               </div>
             </div>
           );

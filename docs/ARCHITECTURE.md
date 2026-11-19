@@ -141,10 +141,10 @@ grow to a stacked cell.
 
 `RenderContext` is what a block's `render` receives: the resolved `palette`, font stacks,
 `brand`, `labels`, plus helpers — `section(block, inner, options)`, `heading`, `paragraphs`,
-`button`, `image(ref)`, `imageOrPlaceholder`, `optionalLink`, `url(href)`, `escape`, `px(size)`,
-`text(...lines)` (the plain-text twin), `warn(message)`, `bodyStyle`/`smallStyle`, `options`,
-and `width` (`{ full: 600, content: 536, inner }`, where `inner` accounts for the block's own
-padding).
+`markdown(body, style?)` and `inlineMarkdown(text)` (below), `button`, `image(ref)`,
+`imageOrPlaceholder`, `optionalLink`, `url(href)`, `escape`, `px(size)`, `text(...lines)` (the
+plain-text twin), `warn(message)`, `bodyStyle`/`smallStyle`, `options`, and `width`
+(`{ full: 600, content: 536, inner }`, where `inner` accounts for the block's own padding).
 
 ### Brand kit and palette
 
@@ -169,6 +169,44 @@ resolveRichTextLinks(html, resolve): string;  // each link through resolve (e.g.
 inlineRichTextStyles(html, palette?): string; // editor classes → inline styles
 htmlToText(html): string; plainTextToHtml(text): string;
 ```
+
+### Markdown in free-text fields
+
+```ts
+// On RenderContext, for a block's own free text:
+ctx.markdown(body, style?): { html: string; text: string[] }; // paragraphs in style (bodyStyle())
+ctx.inlineMarkdown(text): { html: string; text: string };     // inline marks only, no wrapper
+// From the package:
+parseMarkdown(body): MarkdownBlock[];   // paragraph | heading (1–3) | list | quote | divider
+parseInline(text): InlineNode[];        // text | bold | italic | strike | link
+markdownToText(body): string;           // the plain-text twin, for search or a summary
+markdownToHtml(body): string;           // plain semantic HTML, a `format: 'html'` body's shape
+MARKDOWN_HEADING_SIZES;                 // { 1: 24, 2: 20, 3: 17 }, before the block's font scale
+```
+
+Every free-text body of the built-in blocks is plain text with Markdown in it: the letter, callout,
+article, image + text, each column, a text block's plain `format`, the pull quote, each sponsor's
+thank-you and the name list's introduction. Headings, captions, labels, post excerpts and the
+footer stay plain. The reader takes `**bold**`/`__bold__`, `*italic*`/`_italic_`, `~~strike~~`,
+`[label](url)`, `#`–`###` headings, `-`/`*`/`•` and `1.`/`1)` lists, `>` quotes, `---` dividers,
+blank-line paragraphs and single line breaks, and the bare `<br>`, `<p>`, `<b>`, `<strong>`, `<i>`
+and `<em>` a paste carries. Marks sit at word edges and never cross a line, so `snake_case` and
+`2*3*4` are text. Any other markup is escaped text; inline code, images, tables and backslash
+escapes are not read.
+
+`ctx.markdown` escapes every run and sends every link through `ctx.url()`, so relative links
+resolve against `baseUrl` and `javascript:` or `data:` links fall back to it. Links take the
+block's text colour when its `style` sets one (else `palette.link`), headings the heading font
+and colour at `px()` sizes, quotes a bar in `palette.accent`, dividers `palette.border`. Its
+`text` drops the marks, writes a link "label (url)", a list item "- item" or "1. item", a quote
+"> line" and a divider "---". Text with no Markdown in it renders byte-for-byte as `paragraphs`
+did, which `test/plain-text-regression.test.ts` pins. A short field (a quote, a thank-you) that
+is one plain or inline-formatted paragraph keeps its old single `<p>`.
+
+The reader runs on text from strangers, on a server, so it is linear in its input: each "where
+does this close" question is answered by a pointer that only moves forward or by one pass up
+front, marks are paired with a stack, and formatting nested past eight levels is drawn as its
+text. `test/markdown-linear.test.ts` holds the hostile inputs.
 
 ### Periods, tokens and templates
 
@@ -291,6 +329,15 @@ Composable parts for custom layouts: `NewsletterCanvas`, `BlockPalette`, `BlockI
 `IssuePeriodFields`, `ColorField`, and `useNewsletterEditor()` (selection, insert, move,
 duplicate, hide, remove, refresh — built on the core list operations — and an undo history over
 them: `undo()`, `redo()`, `canUndo`, `canRedo`).
+
+For a host block's free text: `MarkdownField` is a text area under a formatting toolbar (a
+heading menu, bold, italic, strikethrough, a link form, bulleted and numbered lists; Ctrl/⌘ + B, I
+and K), which writes Markdown into the text through `insertText`, so the browser's undo takes it
+back. Its toolbar is one tab stop with arrow-key movement, and its hint says what the field
+reads. `EmailMarkdown` and `EmailInlineMarkdown` draw the same Markdown on the canvas as
+`ctx.markdown` and `ctx.inlineMarkdown` do in the email, as React elements. The text block keeps
+its rich-text field: a plain body moves into it through `markdownToHtml`, so its formatting
+survives the first edit.
 
 Editor block definitions extend core ones with UI: `{ ...coreDefinition, icon, Editor, Canvas? }`.
 A custom block with no `Canvas` is drawn on the canvas from its email HTML.

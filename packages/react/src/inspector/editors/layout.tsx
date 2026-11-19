@@ -10,8 +10,8 @@ import {
 import type { BlockEditorProps } from '../../editor/types';
 import { useEditorMessages } from '../../i18n/context';
 import { blockEditor, withOptional } from '../editor-base';
+import { MarkdownField } from '../../markdown/markdown-field';
 import {
-  AreaField,
   ChoiceField,
   EditorFields,
   FieldPair,
@@ -74,7 +74,7 @@ export function ColumnsEditor({ block, onChange, readOnly }: BlockEditorProps<Co
                 onChange={(alt) => update({ alt })}
               />
             </FieldPair>
-            <AreaField
+            <MarkdownField
               label={fields.text}
               rows={3}
               value={column.body}
@@ -191,7 +191,7 @@ export function QuoteEditor({ block, onChange, readOnly }: BlockEditorProps<Quot
   const { patch, commit } = blockEditor(block, onChange);
   return (
     <EditorFields readOnly={readOnly}>
-      <AreaField
+      <MarkdownField
         label={words.quote}
         rows={4}
         value={block.quote}

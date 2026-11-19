@@ -2,7 +2,8 @@ import type { LetterBlock } from '@subterra-technologies/blockletter';
 import type { BlockCanvasProps } from '../../editor/types';
 import { useEditorMessages } from '../../i18n/context';
 import { blockBackground } from '../canvas-theme';
-import { CanvasSection, CanvasNote, EmailParagraphs, bodyStyle, headingStyle } from './shared';
+import { EmailMarkdown } from './markdown';
+import { CanvasSection, CanvasNote, bodyStyle, headingStyle } from './shared';
 
 /** A personal note: heading, a round portrait beside the paragraphs, and an italic signature. */
 export function LetterCanvas(canvas: BlockCanvasProps<LetterBlock>) {
@@ -31,7 +32,7 @@ export function LetterCanvas(canvas: BlockCanvasProps<LetterBlock>) {
             />
           ) : null}
           <div className="bl:min-w-0 bl:flex-1">
-            <EmailParagraphs canvas={canvas} body={block.body} />
+            <EmailMarkdown canvas={canvas} body={block.body} />
             {signature ? (
               <p style={{ ...bodyStyle(canvas), fontStyle: 'italic' }}>{block.signature}</p>
             ) : null}

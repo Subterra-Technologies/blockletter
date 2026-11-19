@@ -82,6 +82,12 @@ The rule it was built on: _if I entered it once, I shouldn't have to enter it ag
 - **Formatted writing.** Text blocks take bold, italics, links and bulleted or numbered lists, from
   a toolbar or with Ctrl/⌘ + B, I and K. Pasted text keeps those and loses the rest, so what is
   stored is always a few tags the sanitiser passes. `RichTextField` gives your own blocks the same.
+- **Markdown in every free-text field.** Letters, callouts, articles, image + text, columns, pull
+  quotes, sponsor notes and list introductions read `**bold**`, `*italic*`, `~~strike~~`,
+  `[links](https://example.org)`, `#` headings, lists, `>` quotes and `---` dividers, in the email,
+  its plain-text part and on the canvas, so an AI assistant's answer pasted in arrives formatted.
+  Each field has a toolbar that writes the marks for you. `ctx.markdown()`, `MarkdownField` and
+  `EmailMarkdown` give your own blocks the same.
 - **Your backend, your workflow.** `NewsletterEditor` is a controlled React component. You store
   the documents, images and brand kits, and you decide who approves an issue and how it is sent.
 - **Brand kits and templates.** Logo, colours, fonts and contact details restyle every block, and
@@ -381,7 +387,9 @@ const jobEditorBlock = defineEditorBlock<JobBlock>({
 // and wherever you render: renderEmail(doc, { definitions: [...builtInBlocks, jobBlock] })
 ```
 
-A block without a canvas drawing of its own is drawn on the canvas from its email HTML.
+A block without a canvas drawing of its own is drawn on the canvas from its email HTML. For free
+text with formatting, render it with `ctx.markdown(block.body)` (HTML, and lines for `ctx.text`),
+edit it in a `MarkdownField`, and draw it with `EmailMarkdown`, as the built-in blocks do.
 
 ## Examples
 
@@ -595,9 +603,9 @@ at four widths on every change, and nothing scrolls sideways at 320px.
 
 Anywhere in the editor, <kbd>Ctrl</kbd> + <kbd>Z</kbd> undoes and <kbd>Ctrl</kbd> +
 <kbd>Shift</kbd> + <kbd>Z</kbd> or <kbd>Ctrl</kbd> + <kbd>Y</kbd> redoes; on a Mac, <kbd>⌘</kbd> +
-<kbd>Z</kbd> and <kbd>⌘</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd>. In a text block's text,
-<kbd>Ctrl</kbd> or <kbd>⌘</kbd> with <kbd>B</kbd>, <kbd>I</kbd> and <kbd>K</kbd> make words bold,
-italic or a link. Insertions, moves, refreshes,
+<kbd>Z</kbd> and <kbd>⌘</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd>. In a text block's text, and in
+every free-text field with a formatting toolbar, <kbd>Ctrl</kbd> or <kbd>⌘</kbd> with
+<kbd>B</kbd>, <kbd>I</kbd> and <kbd>K</kbd> make words bold, italic or a link. Insertions, moves, refreshes,
 undos and redos are announced to screen readers, focus follows the work (to the inspector when a
 block is picked, back to the canvas when a dialog closes), and the brand kit warns when a colour
 pair is too faint to read.

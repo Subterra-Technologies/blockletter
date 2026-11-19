@@ -3,7 +3,7 @@ import { defineBlock, type RenderContext } from '../definition';
 import { issuesFrom } from '../issues';
 import type { SponsorsBlock } from '../types';
 import { blockValidator } from '../validate';
-import { TABLE, joinNames, missingAlt } from './shared';
+import { TABLE, joinNames, missingAlt, shortMarkdown } from './shared';
 
 const firstCharacter = (value: string): string => Array.from(value.trim())[0] ?? '';
 
@@ -61,9 +61,12 @@ export const sponsorsBlock = defineBlock<SponsorsBlock>({
     const rows = block.items
       .map((item, index) => {
         const href = item.url?.trim() ? ctx.url(item.url) : '';
+        const message = shortMarkdown(ctx, item.message, `${ctx.bodyStyle()}margin:0;`, {
+          bodyStyle: `${ctx.bodyStyle()}margin:0 0 8px 0;`,
+        });
         ctx.text(
           ...(item.name.trim() ? [item.name] : []),
-          ...(item.message.trim() ? [item.message] : []),
+          ...message.text,
           ...(href ? [href] : []),
         );
         const logoUrl = ctx.image(item.logo);
@@ -82,7 +85,7 @@ export const sponsorsBlock = defineBlock<SponsorsBlock>({
           `<tr><td class="${ctx.classes.stackNarrow}" width="96" valign="top" style="width:96px;padding:10px 20px 10px 0;">${logo}</td>` +
           `<td class="${ctx.classes.stackNarrow}" valign="middle" style="padding:10px 0;">` +
           `<p style="margin:0 0 4px 0;font-family:${ctx.fonts.heading};font-size:${ctx.px(18)}px;color:${ctx.palette.heading};">${name}</p>` +
-          `<p style="${ctx.bodyStyle()}margin:0;">${ctx.escape(item.message)}</p>` +
+          message.html +
           `</td></tr>`
         );
       })

@@ -6,10 +6,12 @@ import {
 import type { BlockCanvasProps } from '../../editor/types';
 import { useEditorMessages } from '../../i18n/context';
 import { blockBackground } from '../canvas-theme';
-import { CanvasSection, CanvasNote, EmailParagraphs, headingStyle } from './shared';
+import { EmailMarkdown } from './markdown';
+import { CanvasSection, CanvasNote, headingStyle } from './shared';
 
 /**
- * A heading and paragraphs. A body declared `html` is drawn as its formatting, through the same
+ * A heading and paragraphs. A plain body is Markdown, drawn as the email draws it. A body
+ * declared `html` is drawn as its formatting, through the same
  * sanitiser and style inliner the email uses, so the canvas cannot show what an inbox would not
  * and nothing a document carries can run here. It is `inert`: its links are not stops on the way
  * through the canvas, and a click on one chooses the block rather than following it.
@@ -45,7 +47,7 @@ export function TextCanvas(canvas: BlockCanvasProps<TextBlock>) {
               }}
             />
           ) : (
-            <EmailParagraphs canvas={canvas} body={block.body} />
+            <EmailMarkdown canvas={canvas} body={block.body} />
           )}
         </>
       )}

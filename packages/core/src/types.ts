@@ -176,7 +176,7 @@ export type LogoSize = 'small' | 'medium' | 'large';
 /** A personal note with an optional portrait and a signature. */
 export interface LetterBlock extends BlockBase<'letter'> {
   heading: string;
-  /** Plain text; a blank line starts a new paragraph. */
+  /** Plain text with Markdown in it (see `parseMarkdown`); a blank line starts a new paragraph. */
   body: string;
   signature: string;
   photo?: ImageRef;
@@ -237,8 +237,9 @@ export interface TextBlock extends BlockBase<'text'> {
   heading?: string;
   body: string;
   /**
-   * `html`: the body is rich HTML (sanitised and inlined at render). Declared rather than
-   * guessed — a plain body that happens to mention "<b>" is text, and escaping it is the point.
+   * `html`: the body is rich HTML (sanitised and inlined at render); otherwise it is plain text
+   * with Markdown in it. Declared rather than guessed — a plain body that happens to mention "<u>"
+   * is text, and escaping it is the point.
    */
   format?: 'plain' | 'html';
 }

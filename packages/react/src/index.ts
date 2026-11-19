@@ -95,6 +95,7 @@ export {
   labelStyle,
   smallStyle,
 } from './canvas/blocks/shared';
+export { EmailInlineMarkdown, EmailMarkdown } from './canvas/blocks/markdown';
 // …and an inspector form that matches the built-in ones.
 export {
   AreaField,
@@ -108,6 +109,7 @@ export {
   TextField,
   type Choice,
 } from './inspector/editor-fields';
+export { MarkdownField, type MarkdownFieldProps } from './markdown/markdown-field';
 export { RichTextField, type RichTextFieldProps } from './rich-text/rich-text-field';
 
 export { cn } from './lib/cn';
