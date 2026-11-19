@@ -1,4 +1,11 @@
-import type { BlockAlign, BlockFontSize, BlockPadding, SocialNetwork } from './types';
+import type {
+  BlockAlign,
+  BlockFontSize,
+  BlockPadding,
+  FooterVariant,
+  LogoSize,
+  SocialNetwork,
+} from './types';
 
 /**
  * The limits every document keeps, shared by validation, the editor's inline warnings and data
@@ -19,6 +26,15 @@ export const LIMITS = {
 export const BLOCK_ALIGNMENTS: readonly BlockAlign[] = ['left', 'center', 'right'];
 export const BLOCK_PADDINGS: readonly BlockPadding[] = ['none', 'tight', 'normal', 'loose'];
 export const BLOCK_FONT_SIZES: readonly BlockFontSize[] = ['small', 'normal', 'large'];
+
+/** A header logo's width in pixels, by `HeaderBlock.logoSize`. */
+export const LOGO_WIDTHS: Readonly<Record<LogoSize, number>> = Object.freeze({
+  small: 160,
+  medium: 240,
+  large: 320,
+});
+export const LOGO_SIZES = Object.keys(LOGO_WIDTHS) as readonly LogoSize[];
+export const FOOTER_VARIANTS: readonly FooterVariant[] = ['band', 'light'];
 
 /** Every network a social link may name. `website` is any other page, labelled by its host. */
 export const SOCIAL_NETWORKS: readonly SocialNetwork[] = [

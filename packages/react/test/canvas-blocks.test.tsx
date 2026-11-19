@@ -72,6 +72,18 @@ describe('HeaderCanvas', () => {
     draw(testBlock('header', { title: 'Book club news', issueLabel: '' }));
     expect(screen.getByText('Book club news')).toBeInTheDocument();
   });
+
+  it('draws the logo at its size and where the header aligns it, as the email does', () => {
+    const brand = { ...TEST_BRAND, logo: { url: 'https://images.example/logo.png' } };
+    const { unmount } = draw(testBlock('header'), { brand });
+    expect(screen.getByRole('img').style.maxWidth).toBe('240px');
+    expect(screen.getByRole('img').style.margin).toBe('0px 0px 10px');
+    unmount();
+
+    draw(testBlock('header', { logoSize: 'large', style: { align: 'center' } }), { brand });
+    expect(screen.getByRole('img').style.maxWidth).toBe('320px');
+    expect(screen.getByRole('img').style.margin).toBe('0px auto 10px');
+  });
 });
 
 describe('LetterCanvas', () => {
@@ -396,6 +408,33 @@ describe('FooterCanvas', () => {
     expect(screen.getByText('40 Elm Row')).toBeInTheDocument();
     expect(screen.getByText('readers.example')).toBeInTheDocument();
     expect(screen.queryByText('Instagram')).toBeNull();
+  });
+
+  it('shows the website, and the brand kit’s compliance line for a blank one', () => {
+    draw(testBlock('footer', { complianceText: '' }), {
+      brand: {
+        ...TEST_BRAND,
+        contact: { ...TEST_BRAND.contact, website: 'https://bookclub.example/' },
+        complianceText: 'You joined the book club.',
+      },
+    });
+    expect(screen.getByText('bookclub.example')).toBeInTheDocument();
+    expect(screen.getByText('You joined the book club.')).toBeInTheDocument();
+  });
+
+  it('draws the light look on the card under a fine line, the band on the ink', () => {
+    const band = testBlock('footer');
+    const first = draw(band);
+    const bandSection = sectionOf(first.container, band);
+    const bandBackground = bandSection.style.backgroundColor;
+    expect(bandSection.querySelector('[aria-hidden="true"]')).toBeNull();
+    first.unmount();
+
+    const light = testBlock('footer', { variant: 'light' });
+    const { container } = draw(light);
+    const lightSection = sectionOf(container, light);
+    expect(lightSection.style.backgroundColor).not.toBe(bandBackground);
+    expect(lightSection.querySelector('[aria-hidden="true"]')).not.toBeNull();
   });
 
   it('shows the opt-out links the render options will add', () => {

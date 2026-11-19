@@ -76,13 +76,17 @@
         "email": { "type": "string" },
         "website": {
           "type": "string",
-          "description": "The organisation's site, shown under the card."
+          "description": "The organisation's site, linked in the footer."
         }
       },
       "required": ["address", "phone", "email", "website"],
       "additionalProperties": false
     },
-    "social": { "type": "array", "items": { "$ref": "#/definitions/SocialLink" } }
+    "social": { "type": "array", "items": { "$ref": "#/definitions/SocialLink" } },
+    "complianceText": {
+      "type": "string",
+      "description": "The footer's line saying why readers get the email, for every footer that leaves its own blank. Absent or blank: no such line unless a footer gives one."
+    }
   },
   "required": ["name", "colors", "fonts", "contact", "social"],
   "additionalProperties": false,

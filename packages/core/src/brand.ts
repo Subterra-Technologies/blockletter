@@ -19,6 +19,7 @@ export const DEFAULT_BRAND: BrandKit = deepFreeze<BrandKit>({
   fonts: { heading: 'Georgia', body: 'Arial' },
   contact: { address: '', phone: '', email: '', website: '' },
   social: [],
+  complianceText: "You're receiving this email because you signed up for our updates.",
 });
 
 /** Web-safe stacks for each brand font, with fallbacks every email client has. */
@@ -279,6 +280,7 @@ export function validateBrandKit(input: unknown): ValidationIssue[] {
       link
         .oneOf('network', SOCIAL_NETWORKS, { label: 'network' })
         .string('url', { required: 'Add the link.', max: 300, label: 'link' });
-    });
+    })
+    .string('complianceText', { optional: true, max: 500, label: 'compliance text' });
   return brand.issues;
 }

@@ -102,7 +102,10 @@ const MORE: { [T in BuiltInBlockType]?: Partial<BlockOfType<BuiltInBlock, T>> } 
   footer: {
     social: [{ network: 'instagram', url: 'https://instagram.example/club' }],
     links: [{ label: 'Events', url: '/events' }],
+    website: 'https://club.example',
+    variant: 'light',
   },
+  header: { logoSize: 'large' },
 };
 
 /** Every built-in block, with every field it has filled in. */

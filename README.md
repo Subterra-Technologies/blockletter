@@ -555,26 +555,26 @@ and list it in `definitions.BuiltInBlock.anyOf`.
 
 ## The blocks
 
-| Group        | Block              | What it is                                                      |
-| ------------ | ------------------ | --------------------------------------------------------------- |
-| **Content**  | Header             | Logo or name over a "title · issue" strapline                   |
-|              | Letter             | A personal note with a photo and a signature                    |
-|              | Text               | A heading and a few paragraphs                                  |
-|              | Event tiles ⚡     | Up to four upcoming events as big date tiles                    |
-|              | Name list ⚡       | A numbered list of names, such as new members                   |
-|              | Sponsors ⚡        | A logo and a thank-you note for each sponsor                    |
-|              | Post list ⚡       | Up to three recent posts, each linking out                      |
-|              | Article            | A short feature article with an image beside it                 |
-|              | Dated list ⚡      | Dated lines for a community calendar                            |
-|              | Callout            | A short heading, a sentence or two and a button                 |
-|              | Footer             | Contact details, links, and the preference and unsubscribe line |
-| **Layout**   | Columns            | Two or three side-by-side cards                                 |
-|              | Image + text       | A picture beside a short story, with an optional link           |
-|              | Button             | A solid or outline button with a link                           |
-|              | Divider · Spacer   | A rule between sections; breathing room                         |
-| **Graphics** | Banner             | A wide hero image with a headline over or under it              |
-|              | Image · Photo grid | A full-width picture; two to six captioned photos               |
-|              | Quote · Numbers    | A pull quote in large type; two to four big figures             |
+| Group        | Block              | What it is                                                       |
+| ------------ | ------------------ | ---------------------------------------------------------------- |
+| **Content**  | Header             | Logo (three sizes) or name over a "title · issue" strapline      |
+|              | Letter             | A personal note with a photo and a signature                     |
+|              | Text               | A heading and a few paragraphs                                   |
+|              | Event tiles ⚡     | Up to four upcoming events as big date tiles                     |
+|              | Name list ⚡       | A numbered list of names, such as new members                    |
+|              | Sponsors ⚡        | A logo and a thank-you note for each sponsor                     |
+|              | Post list ⚡       | Up to three recent posts, each linking out                       |
+|              | Article            | A short feature article with an image beside it                  |
+|              | Dated list ⚡      | Dated lines for a community calendar                             |
+|              | Callout            | A short heading, a sentence or two and a button                  |
+|              | Footer             | Contact, website, links and the opt-out line; on a band or light |
+| **Layout**   | Columns            | Two or three side-by-side cards                                  |
+|              | Image + text       | A picture beside a short story, with an optional link            |
+|              | Button             | A solid or outline button with a link                            |
+|              | Divider · Spacer   | A rule between sections; breathing room                          |
+| **Graphics** | Banner             | A wide hero image with a headline over or under it               |
+|              | Image · Photo grid | A full-width picture; two to six captioned photos                |
+|              | Quote · Numbers    | A pull quote in large type; two to four big figures              |
 
 ⚡ can be filled by a data source. Every block also takes its own background, text colour,
 alignment, padding, font size, full-width band and divider.

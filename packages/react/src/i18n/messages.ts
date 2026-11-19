@@ -253,6 +253,9 @@ export interface EditorMessages {
       issueLabelPlaceholder: string;
       logoText: string;
       logoTextHelp: string;
+      /** The logo's width: the choice's legend and its three sizes. */
+      logoSize: string;
+      logoSizes: { small: string; medium: string; large: string };
     };
     letter: BlockText & {
       emptyCanvas: string;
@@ -333,8 +336,12 @@ export interface EditorMessages {
       /** No social links of the footer's own, while the brand kit has `count`. */
       brandSocial: Phrase<[count: number]>;
       links: ListText & { empty: string };
+      website: string;
       compliance: string;
       complianceHelp: string;
+      /** The footer's look: the choice's legend, then on a band of the ink or on the card. */
+      variant: string;
+      variants: { band: string; light: string };
     };
     columns: BlockText & {
       emptyCanvas: string;
@@ -589,6 +596,9 @@ export interface EditorMessages {
     phone: string;
     email: string;
     website: string;
+    /** The brand kit's default line saying why readers get the email. */
+    complianceText: string;
+    complianceTextHelp: string;
     save: string;
     discard: string;
     saveFailed: string;

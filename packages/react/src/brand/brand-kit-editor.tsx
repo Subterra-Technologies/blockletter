@@ -15,7 +15,7 @@ import { useEditorMessages } from '../i18n/context';
 import { brandKitIssueText } from '../i18n/core-words';
 import { errorMessage } from '../lib/errors';
 import { sameBlock } from '../inspector/editor-base';
-import { FieldPair, Note, SelectField, TextField } from '../inspector/editor-fields';
+import { AreaField, FieldPair, Note, SelectField, TextField } from '../inspector/editor-fields';
 import { ImageField } from '../inspector/image-field';
 import { SocialLinksField } from '../inspector/social-links-field';
 import { Button } from '../ui/button';
@@ -52,6 +52,7 @@ const FIELD_PATHS = new Set([
   'contact/phone',
   'contact/email',
   'contact/website',
+  'complianceText',
 ]);
 const fieldPath = (issue: ValidationIssue): string => {
   const path = issue.path ?? '';
@@ -319,6 +320,14 @@ export function BrandKitEditor({
             {contactField('email', words.email, 'email')}
           </FieldPair>
           {contactField('website', words.website, 'url')}
+          <AreaField
+            label={words.complianceText}
+            help={words.complianceTextHelp}
+            rows={2}
+            value={draft.complianceText ?? ''}
+            error={errorAt('complianceText')}
+            onChange={(complianceText) => edit({ complianceText })}
+          />
           <SocialLinksField
             links={draft.social}
             onChange={(social) => edit({ social })}
