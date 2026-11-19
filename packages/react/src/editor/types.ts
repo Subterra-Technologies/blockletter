@@ -3,11 +3,13 @@ import type {
   BlockBase,
   BlockDefinition,
   BrandKit,
+  FieldMap,
   ImageRef,
   Palette,
   RenderLabels,
   RenderOptions,
 } from '@subterra-technologies/blockletter';
+import { createFieldsEditor, type FieldEditors } from '../inspector/fields-form';
 
 /** What every block's inspector form receives. */
 export interface BlockEditorProps<B extends BlockBase = BlockBase> {
@@ -70,9 +72,44 @@ export interface EditorBlockDefinition<B extends BlockBase = BlockBase> extends 
   Canvas?: BlockComponent<BlockCanvasProps<B>>;
 }
 
-/** Identity helper that keeps a host block's types checked end to end. */
+/**
+ * A block declared with fields (see core's `defineBlock`) plus its icon, for `defineEditorBlock`:
+ * its form can be left to the editor, which builds one from the fields.
+ */
+export type FieldEditorBlockInput<B extends BlockBase> = BlockDefinition<B> & {
+  readonly fields: FieldMap;
+  icon: BlockIcon;
+  /** A form of your own instead of the one built from the fields. */
+  Editor?: BlockComponent<BlockEditorProps<B>>;
+  Canvas?: BlockComponent<BlockCanvasProps<B>>;
+  /**
+   * Controls of your own in the built form, by field key (`speakers.photo` for a list item's
+   * field): one for each field of your own kind (`field.custom`), or to replace any other.
+   */
+  fieldEditors?: FieldEditors;
+};
+
+/**
+ * Declares an editor block, keeping a host block's types checked end to end. A block declared with
+ * fields needs only its icon: `defineEditorBlock({ ...jobBlock, icon: BriefcaseIcon })` builds its
+ * form from the fields, and the canvas draws its email HTML.
+ */
 export function defineEditorBlock<B extends BlockBase>(
   definition: EditorBlockDefinition<B>,
+): EditorBlockDefinition<B>;
+export function defineEditorBlock<B extends BlockBase>(
+  definition: FieldEditorBlockInput<B>,
+): EditorBlockDefinition<B>;
+export function defineEditorBlock<B extends BlockBase>(
+  definition: EditorBlockDefinition<B> | FieldEditorBlockInput<B>,
 ): EditorBlockDefinition<B> {
-  return definition;
+  if (!('fieldEditors' in definition) && definition.Editor) {
+    return definition as EditorBlockDefinition<B>;
+  }
+  const { fieldEditors, ...rest } = definition as FieldEditorBlockInput<B>;
+  if (rest.Editor) return rest as EditorBlockDefinition<B>;
+  if (!rest.fields) {
+    throw new Error(`The "${rest.type}" block needs an Editor, or fields to build one from.`);
+  }
+  return { ...rest, Editor: createFieldsEditor<B>(rest.fields, fieldEditors) };
 }

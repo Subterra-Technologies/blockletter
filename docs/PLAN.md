@@ -36,8 +36,8 @@ writing the new blocks with the new API.
 | Phase | Scope                                                      | Release | State   |
 | ----- | ---------------------------------------------------------- | ------- | ------- |
 | 0–4   | Repo, core, React editor, demo and quality gates, releases | 0.1     | Done    |
-| A     | Catch up with the hosts                                    | 0.2     | Next    |
-| B     | Blocks that are easy to build                              | 0.3     | Planned |
+| A     | Catch up with the hosts                                    | 0.2     | Built   |
+| B     | Blocks that are easy to build                              | 0.3     | Next    |
 | C     | Beyond the monthly issue                                   | 0.4     | Planned |
 | D     | Both hosts on Blockletter, then the 1.0 API review         | 0.5–1.0 | Planned |
 
@@ -112,7 +112,8 @@ filling, tests) comes from it.
    AI catalogue entry and a generated inspector form. Field kinds: text, markdown, html, url, image,
    colour, choice, number, toggle, date, link and list (of fields, with a minimum and maximum).
    Escape hatches: an own `validate`, an own `Editor`, an own field kind. No runtime dependencies.
-   Today's `defineBlock` keeps working, and the built-ins move over one at a time.
+   Today's `defineBlock` keeps working, and the built-ins move over one at a time, starting with
+   the callout. The AI catalogue entry comes with B5, which reads the same fields.
 
 2. **Email-safe render helpers (M).** An auto-escaping `ctx.html` template tag, so escaping is
    the default rather than a habit. Layout helpers that write the tables, Outlook ghost tables and

@@ -1,28 +1,28 @@
 import { defineBlock } from '../definition';
+import { field } from '../fields';
 import { issuesFrom } from '../issues';
-import type { CalloutBlock } from '../types';
-import { blockValidator } from '../validate';
 import { MISSING_BUTTON_LABEL, firstWords, plainWords } from './shared';
 
-/** A short heading, a paragraph and a button: "Have news to share?". */
-export const calloutBlock = defineBlock<CalloutBlock>({
+/**
+ * A short heading, a paragraph and a button: "Have news to share?". Declared by its fields, the
+ * first built-in to be; `CalloutBlock` in `types.ts` stays the type the JSON Schema is made from,
+ * and a test holds the two to the same shape.
+ */
+export const calloutBlock = defineBlock({
   type: 'callout',
   label: 'Callout',
   description: 'A short heading, a sentence or two and a button.',
   group: 'content',
-  // No link yet: the button appears once one is added, rather than pointing anywhere by default.
-  create: () => ({
-    heading: 'Have news to share?',
-    body: 'Opening a new location, celebrating an anniversary or hiring? Send us your news and we will share it in a future issue.',
-    ctaLabel: 'Share your news',
-    ctaUrl: '',
-  }),
-  validate: (block, path) =>
-    blockValidator(block, path, 'callout')
-      .string('heading')
-      .string('body')
-      .string('ctaLabel', { label: 'button label' })
-      .string('ctaUrl', { label: 'button link' }).issues,
+  fields: {
+    heading: field.text({ default: 'Have news to share?' }),
+    body: field.markdown({
+      default:
+        'Opening a new location, celebrating an anniversary or hiring? Send us your news and we will share it in a future issue.',
+    }),
+    ctaLabel: field.text({ label: 'Button label', default: 'Share your news' }),
+    // No link yet: the button appears once one is added, rather than pointing anywhere by default.
+    ctaUrl: field.url({ label: 'Button link' }),
+  },
   issues: issuesFrom((block) => {
     const label = block.ctaLabel.trim();
     const url = block.ctaUrl.trim();

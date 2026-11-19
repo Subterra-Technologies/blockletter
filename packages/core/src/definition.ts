@@ -1,6 +1,19 @@
 import type { Palette } from './brand';
+import {
+  BLOCK_STYLE_SCHEMA,
+  RESERVED_FIELD_KEYS,
+  checkKeys,
+  createFields,
+  fieldsJsonSchema,
+  summarizeFields,
+  validateFields,
+  type FieldMap,
+  type FieldValues,
+  type JsonSchema,
+} from './fields';
 import type { RenderLabels, RenderOptions } from './render';
 import type { BlockBase, BlockBody, BrandKit, ImageRef, ValidationIssue } from './types';
+import { blockValidator, type ObjectValidator } from './validate';
 
 /**
  * The plugin API. Every block Blockletter ships is a `BlockDefinition`, registered exactly the
@@ -141,13 +154,129 @@ export interface BlockDefinition<B extends BlockBase = BlockBase> {
   summary?(block: B): string;
   /** Email HTML: one or more `<tr>` rows of the card (use `ctx.section`). Return '' to omit. */
   render(block: B, ctx: RenderContext): string;
+  /**
+   * The block's fields, when it was declared with them (see `defineBlock`): what the editor builds
+   * its form from and `blockJsonSchema` its schema. Absent for a block written field by field.
+   */
+  readonly fields?: FieldMap;
 }
 
-/** Declares a block. An identity function that exists for its types. */
+/** A block declared with `fields`: the fields every block has, and the values of its own. */
+export type FieldBlock<T extends string, M extends FieldMap> = {
+  [K in keyof (BlockBase<T> & FieldValues<M>)]: (BlockBase<T> & FieldValues<M>)[K];
+};
+
+/** The block type a definition is for: `type JobBlock = BlockOf<typeof jobBlock>`. */
+export type BlockOf<D> = D extends BlockDefinition<infer B> ? B : never;
+
+/**
+ * A block declared by its fields. Everything but how it looks comes from `fields`: its type,
+ * `create()`, `validate()`, `summary()`, its JSON Schema and the editor's form.
+ */
+export interface FieldBlockSpec<T extends string, M extends FieldMap> {
+  type: T;
+  /** "Job opening". */
+  label: string;
+  /** One line for the palette. */
+  description: string;
+  group: BlockGroup;
+  /** Header and footer: at most one, and the editor will not delete it. */
+  structural?: boolean;
+  /** The block's own fields, in the order the form shows them. */
+  fields: M;
+  /**
+   * Checks beyond each field's own, for a rule that spans fields; run after them on the same
+   * validator (`check.value` is the block, `check.add(code, message, key)` records a problem).
+   */
+  validate?(check: ObjectValidator): void;
+  /** Soft warnings the editor shows while the block is selected ("Add alt text…"). */
+  issues?(block: FieldBlock<T, M>): string[];
+  /** Default: the first words of the first text, Markdown or HTML field with any. */
+  summary?(block: FieldBlock<T, M>): string;
+  /** Email HTML: one or more `<tr>` rows of the card (use `ctx.section`). Return '' to omit. */
+  render(block: FieldBlock<T, M>, ctx: RenderContext): string;
+}
+
+/**
+ * Declares a block. Either by its fields, from which its type, `create()`, `validate()`,
+ * `summary()`, JSON Schema and editor form all come:
+ *
+ * ```ts
+ * const jobBlock = defineBlock({
+ *   type: 'job',
+ *   label: 'Job opening',
+ *   description: 'A role you are hiring for, with an apply button.',
+ *   group: 'content',
+ *   fields: {
+ *     title: field.text({ default: 'Full stack developer', max: 120 }),
+ *     summary: field.markdown(),
+ *     url: field.url({ label: 'Apply link' }),
+ *   },
+ *   render: (block, ctx) => ctx.section(block, ctx.heading(block.title)),
+ * });
+ * ```
+ *
+ * Or written out part by part, as a `BlockDefinition`, which is returned as it is.
+ */
 export function defineBlock<B extends BlockBase>(
   definition: BlockDefinition<B>,
-): BlockDefinition<B> {
-  return definition;
+): BlockDefinition<B>;
+export function defineBlock<const T extends string, M extends FieldMap>(
+  spec: FieldBlockSpec<T, M>,
+): BlockDefinition<FieldBlock<T, M>> & { readonly fields: M };
+export function defineBlock(
+  definition: BlockDefinition | FieldBlockSpec<string, FieldMap>,
+): BlockDefinition {
+  if (!('fields' in definition) || 'create' in definition) return definition as BlockDefinition;
+  const spec = definition as FieldBlockSpec<string, FieldMap>;
+  const { fields, validate: extra, summary, ...rest } = spec;
+  checkKeys(fields, `The "${spec.type}" block`, RESERVED_FIELD_KEYS);
+  return {
+    ...rest,
+    fields,
+    create: () => createFields(fields),
+    validate(block, path) {
+      const check = blockValidator(block, path, spec.type);
+      if (check.ok) {
+        validateFields(check, fields);
+        extra?.(check);
+      }
+      return check.issues;
+    },
+    summary:
+      summary ?? ((block) => summarizeFields(fields, block as unknown as Record<string, unknown>)),
+  } as BlockDefinition;
+}
+
+/**
+ * The JSON Schema (draft-07) of a block declared with fields, shaped like the blocks in
+ * `schema/newsletter-document.json`, for a host that hands documents with its own blocks to
+ * another language or an AI model. Undefined for a block written without fields; the built-in
+ * blocks' schemas are in that file.
+ */
+export function blockJsonSchema(definition: BlockDefinition): JsonSchema | undefined {
+  if (!definition.fields) return undefined;
+  const own = fieldsJsonSchema(definition.fields);
+  return {
+    type: 'object',
+    properties: {
+      id: { type: 'string', description: 'Unique within its document.' },
+      type: { type: 'string', enum: [definition.type] },
+      hidden: {
+        type: 'boolean',
+        description: 'Left out of the email (and folded on the canvas) without being deleted.',
+      },
+      style: BLOCK_STYLE_SCHEMA,
+      source: {
+        type: 'string',
+        description: 'Id of the `DataSource` that fills this block. Absent: written by hand.',
+      },
+      ...(own.properties as Record<string, JsonSchema>),
+    },
+    required: ['id', 'type', 'hidden', ...(own.required as string[])],
+    additionalProperties: false,
+    description: definition.description,
+  };
 }
 
 /** A replacement `render` that is handed the one it replaces, e.g. for its plain-text lines. */

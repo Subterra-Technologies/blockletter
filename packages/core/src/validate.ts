@@ -70,6 +70,13 @@ export interface ChoiceOptions extends FieldOptions {
   message?: string;
 }
 
+export interface NumberOptions extends FieldOptions {
+  min?: number;
+  max?: number;
+  /** Whole numbers only. */
+  integer?: boolean;
+}
+
 export interface ColorOptions extends FieldOptions {
   /** An empty string means "not set", as in a block's style; otherwise blank is invalid. */
   allowBlank?: boolean;
@@ -184,6 +191,33 @@ export class ObjectValidator {
       `The ${options.label ?? words(key)} setting should be true or false.`,
       key,
     );
+  }
+
+  /** A finite number, whole when `integer`, from `min` to `max`. */
+  number(key: string, options: NumberOptions = {}): this {
+    if (this.skip(key, options)) return this;
+    const value = this.value[key];
+    const label = options.label ?? words(key);
+    if (typeof value !== 'number' || !Number.isFinite(value)) {
+      return this.add('invalid_type', `The ${label} should be a number.`, key);
+    }
+    if (options.integer && !Number.isInteger(value)) {
+      return this.add('invalid_value', `The ${label} should be a whole number.`, key);
+    }
+    const { min, max } = options;
+    if ((min !== undefined && value < min) || (max !== undefined && value > max)) {
+      const message =
+        min !== undefined && max !== undefined
+          ? `The ${label} should be from ${min} to ${max}.`
+          : min !== undefined
+            ? `The ${label} should be ${min} or more.`
+            : `The ${label} should be ${max} or less.`;
+      return this.add('invalid_value', message, key, {
+        ...(min !== undefined ? { min } : {}),
+        ...(max !== undefined ? { max } : {}),
+      });
+    }
+    return this;
   }
 
   /** One of a fixed set of strings. */

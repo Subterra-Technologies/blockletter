@@ -318,78 +318,92 @@ await yourEmailProvider.send({ from, to, subject: issue.subject, html, text });
 
 ### Add your own block
 
-A block is a definition (its fields, defaults, validation and email HTML) plus, for the editor,
-an icon and a form. The built-in blocks are written exactly this way.
+Declare a block's fields once, and say how it looks. Its TypeScript type, its defaults, its
+validation, its JSON Schema and the editor's form all come from the fields.
 
 ```ts
-import { blockValidator, defineBlock, type BlockBase } from '@subterra-technologies/blockletter';
+import { defineBlock, field, type BlockOf } from '@subterra-technologies/blockletter';
 
-interface JobBlock extends BlockBase<'job'> {
-  title: string;
-  location: string;
-  url: string;
-}
-
-export const jobBlock = defineBlock<JobBlock>({
+export const jobBlock = defineBlock({
   type: 'job',
   label: 'Job opening',
   description: 'A role you are hiring for, with an apply button.',
   group: 'content',
-  create: () => ({ title: 'Full stack developer', location: 'Remote', url: '/careers' }),
-  validate: (block, path) =>
-    blockValidator(block, path, 'job').string('title').string('location').string('url').issues,
+  fields: {
+    title: field.text({ default: 'Full stack developer', max: 120 }),
+    location: field.text({ default: 'Remote' }),
+    summary: field.markdown({ help: 'Two or three sentences about the role.' }),
+    url: field.url({ label: 'Apply link', default: '/careers' }),
+  },
   render(block, ctx) {
-    ctx.text(block.title.toUpperCase(), block.location, `Apply: ${ctx.url(block.url)}`, '');
+    const summary = ctx.markdown(block.summary);
+    ctx.text(
+      block.title.toUpperCase(),
+      block.location,
+      ...summary.text,
+      `Apply: ${ctx.url(block.url)}`,
+      '',
+    );
     return ctx.section(
       block,
       ctx.heading(block.title, { size: 20 }) +
-        `<p style="${ctx.bodyStyle()}">${ctx.escape(block.location)}</p>` +
+        `<p style="${ctx.smallStyle()}">${ctx.escape(block.location)}</p>` +
+        summary.html +
         ctx.button('Apply', block.url),
     );
   },
 });
+
+export type JobBlock = BlockOf<typeof jobBlock>; // { id; type: 'job'; …; title: string; … }
 ```
 
+In the editor it needs only an icon. The form is built from the fields, and the canvas draws the
+block's email HTML:
+
 ```tsx
-import {
-  builtInEditorBlocks,
-  defineEditorBlock,
-  EditorFields,
-  TextField,
-} from '@subterra-technologies/blockletter-react';
+import { builtInEditorBlocks, defineEditorBlock } from '@subterra-technologies/blockletter-react';
 import { BriefcaseIcon } from 'lucide-react';
 
-const jobEditorBlock = defineEditorBlock<JobBlock>({
-  ...jobBlock,
-  icon: BriefcaseIcon,
-  Editor: ({ block, onChange, readOnly }) => (
-    <EditorFields readOnly={readOnly}>
-      <TextField
-        label="Title"
-        value={block.title}
-        onChange={(title) => onChange({ ...block, title })}
-      />
-      <TextField
-        label="Location"
-        value={block.location}
-        onChange={(location) => onChange({ ...block, location })}
-      />
-      <TextField
-        label="Apply link"
-        value={block.url}
-        onChange={(url) => onChange({ ...block, url })}
-      />
-    </EditorFields>
-  ),
-});
+const jobEditorBlock = defineEditorBlock({ ...jobBlock, icon: BriefcaseIcon });
 
 <NewsletterEditor definitions={[...builtInEditorBlocks, jobEditorBlock]} /* … */ />;
 // and wherever you render: renderEmail(doc, { definitions: [...builtInBlocks, jobBlock] })
 ```
 
-A block without a canvas drawing of its own is drawn on the canvas from its email HTML. For free
-text with formatting, render it with `ctx.markdown(block.body)` (HTML, and lines for `ctx.text`),
-edit it in a `MarkdownField`, and draw it with `EmailMarkdown`, as the built-in blocks do.
+The field kinds:
+
+| Field              | Stores                             | In the form                                     |
+| ------------------ | ---------------------------------- | ----------------------------------------------- |
+| `field.text()`     | text                               | a text box, or a text area with `multiline`     |
+| `field.markdown()` | text with Markdown in it           | a text area under a formatting toolbar          |
+| `field.html()`     | formatted text as HTML             | the formatted-text box                          |
+| `field.url()`      | a link's address                   | an address box                                  |
+| `field.image()`    | an `ImageRef`, optional            | upload (when the host stores files) and address |
+| `field.color()`    | a hex colour, `''` for the brand's | swatches, a picker and a hex box                |
+| `field.choice()`   | one of the `options`               | radio buttons, or a select past four options    |
+| `field.number()`   | a number, `min` to `max`           | a number box                                    |
+| `field.toggle()`   | `true` or `false`                  | a checkbox                                      |
+| `field.date()`     | `YYYY-MM-DD`                       | a date picker                                   |
+| `field.link()`     | `{ label, url }`                   | two boxes                                       |
+| `field.list()`     | items with fields of their own     | a card per item, with Add, Remove and Move      |
+| `field.custom()`   | any JSON value                     | a control you give it                           |
+
+Each takes a `label` and `help` for the form (and for an AI model reading the schema), a
+`default`, and `optional: true` for a field a block may leave out. Text takes `max` and
+`required`; a list `item`, `min`, `max` and `itemLabel`. When the fields are not enough:
+
+- **A rule across fields:** `validate(check)` runs after the fields' own checks, and soft warnings
+  go in `issues(block)`, as on any definition.
+- **A control of your own:** `fieldEditors: { rating: StarsControl }` on the editor block replaces
+  one field's control (`'speakers.photo'` for a field of each list item), and is how a
+  `field.custom()` gets one. Or give the block a whole `Editor`, and use `FieldInputs` in it for
+  the fields you don't draw yourself.
+- **The JSON Schema:** `blockJsonSchema(jobBlock)` gives the block's schema, shaped like the built-in
+  ones (see [Documents from other languages and LLMs](#documents-from-other-languages-and-llms)).
+
+A block can also be written part by part, as a `BlockDefinition` with its own `create`,
+`validate` (with `blockValidator`, the checks the built-in blocks use) and `render`, plus an
+`Editor` for its form. Most built-in blocks still are.
 
 ### Change a built-in block
 
@@ -596,7 +610,8 @@ where it guides the model rather than binds it (a response format with strict mo
 tool's input schema), and let the checks above catch what it gets wrong.
 
 If your app registers blocks of its own, add a definition for each to the schema's `definitions`
-and list it in `definitions.BuiltInBlock.anyOf`.
+and list it in `definitions.BuiltInBlock.anyOf`. For a block declared with fields,
+`blockJsonSchema(definition)` writes that definition for you.
 
 ## The blocks
 

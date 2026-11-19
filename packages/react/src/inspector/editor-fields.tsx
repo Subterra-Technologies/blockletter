@@ -94,11 +94,12 @@ interface TextFieldProps {
   /** Shown under the field, linked to it, and marks it invalid. */
   error?: string;
   placeholder?: string;
-  type?: 'text' | 'email' | 'url' | 'tel' | 'date';
+  type?: 'text' | 'email' | 'url' | 'tel' | 'date' | 'number';
   maxLength?: number;
   max?: string;
   min?: string;
-  inputMode?: 'text' | 'email' | 'url' | 'tel' | 'numeric';
+  step?: number | string;
+  inputMode?: 'text' | 'email' | 'url' | 'tel' | 'numeric' | 'decimal';
   autoComplete?: string;
   spellCheck?: boolean;
   className?: string;
@@ -120,6 +121,7 @@ export function TextField({
   maxLength,
   max,
   min,
+  step,
   inputMode,
   autoComplete,
   spellCheck,
@@ -145,6 +147,7 @@ export function TextField({
         maxLength={maxLength}
         max={max}
         min={min}
+        step={step}
         inputMode={inputMode}
         autoComplete={autoComplete}
         spellCheck={spellCheck}
