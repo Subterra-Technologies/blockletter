@@ -57,6 +57,8 @@ export interface RenderLabels {
   image: string;
   /** Before the `poweredBy` credit under the card. */
   poweredBy: string;
+  /** The link to `webVersionUrl` above the email. */
+  viewInBrowser: string;
   /** Month names for event-tile dates, January first; AP style ("Sept. 5") by default. */
   months: readonly string[];
   /** Footer social links by network; a `website` link shows its host instead. */
@@ -75,6 +77,7 @@ export const DEFAULT_LABELS: Readonly<RenderLabels> = deepFreeze<RenderLabels>({
   unsubscribe: 'Unsubscribe',
   image: 'Image',
   poweredBy: 'Powered by',
+  viewInBrowser: 'View in your browser',
   months: [...AP_MONTHS],
   facebook: 'Facebook',
   instagram: 'Instagram',
@@ -104,6 +107,12 @@ export interface RenderOptions {
   preferencesUrl?: string;
   /** Footer unsubscribe link. Inserted verbatim (merge tags welcome); warned about when absent. */
   unsubscribeUrl?: string;
+  /**
+   * The email on the web, for a reader whose mail app shows it badly: a small "View in your
+   * browser" link above it, and the first line of the plain text. Inserted verbatim (merge tags
+   * welcome). Default none.
+   */
+  webVersionUrl?: string;
   /** `data-block-id` on each block's row, for an editor's preview. Never for sent mail. */
   annotate?: boolean;
   /**
@@ -489,6 +498,9 @@ export function renderEmail<B extends BlockBase = BuiltInBlock>(
   const { palette } = state;
   if (!options.unsubscribeUrl?.trim()) warn(state, UNSUBSCRIBE);
   state.lines.push(doc.subject, '');
+  if (options.webVersionUrl?.trim()) {
+    state.lines.push(`${state.labels.viewInBrowser}: ${options.webVersionUrl.trim()}`, '');
+  }
   if (doc.preheader.trim()) state.lines.push(doc.preheader, '');
 
   // Exactly one footer, visible and last: it carries the unsubscribe link.
@@ -517,6 +529,11 @@ export function renderEmail<B extends BlockBase = BuiltInBlock>(
   const card = plain
     ? `width:100%;background:${palette.card};`
     : `width:100%;background:${palette.card};border:1px solid ${palette.border};border-radius:10px;overflow:hidden;`;
+  const webVersion = options.webVersionUrl?.trim() ?? '';
+  // Above the card, small and centred, where mail apps put it: read before anything else fails.
+  const above = webVersion
+    ? `<p style="margin:0 0 12px 0;font-family:${state.fonts.body};font-size:11px;line-height:1.5;color:${palette.muted};text-align:center;"><a href="${escapeHtml(webVersion)}" style="color:${palette.muted};text-decoration:underline;">${escapeHtml(state.labels.viewInBrowser)}</a></p>\n`
+    : '';
 
   const html =
     `<!DOCTYPE html>\n` +
@@ -532,6 +549,7 @@ export function renderEmail<B extends BlockBase = BuiltInBlock>(
     // Outlook on Windows, which does not, so it lays the card out exactly as before.
     `<!--[if mso]><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="${WIDTH}" align="center"><tr><td><![endif]-->\n` +
     `<div style="max-width:${WIDTH}px;margin:0 auto;">\n` +
+    above +
     `<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="${card}">\n` +
     sections +
     `\n</table>\n` +

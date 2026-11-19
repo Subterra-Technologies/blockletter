@@ -545,3 +545,42 @@ describe('the header’s logo', () => {
     }
   });
 });
+
+describe('the view-in-browser link', () => {
+  const email = (options: RenderOptions = {}) =>
+    renderEmail(createDocument({ subject: 'Moved', blocks: [block('text', 'b1')] }), {
+      unsubscribeUrl: 'https://example.test/u',
+      ...options,
+    });
+
+  it('is not there unless the host gives an address', () => {
+    const { html, text } = email();
+    expect(html).not.toContain('View in your browser');
+    expect(text).not.toContain('View in your browser');
+  });
+
+  it('sits above the card, inserted verbatim so a merge tag works, and opens the text', () => {
+    const { html, text } = email({ webVersionUrl: '{{{web_version_url}}}' });
+    const link = html.indexOf('<a href="{{{web_version_url}}}"');
+    expect(link).toBeGreaterThan(-1);
+    expect(link).toBeLessThan(
+      html.indexOf(
+        '<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="width:100%;background:',
+      ),
+    );
+    expect(html).toContain('>View in your browser</a>');
+    expect(text.split('\n').slice(0, 3)).toEqual([
+      'Moved',
+      '',
+      'View in your browser: {{{web_version_url}}}',
+    ]);
+  });
+
+  it('speaks the host’s language', () => {
+    const { html } = email({
+      webVersionUrl: 'https://example.test/w/1',
+      labels: { viewInBrowser: 'Im Browser ansehen' },
+    });
+    expect(html).toContain('>Im Browser ansehen</a>');
+  });
+});

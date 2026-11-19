@@ -112,6 +112,7 @@ interface RenderOptions {
   resolveImageUrl?: (image: ImageRef) => string | undefined;
   preferencesUrl?: string;                // footer link; inserted verbatim (merge tags allowed)
   unsubscribeUrl?: string;                // footer link; inserted verbatim (merge tags allowed)
+  webVersionUrl?: string;                 // "View in your browser" above; verbatim, merge tags ok
   annotate?: boolean;                     // data-block-id on each block, for previews; default false
   frame?: 'card' | 'plain';               // bordered card (default), or none: edge to edge
   poweredBy?: { label: string; url: string }; // credit under the card; default none
