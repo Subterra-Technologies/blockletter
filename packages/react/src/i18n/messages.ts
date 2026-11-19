@@ -441,6 +441,26 @@ export interface EditorMessages {
     missing_callout_link: string;
   };
 
+  /**
+   * The form the editor builds for a block declared with fields (see `defineBlock`). Each field's
+   * label and help are the host's, from its definition; these are the words around them.
+   */
+  fieldForms: {
+    /** A field the block may leave out: "Closing date (optional)". */
+    optional: Phrase<[label: string]>;
+    /** A link field's two boxes. */
+    linkLabel: string;
+    linkUrl: string;
+    /** One list item, when the field names none ("item" in "Item 2"). */
+    item: string;
+    /** A list's Add button: "Add speaker". */
+    add: Phrase<[item: string]>;
+    /** Why Add is disabled once a list is full. */
+    full: Phrase<[max: number]>;
+    /** In place of a field of the host's own kind that has no control in the form. */
+    noControl: Phrase<[label: string]>;
+  };
+
   /** A list of items in a block's form; `item` is the list's own word for one ("event"). */
   lists: {
     /** A row's name: "Event 2". */

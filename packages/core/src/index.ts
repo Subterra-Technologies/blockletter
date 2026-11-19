@@ -4,15 +4,48 @@ export * from './types';
 // Block definitions (the plugin API)
 export {
   BLOCK_GROUPS,
+  blockJsonSchema,
   defineBlock,
   overrideBlock,
+  type BlockOf,
   type BlockOverrides,
   type OverrideRender,
   type BlockDefinition,
   type BlockGroup,
+  type FieldBlock,
+  type FieldBlockSpec,
   type RenderContext,
   type SectionOptions,
 } from './definition';
+
+// Field schemas: a block's fields declared once
+export {
+  RESERVED_FIELD_KEYS,
+  createFields,
+  field,
+  fieldLabel,
+  fieldsJsonSchema,
+  validateFields,
+  type ChoiceFieldSpec,
+  type ColorFieldSpec,
+  type CustomFieldSpec,
+  type DateFieldSpec,
+  type FieldChoice,
+  type FieldKind,
+  type FieldMap,
+  type FieldSpec,
+  type FieldValues,
+  type HtmlFieldSpec,
+  type ImageFieldSpec,
+  type JsonSchema,
+  type LinkFieldSpec,
+  type ListFieldSpec,
+  type MarkdownFieldSpec,
+  type NumberFieldSpec,
+  type TextFieldSpec,
+  type ToggleFieldSpec,
+  type UrlFieldSpec,
+} from './fields';
 export {
   builtInBlocks,
   articleBlock,
@@ -82,6 +115,7 @@ export {
   type FieldOptions,
   type ImageProblem,
   type ListOptions,
+  type NumberOptions,
   type TextOptions,
   type ValidatorOptions,
 } from './validate';

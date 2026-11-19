@@ -62,11 +62,14 @@ interface BlockDefinition<B extends BlockBase = BlockBase> {
   summary?(block: B): string;
   /** Email HTML: one or more `<tr>` rows (use `ctx.section`). Return '' to omit. */
   render(block: B, ctx: RenderContext): string;
+  /** Present when the block was declared with fields (below). */
+  readonly fields?: FieldMap;
 }
 
 builtInBlocks: readonly BlockDefinition[];          // all 21, in palette order (frozen)
 headerBlock, letterBlock, … statsBlock;              // each built-in definition by name
 defineBlock<B extends BlockBase>(definition: BlockDefinition<B>): BlockDefinition<B>;
+defineBlock({ type, label, description, group, fields, render, validate?, issues?, summary? });
 overrideBlock(definition, { render?(block, ctx, base), …parts }): BlockDefinition; // same type
 // Validation helpers for host blocks, the same ones the built-ins use
 validateObject(input, path, options): ObjectValidator; blockValidator(type, build);
@@ -74,6 +77,31 @@ getDefinition(type: string, definitions?): BlockDefinition | undefined;
 BLOCK_GROUPS: readonly { id: BlockGroup; label: string }[];
 paletteGroups(definitions?): { id; label; items: BlockDefinition[] }[];
 ```
+
+### Field schemas
+
+A block declared with `fields` gets everything but its look from them. `field.text`, `markdown`,
+`html`, `url`, `image`, `color`, `choice`, `number`, `toggle`, `date`, `link`, `list` and `custom`
+each return a plain-data schema (a custom field's own checks are the one function), typed with
+the value a block stores, so `BlockOf<typeof jobBlock>` is the block's type with no interface
+written by hand. From the same map:
+
+```ts
+createFields(fields): FieldValues<M>;        // create(): each default (copied), or the kind's blank
+validateFields(check, fields): ObjectValidator; // validate(): ObjectValidator checks per field
+fieldsJsonSchema(fields): JsonSchema;          // draft-07, shaped like schema/*.json
+blockJsonSchema(definition): JsonSchema | undefined; // with id, type, hidden, style and source
+fieldLabel(key, field): string;                // its label, or "ctaUrl" → "Cta url"
+```
+
+A field's `label` names it in the form and, lower-cased, in messages ("Add the apply link.").
+`id`, `type`, `hidden`, `style` and `source` are refused as keys, as is anything but letters,
+digits and `_`, when the block is defined. The definition's `validate(check)` runs after the
+fields' checks, on the same `ObjectValidator`, for a rule that spans fields.
+
+The callout is the first built-in declared this way. `CalloutBlock` in `types.ts` stays the type
+the committed JSON Schemas are generated from; a test holds the two to the same shape, and
+`blockJsonSchema(calloutBlock)` to the generated schema's.
 
 ### Blocks and documents
 
@@ -344,6 +372,12 @@ its rich-text field: a plain body moves into it through `markdownToHtml`, so its
 survives the first edit.
 
 Editor block definitions extend core ones with UI: `{ ...coreDefinition, icon, Editor, Canvas? }`.
+For a block declared with fields, `defineEditorBlock({ ...coreDefinition, icon })` builds the
+`Editor` from them (`createFieldsEditor(fields, fieldEditors)`): a labelled control per field in
+declaration order, an optional field dropped from the block when cleared, a list as `ItemList`
+cards. `fieldEditors` replaces a field's control by key (`speakers.photo` inside a list), and a
+`field.custom()` has none until given one. `FieldInputs` draws the controls for a set of fields
+inside a host's own form.
 `overrideEditorBlock(definition, overrides)` replaces parts of one; a new `render` without a new
 `Canvas` drops the built-in drawing, so the canvas shows the new email HTML.
 A custom block with no `Canvas` is drawn on the canvas from its email HTML.

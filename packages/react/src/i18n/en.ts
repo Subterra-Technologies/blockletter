@@ -470,6 +470,17 @@ export const enMessages: EditorMessages = frozen<EditorMessages>({
     missing_callout_link: 'Add a link so the button appears.',
   },
 
+  fieldForms: {
+    optional: (label) => `${label} (optional)`,
+    linkLabel: 'Label',
+    linkUrl: 'Link',
+    item: 'item',
+    add: (item) => `Add ${item}`,
+    full: (max, { number }) => `This list holds up to ${number(max)}.`,
+    noControl: (label) =>
+      `“${label}” can’t be changed here, because the editor has no control for it. It is kept as it is.`,
+  },
+
   lists: {
     row: (item, position, { number }) => `${capitalized(item)} ${number(position)}`,
     remove: (item, position, { number }) => `Remove ${item} ${number(position)}`,

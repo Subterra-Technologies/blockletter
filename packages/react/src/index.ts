@@ -49,7 +49,16 @@ export type {
   BlockEditorProps,
   BlockIcon,
   EditorBlockDefinition,
+  FieldEditorBlockInput,
 } from './editor/types';
+export {
+  FieldInputs,
+  createFieldsEditor,
+  type FieldEditor,
+  type FieldEditorProps,
+  type FieldEditors,
+  type FieldInputsProps,
+} from './inspector/fields-form';
 export { BUILT_IN_CANVASES, type BuiltInCanvases } from './canvas/blocks';
 export { BUILT_IN_EDITORS, type BuiltInEditors } from './inspector/editors';
 export { BUILT_IN_ICONS } from './palette/block-icons';
